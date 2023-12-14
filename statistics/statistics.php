@@ -36,15 +36,12 @@ function statistics_well_known(&$b) {
 				'href' => z_root() . '/nodeinfo/2.0'
 			],
 			[
-				'rel' => 'http://nodeinfo.diaspora.software/ns/schema/1.0',
-				'href' => z_root() . '/nodeinfo/1.0'
+				'rel' => 'http://nodeinfo.diaspora.software/ns/schema/2.1',
+				'href' => z_root() . '/nodeinfo/2.1'
 			],
-
 		]];
 
-		header('Content-type: application/json');
-		echo json_encode($arr);
-		killme();
+		json_return_and_die($arr);
 	}
 }
 
