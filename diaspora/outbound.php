@@ -384,7 +384,8 @@ function diaspora_is_repeat($item) {
 	}
 
 	$r = q("select * from item where mid = '%s' and uid = %d and item_private = 0 limit 1",
-		dbesc($item['parent_mid'])
+		dbesc($item['parent_mid']),
+		intval($item['uid'])
 	);
 
 	if(! $r) {
