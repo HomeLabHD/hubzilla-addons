@@ -59,9 +59,9 @@ function openstreetmap_location(&$item) {
 	if(! $tmsserver)
 		$tmsserver = 'https://www.openstreetmap.org';
 
-	$nomserver = get_config('openstreetmap', 'nomserver', 'https://nominatim.openstreetmap.org/search.php');
+	$nomserver = get_config('openstreetmap', 'nomserver', 'https://nominatim.openstreetmap.org/search');
 	if(! $nomserver)
-		$nomserver = 'https://nominatim.openstreetmap.org/search.php';
+		$nomserver = 'https://nominatim.openstreetmap.org/search';
 
 	$zoom = get_config('openstreetmap', 'zoom', 16);
 	$marker = get_config('openstreetmap', 'marker', 1);
@@ -95,9 +95,9 @@ function openstreetmap_location(&$item) {
 
 
 function openstreetmap_generate_named_map(&$b) {
-	$nomserver = get_config('openstreetmap', 'nomserver', 'https://nominatim.openstreetmap.org/search.php');
+	$nomserver = get_config('openstreetmap', 'nomserver', 'https://nominatim.openstreetmap.org/search');
 	if(! $nomserver)
-		$nomserver = 'https://nominatim.openstreetmap.org/search.php';
+		$nomserver = 'https://nominatim.openstreetmap.org/search';
 
 	$args = '?q=' . urlencode($b['location']) . '&format=json';
 
@@ -144,9 +144,9 @@ function openstreetmap_plugin_admin() {
 	if(! $tmsserver)
 		$tmsserver = 'https://www.openstreetmap.org';
 
-	$nomserver = get_config('openstreetmap', 'nomserver', 'https://nominatim.openstreetmap.org/search.php');
+	$nomserver = get_config('openstreetmap', 'nomserver', 'https://nominatim.openstreetmap.org/search');
 	if(! $nomserver)
-		$nomserver = 'https://nominatim.openstreetmap.org/search.php';
+		$nomserver = 'https://nominatim.openstreetmap.org/search';
 
 	$zoom = get_config('openstreetmap', 'zoom', 16);
 	$marker = get_config('openstreetmap', 'marker', 1);
