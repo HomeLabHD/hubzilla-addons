@@ -7,7 +7,7 @@ function nodeinfo_content() {
 	// We have to lie and say we're redmatrix because the schema was defined a bit too rigidly
 
 	if(argc() < 2 || !in_array(argv(1), ['2.0', '2.1'])) {
-		return EMPTY_STRING;
+		return EMPTY_STR;
 	}
 
 	$hidden = get_config('diaspora','hide_in_statistics');
