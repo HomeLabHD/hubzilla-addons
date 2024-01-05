@@ -13,7 +13,7 @@ function load(){}
 function unload(){}
 function donate_module(){}
 
-function donate_content(&$a) {
+function donate_content() {
 
 /* Format - array( display name, paypal id, description of services or skills you provide to the matrix) */
 
