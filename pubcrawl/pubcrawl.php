@@ -16,6 +16,7 @@ use Zotlabs\Extend\Route;
 use Zotlabs\Lib\ActivityStreams;
 use Zotlabs\Lib\Crypto;
 use Zotlabs\Lib\LDSignatures;
+use Zotlabs\Lib\Multibase;
 use Zotlabs\Lib\Libzot;
 use Zotlabs\Module\Ap_probe;
 use Zotlabs\Module\Followers;
@@ -137,6 +138,14 @@ function pubcrawl_encode_person(&$arr) {
 		$arr['encoded']['following']    = z_root() . '/following/' . $arr['xchan']['channel_address'];
 		$arr['encoded']['endpoints']    = ['sharedInbox' => z_root() . '/inbox'];
 		$arr['encoded']['discoverable'] = ((1 - intval($arr['xchan']['xchan_hidden'])) ? true : false);
+
+		$ed25519publicKey = (new Multibase())->publicKey($arr['xchan']['channel_epubkey']);
+		$arr['encoded']['assertionMethod'][] = [
+			'id' => channel_url($arr['xchan']) . '#' . $ed25519publicKey,
+			'type' => 'Multikey',
+			'controller' => channel_url($arr['xchan']),
+			'publicKeyMultibase' => $ed25519publicKey,
+		];
 
 		// map other nomadic identities linked with this channel
 		$locations = [];
