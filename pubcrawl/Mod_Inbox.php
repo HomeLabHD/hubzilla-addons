@@ -74,6 +74,8 @@ class Inbox extends Controller {
 
 		logger('inbox_activity: ' . jindent($data), LOGGER_DATA);
 
+		// TODO: FEP-8b32 valid object signatures should take priority over HTTP-Signatures.
+
 		$hsig = HTTPSig::verify($data);
 
 		// By convention, fediverse server-to-server communications require a valid HTTP Signature
