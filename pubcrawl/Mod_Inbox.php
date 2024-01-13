@@ -75,6 +75,8 @@ class Inbox extends Controller {
 		logger('inbox_activity: ' . jindent($data), LOGGER_DATA);
 
 		// TODO: FEP-8b32 valid object signatures should take priority over HTTP-Signatures.
+		// $AS->sigok will currently not tell us if the signature ldsig or edsig. We could return
+		// 1 if ldsig and 2 if edsig instead of boolean.
 
 		$hsig = HTTPSig::verify($data);
 
