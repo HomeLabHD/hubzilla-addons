@@ -108,7 +108,11 @@ function gallery_prepare_body(&$arr) {
 
 	$dom = new DOMDocument();
 
-	$arr['html'] = mb_convert_encoding($arr['html'], 'HTML-ENTITIES', "UTF-8");
+	// mb_convert_encoding() is deprecated
+	//$arr['html'] = mb_convert_encoding($arr['html'], 'HTML-ENTITIES', "UTF-8");
+
+	$arr['html'] = mb_encode_numericentity($arr['html'], [0x80, 0x10FFFF, 0, ~0], 'UTF-8');
+
 
 	// LIBXML_HTML_NOIMPLIED does not work well without a parent element.
 	// We will add a parent div here and will remove it again later.
