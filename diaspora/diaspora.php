@@ -537,6 +537,10 @@ function diaspora_process_outbound(&$arr) {
 		if(strpos($arr['target_item']['postopts'],'nodspr') !== false) {
 			return;
 		}
+
+		if($arr['target_item']['verb'] === 'Announce') {
+			return;
+		}
 	}
 
 	$allowed = Apps::addon_app_installed($arr['channel']['channel_id'], 'diaspora');
