@@ -338,7 +338,6 @@ function pubcrawl_post_local(&$x) {
 	$channel = channelx_by_n($item[0]['uid']);
 
 	$jmsg = Activity::build_packet(Activity::encode_activity($item[0]), $channel);
-
 	set_iconfig($x, 'activitypub', 'rawmsg', $jmsg, true);
 }
 

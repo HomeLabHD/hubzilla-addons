@@ -188,10 +188,11 @@ class Inbox extends Controller {
 			}
 
 			if ($v) {
-				// The sender has been validated and stored
-				$observer_hash = $hsig['portable_id'];
+				App::set_observer($v[0]);
 			}
 		}
+
+		$observer_hash = get_observer_hash();
 
 		if (!$observer_hash) {
 			return;
