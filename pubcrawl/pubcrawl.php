@@ -1412,6 +1412,7 @@ function pubcrawl_encode_addressing($arr) {
 	$arr['encoded']['to'] = [];
 	$arr['encoded']['cc'] = [];
 	$parent_i = [];
+	$recips = [];
 	$top_level = ($arr['item']['mid'] === $arr['item']['parent_mid']);
 
 	if (!$top_level) {
