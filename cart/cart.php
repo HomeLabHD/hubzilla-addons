@@ -1227,9 +1227,8 @@ function cart_delsysconfig($param) {
 }
 
 function cart_getcartconfig($param) {
-	$id         = (isset(\App::$profile["profile_uid"]) && \App::$profile["profile_uid"] != null) ? \App::$profile["profile_uid"] : Cart::$seller["channel_id"];
-	$id         = ($id) ? $id : local_channel();
-	$cartconfig = cart_maybeunjson(get_pconfig($id, "cart", $param));
+	$id         = App::$profile['profile_uid'] ?? Cart::$seller['channel_id'] ?? local_channel();
+	$cartconfig = cart_maybeunjson(get_pconfig($id, 'cart', $param));
 	return $cartconfig;
 }
 
@@ -1562,7 +1561,7 @@ function cart_mod_content(&$arr) {
 	}
 
 	// TODO: $a is not defined
-	$arr['content'] = cart_pagecontent($a);
+	$arr['content'] = cart_pagecontent();
 
 	$aside = '';
 	call_hooks('cart_aside_filter', $aside);
@@ -1588,7 +1587,7 @@ function cart_do_display($order) {
 	return ($order["content"]);
 }
 
-function cart_pagecontent($a = null) {
+function cart_pagecontent() {
 
 	if (observer_prohibited(true)) {
 		return login();
