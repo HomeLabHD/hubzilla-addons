@@ -13,6 +13,7 @@ use Zotlabs\Lib\Apps;
 use Zotlabs\Web\Controller;
 use Zotlabs\Lib\Config;
 use Zotlabs\Lib\PConfig;
+use Zotlabs\Daemon\Master;
 
 class Inbox extends Controller {
 
@@ -222,7 +223,6 @@ class Inbox extends Controller {
 			dbesc($observer_hash)
 		);
 
-
 		// Now figure out who the recipients are
 
 		if ($AS->parent_id && $AS->parent_id !== $AS->objprop('id')) {
@@ -343,10 +343,7 @@ class Inbox extends Controller {
 				}
 
 				if (!$sys_disabled) {
-					$r = dbq("select * from channel where channel_system = 1");
-					if ($r) {
-						$channels[] = $r[0];
-					}
+					$channels[] = get_sys_channel();
 				}
 			}
 		}
@@ -524,6 +521,20 @@ class Inbox extends Controller {
 			if ($item) {
 				logger('parsed_item: ' . print_r($item, true), LOGGER_DATA);
 				Activity::store($channel, $observer_hash, $AS, $item);
+			}
+		}
+
+		if (isset(App::$cache['fetch_objects'])) {
+			$channels_str = '';
+			foreach (App::$cache['fetch_objects'] as $mid => $info) {
+				$force = $info['force'];
+				foreach ($info['channels'] as $c) {
+					if ($channels_str)
+						$channels_str .= ',';
+
+					$channels_str .= $c;
+				}
+				Master::Summon(['Fetchparents', $channels_str, $observer_hash, $mid, $force]);
 			}
 		}
 
