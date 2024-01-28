@@ -172,7 +172,7 @@ class Inbox extends Controller {
 
 			// fetch the portable_id for the actor, which may or may not be the sender
 
-			$v = Activity::get_actor_hublocs($announce_actor ?? $AS->actor['id'], 'activitypub,not_deleted');
+			$v = Activity::get_actor_hublocs($announce_actor ?? $AS->actor['id'], 'activitypub');
 
 			if ($v && $v[0]['hubloc_hash'] !== $hsig['portable_id']) {
 				// The sender is not actually the activity actor, so verify the LD signature.
