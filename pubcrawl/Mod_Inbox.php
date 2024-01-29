@@ -524,19 +524,7 @@ class Inbox extends Controller {
 			}
 		}
 
-		if (isset(App::$cache['fetch_objects'])) {
-			$channels_str = '';
-			foreach (App::$cache['fetch_objects'] as $mid => $info) {
-				$force = $info['force'];
-				foreach ($info['channels'] as $c) {
-					if ($channels_str)
-						$channels_str .= ',';
-
-					$channels_str .= $c;
-				}
-				Master::Summon(['Fetchparents', $channels_str, $observer_hash, $mid, $force]);
-			}
-		}
+		Activity::init_background_fetch($observer_hash);
 
 		http_status_exit(200, 'OK');
 	}
