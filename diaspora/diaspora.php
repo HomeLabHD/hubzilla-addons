@@ -261,7 +261,7 @@ function diaspora_fetch_provider($arr) {
 		}
 	}
 
-	goaway(z_root() . '/hq/' . gen_link_id(z_root() . '/item/' . $return_guid));
+	goaway(z_root() . '/hq/' . $return_guid);
 
 }
 

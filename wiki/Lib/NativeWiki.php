@@ -60,7 +60,7 @@ class NativeWiki {
 		$arr['owner_xchan'] = $channel['channel_hash'];
 		$arr['author_xchan'] = $observer_hash;
 		$arr['plink'] = $mid;
-		$arr['llink'] = z_root() . '/display/' . gen_link_id($mid);
+		$arr['llink'] = z_root() . '/display/' . $uuid;
 		$arr['title'] = $wiki['htmlName'];  // name of new wiki;
 		$arr['allow_cid'] = $ac['allow_cid'];
 		$arr['allow_gid'] = $ac['allow_gid'];

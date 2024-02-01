@@ -107,7 +107,7 @@ function pubcrawl_fetch_provider($arr) {
 		$item['item_fetched'] = true;
 		if ($item) {
 			Activity::store($channel, get_observer_hash(), $AS, $item, true, true);
-			goaway(z_root() . '/hq/' . gen_link_id($item['mid']));
+			goaway(z_root() . '/hq/' . $item['uuid']);
 		}
 	}
 
@@ -448,7 +448,7 @@ function pubcrawl_discover_channel_webfinger(&$b) {
 		if ($item) {
 			$item['item_fetched'] = true;
 			Activity::store(App::get_channel(), get_observer_hash(), $AS, $item, true, true);
-			goaway(z_root() . '/hq/' . gen_link_id($item['mid']));
+			goaway(z_root() . '/hq/' . $item['uuid']);
 		}
 	}
 	else {

@@ -84,7 +84,7 @@ class NativeWikiPage {
 		$arr['uuid']            = $uuid;
 		$arr['item_hidden']     = $w['wiki']['item_hidden'];
 		$arr['plink']           = $mid;
-		$arr['llink']           = z_root() . '/display/' . gen_link_id($mid);
+		$arr['llink']           = z_root() . '/display/' . $uuid;
 		$arr['author_xchan']    = $observer_hash;
 		$arr['mimetype']        = $mimetype;
 		$arr['title']           = $name;
