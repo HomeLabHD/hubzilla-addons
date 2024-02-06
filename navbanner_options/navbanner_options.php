@@ -2,7 +2,7 @@
 /**
  * Name: NavBanner Options
  * Description: Add some more options to the banner of your Hub.
- * Version: 1.2  
+ * Version: 1.3
  * Author: Dale Hitchenor <dale@hitchenor.com>
  * Maintainer: none
  */
@@ -14,7 +14,7 @@ function navbanner_options_load() {
     Hook::register('get_banner', 'addon/navbanner_options/navbanner_options.php', 'navbanner_options_main');
     logger("loaded navbanner_options");
 }
- 
+
 function navbanner_options_unload() {
     Hook::unregister('get_banner', 'addon/navbanner_options/navbanner_options.php', 'navbanner_options_main');
     logger("unloaded navbanner_options");
@@ -22,20 +22,20 @@ function navbanner_options_unload() {
 
 
 function navbanner_options_main(&$banner) {
-    
-    $accountid = \App::$account['account_id'];
-    $hostname = \App::get_hostname();
-    
-    $sitename = \App::$config['system']['sitename'];
-    $channelname = \App::$channel['channel_name'];
-    $channeladdr = \App::$channel['channel_address'];
-    $fullname = \App::$observer['xchan_name'];
-    $accountemail = \App::$account['account_email'];
-    $serviceclass = \App::$account['account_service_class'];
-    $accountlevel = \App::$account['account_level'];
-    
 
-    if ($_SESSION['authenticated'] != 1) {
+    $accountid = \App::$account['account_id'] ?? '';
+    $hostname = \App::get_hostname() ?? '';
+
+    $sitename = \App::$config['system']['sitename'] ?? '';
+    $channelname = \App::$channel['channel_name'] ?? '';
+    $channeladdr = \App::$channel['channel_address'] ?? '';
+    $fullname = \App::$observer['xchan_name'] ?? '';
+    $accountemail = \App::$account['account_email'] ?? '';
+    $serviceclass = \App::$account['account_service_class'] ?? '';
+    $accountlevel = \App::$account['account_level'] ?? '';
+
+
+    if (($_SESSION['authenticated'] ?? 0) != 1) {
         $banner = $sitename;
     } else {
         $oldbanner = get_config('system','banner');
@@ -59,7 +59,7 @@ function navbanner_options_main(&$banner) {
         $new[6] = $accountid;
         $new[7] = $serviceclass;
         $new[8] = $accountlevel;
-        
+
     ksort($old);
     ksort($new);
     $banner = preg_replace($old, $new, $oldbanner);
