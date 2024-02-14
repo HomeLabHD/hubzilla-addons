@@ -422,7 +422,7 @@ class Inbox extends Controller {
 				case 'Update':
 					if (ActivityStreams::is_an_actor($AS->objprop('type'))) {
 						Activity::actor_store($AS->obj, true /* force cache refresh */);
-						break;
+						break 2;
 					}
 					if ($AS->objprop('type') === 'OrderedCollection') {
 						// gup.pe sends updates for followers list but we do not handle those
