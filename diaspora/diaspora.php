@@ -40,7 +40,7 @@ function diaspora_load() {
 		'notifier_process'            => 'diaspora_notifier_process',
 		'federated_transports'        => 'diaspora_federated_transports',
 		'permissions_create'          => 'diaspora_permissions_create',
-		'permissions_update'          => 'diaspora_permissions_update',
+		'actor_refetch'               => 'diaspora_actor_refetch',
 		'module_loaded'               => 'diaspora_load_module',
 		'follow_allow'                => 'diaspora_follow_allow',
 		'post_local'                  => 'diaspora_post_local',
@@ -404,11 +404,20 @@ function diaspora_connection_remove(&$b) {
 
 }
 
-function diaspora_permissions_update(&$b) {
-	if($b['recipient']['xchan_network'] === 'diaspora' || $b['recipient']['xchan_network'] === 'friendica-over-diaspora') {
-		discover_by_webbie($b['recipient']['xchan_hash']);
-		$b['success'] = 1;
+function diaspora_actor_refetch(&$arr) {
+	if (!in_array($arr['contact']['xchan_network'], ['diaspora', 'friendica-over-diaspora'])) {
+		return;
 	}
+
+	$x = discover_by_webbie($arr['contact']['xchan_addr'], 'diaspora');
+
+	if (!$x) {
+		$arr['message'] = t('Refresh failed');
+		return;
+	}
+
+	$arr['success'] = true;
+	$arr['message'] = t('Refresh succeeded');
 }
 
 function diaspora_notifier_process(&$arr) {

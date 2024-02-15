@@ -32,6 +32,7 @@ function pubcrawl_load() {
 	Hook::register_array('addon/pubcrawl/pubcrawl.php', [
 		'module_loaded'              => 'pubcrawl_load_module',
 		'webfinger'                  => 'pubcrawl_webfinger',
+		'actor_refetch'              => 'pubcrawl_actor_refetch',
 	//	'follow_mod_init'            => 'pubcrawl_follow_mod_init',
 	//	'thing_mod_init'             => 'pubcrawl_thing_mod_init',
 	//	'locs_mod_init'              => 'pubcrawl_locs_mod_init',
@@ -631,10 +632,11 @@ function pubcrawl_notifier_process(&$arr) {
 	if (!Apps::addon_app_installed($arr['channel']['channel_id'], 'pubcrawl'))
 		return;
 
-	// If the parent is an announce activity, add the author to the recipients
+	// If the parent is an announce activity, add its announcer to the recipients
+	// Since HZ version 9 this is stored in source, earlier in owner
 	if ($arr['parent_item']['verb'] === ACTIVITY_SHARE) {
-		$arr['env_recips'][] = $arr['parent_item']['owner']['xchan_hash'];
-		$arr['recipients'][] = '\'' . $arr['parent_item']['owner']['xchan_hash'] . '\'';
+		$arr['env_recips'][] = $arr['parent_item']['source']['xchan_hash'] ?? $arr['parent_item']['owner']['xchan_hash'];
+		$arr['recipients'][] = '\'' . $arr['parent_item']['source']['xchan_hash'] ?? $arr['parent_item']['owner']['xchan_hash'] . '\'';
 	}
 
 	// If we commented a comment we should also deliver to the thread_parent author
@@ -1047,17 +1049,23 @@ function pubcrawl_permissions_create(&$x) {
 
 }
 
-function pubcrawl_permissions_update(&$x) {
-
-	if ($x['recipient']['xchan_network'] === 'activitypub') {
-		q("update xchan set xchan_name_date = '%s' where xchan_hash = '%s' and xchan_network = '%s'",
-			dbescdate(NULL_DATE),
-			dbesc($x['recipient']['xchan_hash']),
-			dbesc('activitypub')
-		);
-		discover_by_webbie($x['recipient']['xchan_hash'], 'activitypub');
-		$x['success'] = 1;
+function pubcrawl_actor_refetch(&$arr) {
+	if ($arr['contact']['xchan_network'] !== 'activitypub') {
+		return;
 	}
+
+	$channel = channelx_by_n($arr['contact']['abook_channel']);
+	$actor = Activity::fetch($arr['contact']['xchan_hash'], $channel);
+
+	if (!$actor) {
+		$arr['message'] = t('Refresh failed');
+		return;
+	}
+
+	Activity::actor_store($actor, true);
+
+	$arr['success'] = true;
+	$arr['message'] = t('Refresh succeeded');
 }
 
 function pubcrawl_permissions_accept(&$x) {
