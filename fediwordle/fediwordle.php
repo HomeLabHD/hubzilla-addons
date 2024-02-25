@@ -77,7 +77,7 @@ function fediwordle_notifier_process($arr) {
 		return;
 	}
 
-	if ($item['verb'] !== ACTIVITY_POST)
+	if (!in_array($item['verb'], ['Create', ACTIVITY_POST]))
 		return;
 
 	// it's a toplevel post - dismiss

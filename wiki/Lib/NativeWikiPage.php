@@ -98,7 +98,7 @@ class NativeWikiPage {
 		$arr['item_wall']       = 1;
 		$arr['item_origin']     = 1;
 		$arr['item_thread_top'] = 1;
-		$arr['verb']            = ACTIVITY_CREATE;
+		$arr['verb']            = 'Create';
 		$arr['obj_type']        = 'Document';
 		// TODO: add an object?
 		$arr['public_policy'] = map_scope(PermissionLimits::Get($channel['channel_id'], 'view_wiki'), true);

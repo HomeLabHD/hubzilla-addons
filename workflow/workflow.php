@@ -185,7 +185,7 @@ class Workflow_Utils {
 
 		if (!Apps::addon_app_installed($uid,'workflow')) {
 			if ($arr['obj_type'] == WORKFLOW_ACTIVITY_OBJ_TYPE) {
-				$arrinfo['obj_type'] = ACTIVITY_OBJ_NOTE;
+				$arrinfo['obj_type'] = 'Note';
 				$arrinfo['item_type'] = ITEM_TYPE_POST;
 			}
 			return;

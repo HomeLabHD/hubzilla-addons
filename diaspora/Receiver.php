@@ -434,7 +434,7 @@ class Diaspora_Receiver {
 
 		$datarray['aid']  = $this->importer['channel_account_id'];
 		$datarray['uid']  = $this->importer['channel_id'];
-		$datarray['verb'] = ACTIVITY_POST;
+		$datarray['verb'] = 'Create';
 		$datarray['mid']  = $datarray['parent_mid'] = z_root() . '/item/' . $guid;
 		$datarray['uuid'] = $guid;
 
@@ -998,7 +998,7 @@ class Diaspora_Receiver {
 
 		$datarray['aid']        = $this->importer['channel_account_id'];
 		$datarray['uid']        = $this->importer['channel_id'];
-		$datarray['verb']       = ACTIVITY_POST;
+		$datarray['verb']       = 'Create';
 		$datarray['mid']        = z_root() . '/item/' . $guid;
 		$datarray['uuid']       = $guid;
 		$datarray['parent_mid'] = $parent_item['mid'];
@@ -1228,7 +1228,7 @@ class Diaspora_Receiver {
 
 		$datarray['aid']             = $this->importer['channel_account_id'];
 		$datarray['uid']             = $this->importer['channel_id'];
-		$datarray['verb']            = ACTIVITY_POST;
+		$datarray['verb']            = 'Create';
 		$datarray['mid']             = z_root() . '/item/' . $guid;
 		$datarray['parent_mid']      = z_root() . '/item/' . $guid;
 		$datarray['uuid']            = $guid;
@@ -1373,7 +1373,7 @@ class Diaspora_Receiver {
 
 		$datarray['aid']          = $this->importer['channel_account_id'];
 		$datarray['uid']          = $this->importer['channel_id'];
-		$datarray['verb']         = ACTIVITY_POST;
+		$datarray['verb']         = 'Create';
 		$datarray['mid']          = z_root() . '/item/' . $msg_guid;
 		$datarray['uuid']         = $msg_guid;
 		$datarray['parent_mid']   = $parent_item['mid'];
@@ -1624,11 +1624,11 @@ class Diaspora_Receiver {
 		// It looks like "RelayableRetractions" are used for "unlike" instead
 
 		if ($positive === 'true') {
-			$activity = ACTIVITY_LIKE;
+			$activity = 'Like';
 			$bodyverb = t('%1$s likes %2$s\'s %3$s');
 		}
 		else {
-			$activity = ACTIVITY_DISLIKE;
+			$activity = 'Dislike';
 			$bodyverb = t('%1$s dislikes %2$s\'s %3$s');
 		}
 
@@ -1692,7 +1692,7 @@ class Diaspora_Receiver {
 
 		$post_type = (($parent_item['resource_type'] === 'photo') ? t('photo') : t('status'));
 		$links     = [['rel' => 'alternate', 'type' => 'text/html', 'href' => $parent_item['plink']]];
-		$objtype   = (($parent_item['resource_type'] === 'photo') ? ACTIVITY_OBJ_PHOTO : ACTIVITY_OBJ_NOTE);
+		$objtype   = (($parent_item['resource_type'] === 'photo') ? 'Image' : 'Note');
 		$object    = \Zotlabs\Lib\Activity::fetch_item(['id' => $parent_item['mid']]);
 
 		$arr['uid']        = $this->importer['channel_id'];
@@ -2070,14 +2070,14 @@ class Diaspora_Receiver {
 
 		switch ($status) {
 			case 'accepted':
-				$activity = ACTIVITY_ATTEND;
+				$activity = 'Accept';
 				break;
 			case 'declined':
-				$activity = ACTIVITY_ATTENDNO;
+				$activity = 'Reject';
 				break;
 			case 'tentative':
 			default:
-				$activity = ACTIVITY_ATTENDMAYBE;
+				$activity = 'TentativeAccept';
 				break;
 		}
 
@@ -2133,7 +2133,7 @@ class Diaspora_Receiver {
 
 		$orig_item = false;
 
-		$r = q("SELECT * FROM item WHERE verb in ( '%s', '%s' , '%s') and uid = %d and parent_mid = '%s' and author_xchan = '%s'",
+		$r = q("SELECT * FROM item WHERE verb in ('Accept', 'Reject', 'TentativeAccept', '%s', '%s' , '%s') and uid = %d and parent_mid = '%s' and author_xchan = '%s'",
 			dbesc(ACTIVITY_ATTEND),
 			dbesc(ACTIVITY_ATTENDNO),
 			dbesc(ACTIVITY_ATTENDMAYBE),
@@ -2218,10 +2218,7 @@ class Diaspora_Receiver {
 		$post_type = ('event');
 
 		$links = array(array('rel' => 'alternate','type' => 'text/html', 'href' => $parent_item['plink']));
-		$objtype = (($item['resource_type'] === 'photo') ? ACTIVITY_OBJ_PHOTO : ACTIVITY_OBJ_NOTE );
-
-		if($objtype === ACTIVITY_OBJ_NOTE && (! intval($item['item_thread_top'])))
-			$objtype = ACTIVITY_OBJ_COMMENT;
+		$objtype = (($item['resource_type'] === 'photo') ? 'Image' : 'Note');
 
 		$body = $parent_item['body'];
 
@@ -2247,11 +2244,11 @@ class Diaspora_Receiver {
 		));
 
 
-		if($activity === ACTIVITY_ATTEND)
+		if (in_array($activity, ['Accept', ACTIVITY_ATTEND]))
 			$bodyverb = t('%1$s is attending %2$s\'s %3$s');
-		if($activity === ACTIVITY_ATTENDNO)
+		if (in_array($activity, ['Reject', ACTIVITY_ATTENDNO]))
 			$bodyverb = t('%1$s is not attending %2$s\'s %3$s');
-		if($activity === ACTIVITY_ATTENDMAYBE)
+		if (in_array($activity, ['TentativeAccept', ACTIVITY_ATTENDMAYBE]))
 			$bodyverb = t('%1$s may attend %2$s\'s %3$s');
 
 		$arr = array();

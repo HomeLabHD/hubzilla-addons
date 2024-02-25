@@ -572,7 +572,7 @@ function api_get_status($xchan_hash) {
 		item_private = 0 $item_normal
 		and author_xchan = '%s'
 		and allow_cid = '' and allow_gid = '' and deny_cid = '' and deny_gid = ''
-		and verb = '%s'
+		and (verb = 'Create' OR verb = '%s')
 		order by created desc limit 1",
 		dbesc($xchan_hash),
 		dbesc(ACTIVITY_POST)
@@ -637,7 +637,7 @@ function api_status_show($type){
 		item_private = 0 $item_normal
 		and author_xchan = '%s'
 		and allow_cid = '' and allow_gid = '' and deny_cid = '' and deny_gid = ''
-		and verb = '%s'
+		and (verb = 'Create' OR verb = '%s')
 		order by created desc limit 1",
 		dbesc($user_info['guid']),
 		dbesc(ACTIVITY_POST)
@@ -670,7 +670,7 @@ function api_users_show( $type){
 		and item_private != 0 $item_normal
 		and author_xchan = '%s'
 		and allow_cid = '' and allow_gid = '' and deny_cid = '' and deny_gid = ''
-		and verb = '%s'
+		and (verb = 'Create' OR verb = '%s')
 		order by created desc limit 1",
 		dbesc($user_info['guid']),
 		dbesc(ACTIVITY_POST)
@@ -1390,8 +1390,8 @@ function api_format_items($r,$user_info,$type = 'json') {
 				'contributors' => '',
 				'annotations'  => '',
 				'entities'     => '',
-				'objecttype'   => (($item['obj_type']) ? $item['obj_type'] : ACTIVITY_OBJ_NOTE),
-				'verb'         => (($item['verb']) ? $item['verb'] : ACTIVITY_POST),
+				'objecttype'   => (($item['obj_type']) ? $item['obj_type'] : 'Note'),
+				'verb'         => (($item['verb']) ? $item['verb'] : 'Create'),
 				'self'         => z_root().'/api/statuses/show/'.$item['id'].'.'.$type,
 				'edit'         => z_root().'/api/statuses/show/'.$item['id'].'.'.$type,
 			);

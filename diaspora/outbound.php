@@ -471,12 +471,13 @@ function diaspora_send_upstream($item,$owner,$contact,$public_batch = false,$upl
 		return;
 	}
 
-	if(activity_match($item['verb'],[ ACTIVITY_ATTEND, ACTIVITY_ATTENDNO, ACTIVITY_ATTENDMAYBE ])
-		&& activity_match($item['obj_type'],[ ACTIVITY_OBJ_NOTE ])) {
+	if(activity_match($item['verb'],['Accept', 'Reject', 'TentativeAccept', ACTIVITY_ATTEND, ACTIVITY_ATTENDNO, ACTIVITY_ATTENDMAYBE])
+		&& activity_match($item['obj_type'], ['Note', ACTIVITY_OBJ_NOTE])) {
 		$attendance = true;
 	}
-	if(activity_match($item['verb'],[ ACTIVITY_LIKE, ACTIVITY_DISLIKE ])
-		&& activity_match($item['obj_type'],[ ACTIVITY_OBJ_NOTE, ACTIVITY_OBJ_COMMENT ])) {
+
+	if(activity_match($item['verb'],['Like', 'Dislike', ACTIVITY_LIKE, ACTIVITY_DISLIKE ])
+		&& activity_match($item['obj_type'],['Note', ACTIVITY_OBJ_NOTE, ACTIVITY_OBJ_COMMENT])) {
 		$conv_like = true;
 		if(($item['thr_parent']) && ($item['thr_parent'] != $item['parent_mid']))
 			$sub_like = true;
@@ -573,13 +574,13 @@ function diaspora_send_downstream($item,$owner,$contact,$public_batch = false) {
 	$sub_like  = false;
 	$attendance = false;
 
-	if(activity_match($item['verb'],[ ACTIVITY_ATTEND, ACTIVITY_ATTENDNO, ACTIVITY_ATTENDMAYBE ])
-		&& activity_match($item['obj_type'],[ ACTIVITY_OBJ_NOTE ])) {
+	if(activity_match($item['verb'],['Accept', 'Reject', 'TentativeAccept', ACTIVITY_ATTEND, ACTIVITY_ATTENDNO, ACTIVITY_ATTENDMAYBE])
+		&& activity_match($item['obj_type'],['Note', ACTIVITY_OBJ_NOTE])) {
 		$attendance = true;
 	}
 
-	if(activity_match($item['verb'], [ ACTIVITY_LIKE, ACTIVITY_DISLIKE ])
-		&& activity_match($item['obj_type'],[ ACTIVITY_OBJ_NOTE, ACTIVITY_OBJ_COMMENT ])) {
+	if(activity_match($item['verb'], ['Like', 'Dislike', ACTIVITY_LIKE, ACTIVITY_DISLIKE])
+		&& activity_match($item['obj_type'],['Note', ACTIVITY_OBJ_NOTE, ACTIVITY_OBJ_COMMENT])) {
 		$conv_like = true;
 		if(($item['thr_parent']) && ($item['thr_parent'] != $item['parent_mid']))
 			$sub_like = true;
@@ -662,7 +663,7 @@ function diaspora_send_retraction($item,$owner,$contact,$public_batch = false) {
 		return;
 
 	if( $item['mid'] !== $item['parent_mid'] ) {
-		if(($item['verb'] === ACTIVITY_LIKE || $item['verb'] === ACTIVITY_DISLIKE) && ($item['obj_type'] === ACTIVITY_OBJ_NOTE || $item['obj_type'] === ACTIVITY_OBJ_COMMENT)) {
+		if(in_array($item['verb'], ['Like', 'Dislike', ACTIVITY_LIKE, ACTIVITY_DISLIKE]) && in_array($item['obj_type'], ['Note', ACTIVITY_OBJ_NOTE, ACTIVITY_OBJ_COMMENT])) {
 			$target_type = 'Like';
 		}
 		else {

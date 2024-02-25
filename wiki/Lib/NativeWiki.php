@@ -70,7 +70,7 @@ class NativeWiki {
 		$arr['item_origin'] = 1;
 		$arr['item_thread_top'] = 1;
 		$arr['item_private'] = intval($acl->is_private());
-		$arr['verb'] = ACTIVITY_CREATE;
+		$arr['verb'] = 'Create';
 		$arr['obj_type'] = 'Document';
 		$arr['body'] = '[table][tr][td][h1]New Wiki[/h1][/td][/tr][tr][td][zrl=' . $wiki_url . ']' . $wiki['htmlName'] . '[/zrl][/td][/tr][/table]';
 
