@@ -37,8 +37,8 @@ function sse_item_stored($item) {
 	if(! is_item_normal($item))
 		return;
 
-	// Filter internal follow activities
-	if (in_array($item['verb'], [ACTIVITY_FOLLOW])) {
+	// Filter internal follow activities and strerams add/remove activities
+	if (in_array($item['verb'], ['Add', 'Remove', ACTIVITY_FOLLOW])) {
 		return;
 	}
 
