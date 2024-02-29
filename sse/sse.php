@@ -38,7 +38,7 @@ function sse_item_stored($item) {
 		return;
 
 	// Filter FEP-5624 approvals for comments and internal follow activities
-	if (in_array($item['verb'], [ACTIVITY_ATTEND, 'Accept', ACTIVITY_ATTENDNO, 'Reject', ACTIVITY_FOLLOW])) {
+	if (in_array($item['verb'], ['Add', 'Remove', ACTIVITY_TAG, ACTIVITY_ATTEND, 'Accept', ACTIVITY_ATTENDNO, 'Reject', ACTIVITY_FOLLOW])) {
 		return;
 	}
 
