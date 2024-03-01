@@ -38,7 +38,7 @@ function sse_item_stored($item) {
 		return;
 
 	// Filter internal follow activities and strerams add/remove activities
-	if (in_array($item['verb'], ['Add', 'Remove', ACTIVITY_FOLLOW])) {
+	if (in_array($item['verb'], ['Add', 'Remove', 'Follow', 'Ignore', ACTIVITY_FOLLOW])) {
 		return;
 	}
 
