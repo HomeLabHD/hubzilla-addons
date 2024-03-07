@@ -250,13 +250,13 @@ function pubcrawl_encode_item(&$arr) {
 
 					if ((isset($arr['encoded']['attachment'][$pc]['href']) && strpos($img[0]['url'], str_replace('/attach/', '/photo/', $arr['encoded']['attachment'][$pc]['href'])) !== false) || (isset($arr['encoded']['attachment'][$pc]['url']) && $arr['encoded']['attachment'][$pc]['url'] === $img[0]['url'])) {
 						// if it's already there, replace it with our alt-text aware version
-						$arr['encoded']['attachment'][$pc] = $img[0];
+						$arr['encoded']['attachment'] = array_merge($arr['encoded']['attachment'][$pc], $img[0]);
 						$already_added = true;
 					}
 				}
 				if (!$already_added) {
 					// add it
-					$arr['encoded']['attachment'] = array_merge($img, $arr['encoded']['attachment']);
+					$arr['encoded']['attachment'] = array_merge($arr['encoded']['attachment'], $img);
 				}
 			}
 		}
