@@ -25,6 +25,7 @@ use Zotlabs\Module\Nullbox;
 use Zotlabs\Web\HTTPSig;
 use Zotlabs\Lib\Activity;
 use Zotlabs\Lib\Queue;
+use Zotlabs\Lib\PConfig;
 
 //require_once('addon/pubcrawl/as.php');
 
@@ -692,8 +693,9 @@ function pubcrawl_notifier_process(&$arr) {
 
 function pubcrawl_notifier_hub(&$arr) {
 
-	if ($arr['hub']['hubloc_network'] !== 'activitypub')
+	if ($arr['hub']['hubloc_network'] !== 'activitypub') {
 		return;
+	}
 
 	$allowed = Apps::addon_app_installed($arr['channel']['channel_id'], 'pubcrawl');
 	if (!$allowed) {
@@ -705,15 +707,18 @@ function pubcrawl_notifier_hub(&$arr) {
 	logger('notifier_array: ' . print_r($arr, true), LOGGER_ALL, LOG_INFO);
 
 	$is_profile = false;
-	if ($arr['cmd'] == 'refresh_all')
+	if ($arr['cmd'] == 'refresh_all') {
 		$is_profile = true;
+	}
 
 	$target_item = [];
-	if (array_key_exists('target_item', $arr) && is_array($arr['target_item']))
+	if (array_key_exists('target_item', $arr) && is_array($arr['target_item'])) {
 		$target_item = $arr['target_item'];
+	}
 
-	if (!$target_item['mid'] && !$is_profile)
+	if (!$target_item['mid'] && !$is_profile) {
 		return;
+	}
 
 	$signed_msg = null;
 
@@ -769,6 +774,12 @@ function pubcrawl_notifier_hub(&$arr) {
 		$obj = Activity::encode_activity($target_item);
 		if (!$obj) {
 			return;
+		}
+
+		// Hubzilla will send activities of type Article for normal posts.
+		// Rewrite this to Note by default for AP platforms. This option can be set per channel.
+		if (Pconfig::Get($arr['channel']['channel_id'], 'activitypub', 'force_note', true) && isset($obj['object']['type']) && $obj['object']['type'] === 'Article') {
+			$obj['object']['type'] = 'Note';
 		}
 
 		$jmsg = Activity::build_packet($obj, $arr['channel']);

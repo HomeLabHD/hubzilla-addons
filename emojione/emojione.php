@@ -30,10 +30,8 @@ class Emojione {
 
 		if(self::$listing) {
 			foreach(self::$listing as $lv) {
-				if(strpos($lv['shortname'],':tone') === 0)
-					continue;
 				$x['texts'][] = $lv['shortname'];
-				$x['icons'][] = '<img class="smiley emoji" style="height: 1.2em; width: 1.2em;" src="addon/emojione/emojis/' . $lv['unicode'] . '.png' . '" alt="' . $lv['name'] . '" />';
+				$x['icons'][] = '<img class="smiley emoji" src="addon/emojione/emojis/' . $lv['unicode'] . '.png' . '" alt="' . $lv['shortname'] . '" title="' . $lv['shortname'] . '" />';
 			}
 		}
 	}
