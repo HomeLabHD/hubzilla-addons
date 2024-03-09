@@ -1,5 +1,7 @@
 <?php
 
+use Zotlabs\Lib\Cache;
+use Zotlabs\Lib\Config;
 
 /**
  * Name: Emojione
@@ -8,31 +10,98 @@
  *
  */
 
-
-
 function emojione_load() {
-	\Zotlabs\Extend\Hook::register('smilie','addon/emojione/emojione.php', [ '\\Emojione' , 'smilie' ]);
+	\Zotlabs\Extend\Hook::register('emoji','addon/emojione/emojione.php', [ '\\Emojione' , 'get_emojis' ]);
 }
 
 function emojione_unload() {
-	\Zotlabs\Extend\Hook::unregister('smilie','addon/emojione/emojione.php', [ '\\Emojione' , 'smilie' ]);
+	\Zotlabs\Extend\Hook::unregister('emoji','addon/emojione/emojione.php', [ '\\Emojione' , 'get_emojis' ]);
 }
 
-
 class Emojione {
+	static public function get_emojis(&$arr) {
 
-	static $listing = null;
+		// JSON Source: https://raw.githubusercontent.com/muan/unicode-emoji-json/main/data-by-emoji.json
 
-	static public function smilie(&$x) {
+		$set = Config::Get('system', 'emoji_set', 'emojitwo');
 
-		if(! self::$listing)
-			self::$listing = json_decode(@file_get_contents('addon/emojione/emoji.json'),true);
+		$emojis = Cache::get('emoji_set_' . $set, '1 DAY');
 
-		if(self::$listing) {
-			foreach(self::$listing as $lv) {
-				$x['texts'][] = $lv['shortname'];
-				$x['icons'][] = '<img class="smiley emoji" src="addon/emojione/emojis/' . $lv['unicode'] . '.png' . '" alt="' . $lv['shortname'] . '" title="' . $lv['shortname'] . '" />';
+		if ($emojis) {
+			$arr = array_merge(json_decode($emojis, true), $arr);
+			return;
+		}
+
+		$emojis = json_decode(@file_get_contents('addon/emojione/emoji.json'), true);
+
+		foreach($emojis as $emoji => $info) {
+			$code = self::convert_emoji($emoji);
+			$name = $info['slug'];
+			$shortname = ':' . $name . ':';
+
+			// We can add various quirks here
+			switch ($set) {
+				case 'openmoji':
+					$pathcode = strtoupper($code);
+					break;
+				default:
+					$pathcode = $code;
+			}
+
+			$filepath = 'addon/emojione/' . $set . '/' . $pathcode . '.png';
+
+			if (!file_exists($filepath)) {
+				continue;
+			}
+
+			$e['shortname'] = $shortname;
+			$e['filepath'] = $filepath;
+			$e['code'] = $code;
+
+			$arr[$name] = $e;
+		}
+
+		Cache::set('emoji_set_' . $set, json_encode($arr));
+
+	}
+
+	static function convert_emoji($emoji) {
+		$emoji = mb_convert_encoding($emoji, 'UTF-32', 'UTF-8');
+		$hex = bin2hex($emoji);
+
+		$hex_len = strlen($hex) / 8;
+		$chunks = [];
+
+		for ($i = 0; $i < $hex_len; ++$i) {
+			$tmp = substr($hex, $i * 8, 8);
+			$chunks[$i] = self::format($tmp);
+		}
+		return implode('-', $chunks);
+	}
+
+	static function format($str) {
+		$copy = false;
+		$len = strlen($str);
+		$res = '';
+
+		for ($i = 0; $i < $len; ++$i) {
+			$ch = $str[$i];
+
+			if (!$copy) {
+				if ($ch != '0') {
+					$copy = true;
+				}
+				else if (($i + 1) == $len) {
+					$res = '0';
+				}
+			}
+
+			if ($copy) {
+				$res .= $ch;
 			}
 		}
+
+		return $res;
 	}
+
 }

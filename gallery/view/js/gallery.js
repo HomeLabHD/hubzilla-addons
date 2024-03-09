@@ -2,7 +2,7 @@ import PhotoSwipeLightbox from '/addon/gallery/lib/photoswipe5/dist/photoswipe-l
 
 $(document).ready(function() {
 
-	let selector = '.wall-item-body img, .wall-photo-item img';
+	let selector = '.wall-item-body img:not(.emoji), .wall-photo-item img';
 	let imgMinSize = 300;
 
 	$(document).on('click', selector, function(e) {

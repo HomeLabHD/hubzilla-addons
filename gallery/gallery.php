@@ -134,7 +134,7 @@ function gallery_prepare_body(&$arr) {
 		}
 
 		if($node->nodeName == 'img') {
-			if (strpos($node->getAttribute('class'), 'smiley') !== false) {
+			if (strpos($node->getAttribute('class'), 'emoji') !== false) {
 				// Dismiss smilies
 				continue;
 			}
