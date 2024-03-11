@@ -11,11 +11,11 @@ use Zotlabs\Lib\Config;
  */
 
 function emojione_load() {
-	\Zotlabs\Extend\Hook::register('emoji','addon/emojione/emojione.php', [ '\\Emojione' , 'get_emojis' ]);
+	\Zotlabs\Extend\Hook::register('get_emojis','addon/emojione/emojione.php', [ '\\Emojione' , 'get_emojis' ]);
 }
 
 function emojione_unload() {
-	\Zotlabs\Extend\Hook::unregister('emoji','addon/emojione/emojione.php', [ '\\Emojione' , 'get_emojis' ]);
+	\Zotlabs\Extend\Hook::unregister('get_emojis','addon/emojione/emojione.php', [ '\\Emojione' , 'get_emojis' ]);
 }
 
 class Emojione {
