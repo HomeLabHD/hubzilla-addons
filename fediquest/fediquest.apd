@@ -1,0 +1,7 @@
+version: 2
+url: $baseurl/fediquest
+requires: local_channel
+name: Fediquest
+photo: icon:question-circle
+categories: Gaming
+desc: A distributed quest for a given word (game).

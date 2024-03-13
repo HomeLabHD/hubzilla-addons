@@ -4,21 +4,21 @@ use Zotlabs\Lib\Cache;
 use Zotlabs\Lib\Config;
 
 /**
- * Name: Emojione
- * Description: Emoji emoticons
+ * Name: Emoji
+ * Description: Provide emoji sets which can be selected via system.emoji_set config. Possible values for the config are emojitwo (default), mutant and openmoji.
  * Version: 1.0
  *
  */
 
-function emojione_load() {
-	\Zotlabs\Extend\Hook::register('get_emojis','addon/emojione/emojione.php', [ '\\Emojione' , 'get_emojis' ]);
+function emoji_load() {
+	\Zotlabs\Extend\Hook::register('get_emojis','addon/emoji/emoji.php', [ '\\Emoji' , 'get_emojis' ]);
 }
 
-function emojione_unload() {
-	\Zotlabs\Extend\Hook::unregister('get_emojis','addon/emojione/emojione.php', [ '\\Emojione' , 'get_emojis' ]);
+function emoji_unload() {
+	\Zotlabs\Extend\Hook::unregister('get_emojis','addon/emoji/emoji.php', [ '\\Emoji' , 'get_emojis' ]);
 }
 
-class Emojione {
+class Emoji {
 	static public function get_emojis(&$arr) {
 
 		// JSON Source: https://raw.githubusercontent.com/muan/unicode-emoji-json/main/data-by-emoji.json
@@ -32,7 +32,7 @@ class Emojione {
 			return;
 		}
 
-		$emojis = json_decode(@file_get_contents('addon/emojione/emoji.json'), true);
+		$emojis = json_decode(@file_get_contents('addon/emoji/emoji.json'), true);
 
 		foreach($emojis as $emoji => $info) {
 			$code = self::convert_emoji($emoji);
@@ -48,7 +48,7 @@ class Emojione {
 					$pathcode = $code;
 			}
 
-			$filepath = 'addon/emojione/' . $set . '/' . $pathcode . '.png';
+			$filepath = 'addon/emoji/' . $set . '/' . $pathcode . '.png';
 
 			if (!file_exists($filepath)) {
 				continue;

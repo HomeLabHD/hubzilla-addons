@@ -6,22 +6,22 @@ use App;
 use Zotlabs\Lib\Apps;
 use Zotlabs\Web\Controller;
 
-class Fediwordle extends Controller {
+class Fediquest extends Controller {
 
 	function get() {
 		if(!local_channel())
 			return;
 
-		if(!Apps::addon_app_installed(local_channel(), 'fediwordle')) {
+		if(!Apps::addon_app_installed(local_channel(), 'fediquest')) {
 			//Do not display any associated widgets at this point
 			App::$pdl = '';
-			$papp = Apps::get_papp('Fediwordle');
+			$papp = Apps::get_papp('Fediquest');
 			return Apps::app_render($papp, 'module');
 		}
 
-		$o = '<h2>' . t('Fediwordle App') . '</h2>';
-		$o .= t('A distributed word game inspired by wordle.') . '<br><br>';
-		$o .= t('To start a game, enter [wordle]your_word[/wordle] somewhere in a toplevel post.') . '<br>';
+		$o = '<h2>' . t('Fediquest App') . '</h2>';
+		$o .= t('A distributed quest for a given word (game).') . '<br><br>';
+		$o .= t('To start a game, enter [fediquest]your_word[/fediquest] somewhere in a toplevel post.') . '<br>';
 		$o .= t('Your contacts can post their guess in the comments.') . '<br>';
 		$o .= t('Your channel will evaluate the guess and automatically post the response.') . '<br><br>';
 

@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Name: Fediwordle
- * Description: A distributed word game inspired by wordle
- * Version: 1.0
+ * Name: Fediquest
+ * Description: A distributed quest for a given word (game)
+ * Version: 2.0
  * Author: Mario Vavti
  */
 
@@ -14,35 +14,35 @@ use Zotlabs\Extend\Route;
 use Zotlabs\Daemon\Master;
 
 
-function fediwordle_install() {
-	Hook::register('post_local', 'addon/fediwordle/fediwordle.php', 'fediwordle_post_local');
-	Hook::register('notifier_process', 'addon/fediwordle/fediwordle.php', 'fediwordle_notifier_process');
-	Route::register('addon/fediwordle/Mod_Fediwordle.php', 'fediwordle');
+function fediquest_install() {
+	Hook::register('post_local', 'addon/fediquest/fediquest.php', 'fediquest_post_local');
+	Hook::register('notifier_process', 'addon/fediquest/fediquest.php', 'fediquest_notifier_process');
+	Route::register('addon/fediquest/Mod_Fediquest.php', 'fediquest');
 
 }
 
-function fediwordle_uninstall() {
-	Hook::unregister('post_local', 'addon/fediwordle/fediwordle.php', 'fediwordle_post_local');
-	Hook::unregister('notifier_process', 'addon/fediwordle/fediwordle.php', 'fediwordle_notifier_process');
-	Route::unregister('addon/fediwordle/Mod_Fediwordle.php', 'fediwordle');
+function fediquest_uninstall() {
+	Hook::unregister('post_local', 'addon/fediquest/fediquest.php', 'fediquest_post_local');
+	Hook::unregister('notifier_process', 'addon/fediquest/fediquest.php', 'fediquest_notifier_process');
+	Route::unregister('addon/fediquest/Mod_Fediquest.php', 'fediquest');
 }
 
-function fediwordle_post_local(&$arr) {
+function fediquest_post_local(&$arr) {
 
-	if(!Apps::addon_app_installed(local_channel(), 'fediwordle')) {
+	if(!Apps::addon_app_installed(local_channel(), 'fediquest')) {
 		return;
 	}
 
-	if (strpos($arr['body'], '[/wordle]') === false) {
+	if (strpos($arr['body'], '[/fediquest]') === false) {
 		return;
 	}
 
 	$match = [];
 
-	preg_match('/\[wordle\](.*?)\[\/wordle\]/ism', $arr['body'], $match);
+	preg_match('/\[fediquest\](.*?)\[\/fediquest\]/ism', $arr['body'], $match);
 
 	$word = $match[1];
-	$replace = fediwordle_replace($word);
+	$replace = fediquest_replace($word);
 
 	$arr['body'] = str_replace($match[0], $replace, $arr['body']);
 
@@ -54,22 +54,22 @@ function fediwordle_post_local(&$arr) {
 		'round' => 0
 	];
 
-	set_iconfig($arr, 'fediwordle', 'word', $iconfig);
+	set_iconfig($arr, 'fediquest', 'word', $iconfig);
 
 }
 
-function fediwordle_notifier_process($arr) {
+function fediquest_notifier_process($arr) {
 
 	$channel = $arr['channel'];
 	$item = $arr['target_item'];
 	$parent = $arr['parent_item'];
 
-	// A cheap check if the parent body contains fediwordle emojis before checking anything else
+	// A cheap check if the parent body contains fediquest emojis before checking anything else
 	if (strpos($parent['body'], '🔵🔵🔵') === false) {
 		return;
 	}
 
-	if(!Apps::addon_app_installed($channel['channel_id'], 'fediwordle')) {
+	if(!Apps::addon_app_installed($channel['channel_id'], 'fediquest')) {
 		return;
 	}
 
@@ -96,7 +96,7 @@ function fediwordle_notifier_process($arr) {
 	}
 
 	// check if there is an iconfig to process
-	$iconfig = get_iconfig($parent, 'fediwordle', 'word');
+	$iconfig = get_iconfig($parent, 'fediquest', 'word');
 
 	if (!$iconfig) {
 		return;
@@ -104,7 +104,7 @@ function fediwordle_notifier_process($arr) {
 
 /*
 	if ($iconfig['round'] > strlen($iconfig['word'])) {
-		del_iconfig($parent['id'], 'fediwordle', 'word');
+		del_iconfig($parent['id'], 'fediquest', 'word');
 		return;
 	}
 */
@@ -118,13 +118,13 @@ function fediwordle_notifier_process($arr) {
 	$answer = preg_replace('/@*\[([zu])rl(.*?)\](.*?)\[\/([zu])rl\]/ism', '' ,$item['body']);
 	$answer = strtoupper(trim($answer));
 
-	$result = fediwordle_prepare_result($answer, $iconfig);
+	$result = fediquest_prepare_result($answer, $iconfig);
 	if ($result['success']) {
-		del_iconfig($parent['id'], 'fediwordle', 'word');
+		del_iconfig($parent['id'], 'fediquest', 'word');
 	}
 	else {
 		$result['iconfig']['round']++;
-		set_iconfig($parent['id'], 'fediwordle', 'word', $result['iconfig']);
+		set_iconfig($parent['id'], 'fediquest', 'word', $result['iconfig']);
 	}
 
 	$body = '';
@@ -190,7 +190,7 @@ function fediwordle_notifier_process($arr) {
 
 }
 
-function fediwordle_replace($str) {
+function fediquest_replace($str) {
 	$replace = '';
 
 	for ($i = 0; $i < strlen($str); $i++)
@@ -199,7 +199,7 @@ function fediwordle_replace($str) {
 	return $replace;
 }
 
-function fediwordle_prepare_result($answer, $iconfig) {
+function fediquest_prepare_result($answer, $iconfig) {
 	$ret = [
 		'success' => true,
 		'error' => false,
