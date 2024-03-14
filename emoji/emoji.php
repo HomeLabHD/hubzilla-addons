@@ -56,7 +56,6 @@ class Emoji {
 
 			$e['shortname'] = $shortname;
 			$e['filepath'] = $filepath;
-			$e['code'] = $code;
 
 			$arr[$name] = $e;
 		}
