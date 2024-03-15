@@ -207,8 +207,8 @@ function pubcrawl_encode_item(&$arr) {
 		return;
 	}
 
-	if (strpos($arr['item']['body'], '[/crypt]') !== false) {
-		$arr['encoded']['content'] = preg_replace_callback("/\[crypt (.*?)\](.*?)\[\/crypt\]/ism", 'bb_parse_b64_crypt', $arr['item']['body']);
+	if (str_contains($arr['item']['body'], '[/crypt]')) {
+		$arr['encoded']['content'] = preg_replace_callback("/\[crypt\](.*?)\[\/crypt\]/ism", 'bb_parse_b64_crypt', $arr['item']['body']);
 	}
 
 	// if the the item comes from one of our alternate locations
