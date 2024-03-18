@@ -782,7 +782,6 @@ function pubcrawl_notifier_hub(&$arr) {
 			$obj['object']['type'] = 'Note';
 		}
 
-
 		$jmsg = Activity::build_packet($obj, $arr['channel']);
 	}
 
