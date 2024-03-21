@@ -224,7 +224,7 @@ function pubcrawl_encode_item(&$arr) {
 	$images = false;
 	$has_images = preg_match_all('/\[[zi]mg(.*?)\](.*?)\[/ism', $arr['item']['body'], $images, PREG_SET_ORDER);
 
-	if ($has_images && $arr['encoded']['type'] === 'Note') {
+	if ($has_images) {
 		foreach ($images as $match) {
 			$img = [];
 			// handle Friendica/Hubzilla style img links with [img=$url]$alttext[/img]
