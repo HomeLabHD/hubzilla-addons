@@ -637,7 +637,7 @@ function pubcrawl_notifier_process(&$arr) {
 	// Since HZ version 9 this is stored in source, earlier in owner
 	if ($arr['parent_item']['verb'] === ACTIVITY_SHARE) {
 		$arr['env_recips'][] = $arr['parent_item']['source']['xchan_hash'] ?? $arr['parent_item']['owner']['xchan_hash'];
-		$arr['recipients'][] = '\'' . $arr['parent_item']['source']['xchan_hash'] ?? $arr['parent_item']['owner']['xchan_hash'] . '\'';
+		$arr['recipients'][] = '\'' . ($arr['parent_item']['source']['xchan_hash'] ?? $arr['parent_item']['owner']['xchan_hash']) . '\'';
 	}
 
 	// If we commented a comment we should also deliver to the thread_parent author
