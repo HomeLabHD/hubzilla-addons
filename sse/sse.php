@@ -37,8 +37,8 @@ function sse_item_stored($item) {
 	if(! is_item_normal($item))
 		return;
 
-	// Filter FEP-5624 approvals for comments and internal follow activities
-	if (in_array($item['verb'], ['Add', 'Remove', ACTIVITY_TAG, ACTIVITY_ATTEND, 'Accept', ACTIVITY_ATTENDNO, 'Reject', ACTIVITY_FOLLOW])) {
+	// Filter internal follow activities and strerams add/remove activities
+	if (in_array($item['verb'], ['Add', 'Remove', 'Follow', 'Ignore', ACTIVITY_FOLLOW])) {
 		return;
 	}
 
@@ -99,13 +99,13 @@ function sse_item_stored($item) {
 		$site_firehose = get_config('system', 'site_firehose', 0);
 		$vnotify = get_pconfig($item_uid, 'system', 'vnotify', -1);
 
-		if (in_array($item['verb'], [ACTIVITY_LIKE, ACTIVITY_DISLIKE]) && !($vnotify & VNOTIFY_LIKE))
+		if (in_array($item['verb'], ['Like', 'Dislike', ACTIVITY_LIKE, ACTIVITY_DISLIKE]) && !($vnotify & VNOTIFY_LIKE))
 			continue;
 
-		if (in_array($item['verb'], [ACTIVITY_DISLIKE]) && !feature_enabled($item_uid, 'dislike'))
+		if (in_array($item['verb'], ['Dislike', ACTIVITY_DISLIKE]) && !feature_enabled($item_uid, 'dislike'))
 			continue;
 
-		if ($item['obj_type'] === ACTIVITY_OBJ_FILE && !($vnotify & VNOTIFY_FILES))
+		if ($is_file && !($vnotify & VNOTIFY_FILES))
 			continue;
 
 		if($hash === $item['author_xchan'])

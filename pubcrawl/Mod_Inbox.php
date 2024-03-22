@@ -13,6 +13,7 @@ use Zotlabs\Lib\Apps;
 use Zotlabs\Web\Controller;
 use Zotlabs\Lib\Config;
 use Zotlabs\Lib\PConfig;
+use Zotlabs\Daemon\Master;
 
 class Inbox extends Controller {
 
@@ -73,6 +74,10 @@ class Inbox extends Controller {
 		}
 
 		logger('inbox_activity: ' . jindent($data), LOGGER_DATA);
+
+		// TODO: FEP-8b32 valid object signatures should take priority over HTTP-Signatures.
+		// $AS->sigok will currently not tell us if the signature ldsig or edsig. We could return
+		// 1 if ldsig and 2 if edsig instead of boolean.
 
 		$hsig = HTTPSig::verify($data);
 
@@ -167,7 +172,7 @@ class Inbox extends Controller {
 
 			// fetch the portable_id for the actor, which may or may not be the sender
 
-			$v = Activity::get_actor_hublocs($announce_actor ?? $AS->actor['id'], 'activitypub,not_deleted');
+			$v = Activity::get_actor_hublocs($announce_actor ?? $AS->actor['id'], 'activitypub');
 
 			if ($v && $v[0]['hubloc_hash'] !== $hsig['portable_id']) {
 				// The sender is not actually the activity actor, so verify the LD signature.
@@ -184,10 +189,11 @@ class Inbox extends Controller {
 			}
 
 			if ($v) {
-				// The sender has been validated and stored
-				$observer_hash = $hsig['portable_id'];
+				App::set_observer($v[0]);
 			}
 		}
+
+		$observer_hash = get_observer_hash();
 
 		if (!$observer_hash) {
 			return;
@@ -216,7 +222,6 @@ class Inbox extends Controller {
 			dbesc(datetime_convert()),
 			dbesc($observer_hash)
 		);
-
 
 		// Now figure out who the recipients are
 
@@ -338,10 +343,7 @@ class Inbox extends Controller {
 				}
 
 				if (!$sys_disabled) {
-					$r = dbq("select * from channel where channel_system = 1");
-					if ($r) {
-						$channels[] = $r[0];
-					}
+					$channels[] = get_sys_channel();
 				}
 			}
 		}
@@ -420,7 +422,7 @@ class Inbox extends Controller {
 				case 'Update':
 					if (ActivityStreams::is_an_actor($AS->objprop('type'))) {
 						Activity::actor_store($AS->obj, true /* force cache refresh */);
-						break;
+						break 2;
 					}
 					if ($AS->objprop('type') === 'OrderedCollection') {
 						// gup.pe sends updates for followers list but we do not handle those
@@ -521,6 +523,8 @@ class Inbox extends Controller {
 				Activity::store($channel, $observer_hash, $AS, $item);
 			}
 		}
+
+		Activity::init_background_fetch($observer_hash);
 
 		http_status_exit(200, 'OK');
 	}

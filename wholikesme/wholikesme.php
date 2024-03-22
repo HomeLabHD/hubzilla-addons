@@ -19,9 +19,10 @@ function wholikesme_content(&$a) {
 
 	$channel = App::get_channel();
 
-	$r = q("select count(mid) as total, author_xchan, xchan_name from item left join xchan on author_xchan = xchan_hash where uid = %d and verb = '%s' and owner_xchan = '%s' group by author_xchan order by total desc",
+	$r = q("select count(mid) as total, author_xchan, xchan_name from item left join xchan on author_xchan = xchan_hash where uid = %d and (verb = '%s' || verb = '%s') and owner_xchan = '%s' group by author_xchan order by total desc",
 		intval(local_channel()),
 		dbesc(ACTIVITY_LIKE),
+		dbesc('Like'),
 		dbesc($channel['xchan_hash'])
 	);
 

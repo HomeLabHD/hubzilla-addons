@@ -58,14 +58,15 @@ function wppost_post_local(&$b) {
 	if((! local_channel()) || (local_channel() != $b['uid']))
 		return;
 
-	if($b['item_private'] || $b['parent'])
+	if(!empty($b['item_private']) || !empty($b['parent'])) {
 		return;
+	}
 
 	$wp_post = Apps::addon_app_installed(local_channel(), 'wppost');
 
 	$wp_enable = (($wp_post && x($_REQUEST,'wppost_enable')) ? intval($_REQUEST['wppost_enable']) : 0);
 
-	if($_REQUEST['api_source'] && intval(get_pconfig(local_channel(),'wppost','post_by_default')))
+	if(!empty($_REQUEST['api_source']) && intval(get_pconfig(local_channel(),'wppost','post_by_default')))
 		$wp_enable = 1;
 
 	if(! $wp_enable)

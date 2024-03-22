@@ -185,7 +185,7 @@ class Workflow_Utils {
 
 		if (!Apps::addon_app_installed($uid,'workflow')) {
 			if ($arr['obj_type'] == WORKFLOW_ACTIVITY_OBJ_TYPE) {
-				$arrinfo['obj_type'] = ACTIVITY_OBJ_NOTE;
+				$arrinfo['obj_type'] = 'Note';
 				$arrinfo['item_type'] = ITEM_TYPE_POST;
 			}
 			return;
@@ -1713,8 +1713,8 @@ class Workflow_Utils {
 		if (!Apps::addon_app_installed($uid,'workflow')) { return false; }
 
 		$channelinfo = channelx_by_n($uid);
-		$itemuuid = item_message_id(); //Hubzilla
-		//$itemuuid = new_uuid(); //Zap
+		$itemuuid = new_uuid();
+
 		$mid = z_root().'/workflow/'.$channelinfo['channel_address'].'/display/'.$itemuuid;
 
 		$wfbody = (isset($data['workflowBody'])) ? $data['workflowBody'] : '';
@@ -1733,8 +1733,8 @@ class Workflow_Utils {
 			'title'=>$wfsubject,
 			'uuid'=>$itemuuid,
 			'mid'=>$mid,
-			'llink'=>z_root().'/display/'.gen_link_id($mid),
-			'plink'=>z_root().'/display/'.gen_link_id($mid),
+			'llink'=>z_root().' /display/'. $itemuuid,
+			'plink'=>z_root().' /display/'. $itemuuid,
 			'iconfig'=>[
 				['cat'=>'system','k'=>'custom-item-type','v'=>'workflow','sharing'=>1]
 			]];
@@ -3104,7 +3104,7 @@ class Workflow_Utils {
 				break;
 			}
 		}
-		$new['llink']=z_root().'/display/'.gen_link_id($mid);
+		$new['llink'] = z_root(). '/display/' . $new['uuid'];
 		$new['plink']= isset($new['plink']) ? $new['plink'] : $new['mid'];
 		$hookinfo = [
 			'item' => $new,
