@@ -338,9 +338,17 @@ function pubcrawl_post_local(&$x) {
 
 	xchan_query($item);
 
-	$channel = channelx_by_n($item[0]['uid']);
+	// Sign the message with the author key if available.
+	// Messages signed with the owner key will be misattributed to the owner
+	// in other platforms (observed in mastodon).
+	// This basically affects wall to wall posts.
 
-	$jmsg = Activity::build_packet(Activity::encode_activity($item[0]), $channel);
+	$channel = channelx_by_hash($item[0]['author_xchan']);
+
+	$signer = $channel ?: [];
+
+	$jmsg = Activity::build_packet(Activity::encode_activity($item[0]), $signer);
+
 	set_iconfig($x, 'activitypub', 'rawmsg', $jmsg, true);
 }
 
