@@ -330,24 +330,27 @@ function pubcrawl_channel_links(&$b) {
 function pubcrawl_post_local(&$x) {
 	$item[] = $x;
 
-	if ($item[0]['mid'] === $item[0]['parent_mid'])
+	if ($item[0]['mid'] === $item[0]['parent_mid']) {
 		return;
+	}
 
-	if (!Apps::addon_app_installed($item[0]['uid'], 'pubcrawl'))
+	if (!Apps::addon_app_installed($item[0]['uid'], 'pubcrawl')) {
 		return;
+	}
+
+	$channel = channelx_by_n($item[0]['uid']);
+
+	if ($channel['channel_hash'] !== $item[0]['author_xchan']) {
+		// A wall to wall post - we will not be able to sign it with the author key.
+		// Probably we could if the channel is from this site, but keep it simple for now.
+
+		// Signing it with the owner key will result in misattribution on mastodon.
+		return;
+	}
 
 	xchan_query($item);
 
-	// Sign the message with the author key if available.
-	// Messages signed with the owner key will be misattributed to the owner
-	// in other platforms (observed in mastodon).
-	// This basically affects wall to wall posts.
-
-	$channel = channelx_by_hash($item[0]['author_xchan']);
-
-	$signer = $channel ?: [];
-
-	$jmsg = Activity::build_packet(Activity::encode_activity($item[0]), $signer);
+	$jmsg = Activity::build_packet(Activity::encode_activity($item[0]), $channel);
 
 	set_iconfig($x, 'activitypub', 'rawmsg', $jmsg, true);
 }
