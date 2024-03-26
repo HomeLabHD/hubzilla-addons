@@ -330,17 +330,28 @@ function pubcrawl_channel_links(&$b) {
 function pubcrawl_post_local(&$x) {
 	$item[] = $x;
 
-	if ($item[0]['mid'] === $item[0]['parent_mid'])
+	if ($item[0]['mid'] === $item[0]['parent_mid']) {
 		return;
+	}
 
-	if (!Apps::addon_app_installed($item[0]['uid'], 'pubcrawl'))
+	if (!Apps::addon_app_installed($item[0]['uid'], 'pubcrawl')) {
 		return;
-
-	xchan_query($item);
+	}
 
 	$channel = channelx_by_n($item[0]['uid']);
 
+	if ($channel['channel_hash'] !== $item[0]['author_xchan']) {
+		// A wall to wall post - we will not be able to sign it with the author key.
+		// Probably we could if the channel is from this site, but keep it simple for now.
+
+		// Signing it with the owner key will result in misattribution on mastodon.
+		return;
+	}
+
+	xchan_query($item);
+
 	$jmsg = Activity::build_packet(Activity::encode_activity($item[0]), $channel);
+
 	set_iconfig($x, 'activitypub', 'rawmsg', $jmsg, true);
 }
 
@@ -775,12 +786,6 @@ function pubcrawl_notifier_hub(&$arr) {
 		$obj = Activity::encode_activity($target_item);
 		if (!$obj) {
 			return;
-		}
-
-		// Hubzilla will send activities of type Article for normal posts.
-		// Rewrite this to Note by default for AP platforms. This option can be set per channel.
-		if (Pconfig::Get($arr['channel']['channel_id'], 'activitypub', 'force_note', true) && isset($obj['object']['type']) && $obj['object']['type'] === 'Article') {
-			$obj['object']['type'] = 'Note';
 		}
 
 		$jmsg = Activity::build_packet($obj, $arr['channel']);
