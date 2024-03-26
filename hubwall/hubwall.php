@@ -22,7 +22,7 @@ function hubwall_plugin_admin(&$o) {
 
 
 
-function hubwall_post(&$a) {
+function hubwall_post() {
 	if(! is_site_admin())
 		return;
 
@@ -39,7 +39,7 @@ function hubwall_post(&$a) {
 
 	$htmlversion = bbcode(stripslashes(str_replace(array("\\r","\\n"), array("","<br />\n"),$text)));
 
-	$sql_extra = ((intval($_REQUEST['test'])) ? sprintf(" and account_email = '%s' ", get_config('system','admin_email')) : ''); 
+	$sql_extra = ((intval($_REQUEST['test'])) ? sprintf(" and account_email = '%s' ", get_config('system','admin_email')) : '');
 
 
 	$recips = q("select account_email from account where account_flags = %d $sql_extra",
@@ -66,6 +66,7 @@ function hubwall_post(&$a) {
 			'htmlVersion'          => $htmlversion,
 			'textVersion'          => $textversion
 		));
+
 		if($x)
 			$total_delivered ++;
 	}
@@ -74,13 +75,13 @@ function hubwall_post(&$a) {
 
 }
 
-function hubwall_content(&$a) {
+function hubwall_content() {
 	if(! is_site_admin())
 		return;
 
 	$title = t('Send email to all hub members.');
 
-	$senders = [ 
+	$senders = [
 		'noreply@' . \App::get_hostname() => 'noreply@' . \App::get_hostname() ,
 		'postmaster@' . \App::get_hostname() => 'postmaster@' . \App::get_hostname() ,
 		get_config('system','admin_email') => get_config('system','admin_email'),
