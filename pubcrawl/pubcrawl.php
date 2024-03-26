@@ -788,12 +788,6 @@ function pubcrawl_notifier_hub(&$arr) {
 			return;
 		}
 
-		// Hubzilla will send activities of type Article for normal posts.
-		// Rewrite this to Note by default for AP platforms. This option can be set per channel.
-		if (Pconfig::Get($arr['channel']['channel_id'], 'activitypub', 'force_note', true) && isset($obj['object']['type']) && $obj['object']['type'] === 'Article') {
-			$obj['object']['type'] = 'Note';
-		}
-
 		$jmsg = Activity::build_packet($obj, $arr['channel']);
 	}
 
