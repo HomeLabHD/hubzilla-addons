@@ -45,13 +45,13 @@
 
 	This should work for 99% of use cases
 
-	If you encounter any issues, please see 
-		https://github.com/PHPMailer/PHPMailer/wiki/Troubleshooting and also 
-		addon/phpmailer/phpmailer.php to view the mapping between phpmailer options and the 
+	If you encounter any issues, please see
+		https://github.com/PHPMailer/PHPMailer/wiki/Troubleshooting and also
+		addon/phpmailer/phpmailer.php to view the mapping between phpmailer options and the
 	plugin variable names.
 
-	This plugin is unsupported. If it requires any modification to work in your situation, 
-	please submit a pull request with your changes. 
+	This plugin is unsupported. If it requires any modification to work in your situation,
+	please submit a pull request with your changes.
 
 
 ********************************************/
@@ -100,7 +100,7 @@ function phpmailer_email_send(&$x) {
 		// 4: debug lowlevel (very verbose)
 
 		$mail->SMTPDebug = intval($s);
-		$mail->Debugoutput = function($str,$level) { logger('phpmailer: ' . $str); };	
+		$mail->Debugoutput = function($str,$level) { logger('phpmailer: ' . $str); };
 	}
 
 
@@ -111,45 +111,45 @@ function phpmailer_email_send(&$x) {
 		$mail->Mailer = "smtp";
 
 		$s = get_config('phpmailer','host');
-		if($s) 
+		if($s)
 			$mail->Host = $s;
 		else
 			$mail->Host = 'localhost';
 
 		$s = get_config('phpmailer','port');
-		if($s) 
+		if($s)
 			$mail->Port = $s;
 		else
 			$mail->Port = '25';
 
 		$s = get_config('phpmailer','smtpsecure');
-		if($s) 
+		if($s)
 			$mail->SMTPSecure = $s;
 
 		$s = get_config('phpmailer','smtpauth');
-		if($s) 
+		if($s)
 			$mail->SMTPAuth = (boolean) $s;
 
 		$s = get_config('phpmailer','username');
-		if($s) 
+		if($s)
 			$mail->Username = $s;
 
 		$s = get_config('phpmailer','password');
-		if($s) 
+		if($s)
 			$mail->Password = $s;
 
 
 		$s = intval(get_config('phpmailer','noverify'));
 		if($s) {
-			$mail->SMTPOptions = [ 'ssl' => [ 
-				'verify_peer' => false, 
-				'verify_peer_name' => false, 
+			$mail->SMTPOptions = [ 'ssl' => [
+				'verify_peer' => false,
+				'verify_peer_name' => false,
 				'allow_self_signed' => true ]
 			];
 		}
 
 	}
-	else {    
+	else {
 
 		$mail->isSendmail();
 
