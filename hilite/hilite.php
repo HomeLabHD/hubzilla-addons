@@ -76,7 +76,8 @@ function hilite_text_highlight(&$x) {
         }
     }
     $renderer = new Text_Highlighter_Renderer_HTML($options);
-    $hl = Text_Highlighter::factory($language);
+    $hl = new Text_Highlighter;
+    $hl->factory($language);
     $hl->setRenderer($renderer);
     $o = $hl->highlight($s);
     $o = str_replace(["    ", "\n"], ["&nbsp;&nbsp;&nbsp;&nbsp;", ''], $o);
