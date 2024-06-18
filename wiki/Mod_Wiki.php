@@ -153,7 +153,7 @@ class Wiki extends Controller {
 			$r = $zip->open($zip_filepath, \ZipArchive::CREATE);
 			if($r === true) {
 				$pages = [];
-				$i = q("select * from item where resource_type = 'nwikipage' and resource_id = '%s' order by revision desc",
+				$i = q("select * from item where resource_type = 'nwikipage' and resource_id = '%s' and item_deleted = 0 order by revision desc",
 					dbesc($resource_id)
 				);
 
