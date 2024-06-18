@@ -582,7 +582,7 @@ class NativeWikiPage {
 			'pageUrlName'   => $pageUrlName
 		]);
 
-		return replace_macros(get_markup_template('nwiki_page_history.tpl'), [
+		return replace_macros(get_markup_template('nwiki_page_history.tpl', 'addon/wiki'), [
 			'$pageHistory' => $pageHistory['history'],
 			'$permsWrite'  => $arr['permsWrite'],
 			'$name_lbl'    => t('Name'),
