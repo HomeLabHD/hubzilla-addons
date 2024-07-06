@@ -39,20 +39,20 @@
     background:rgb(224,255,224);
   }
 </style>
-<table class="table-striped table-responsive table-hover" style="width: 100%;">
+<table class="" style="width: 100%;">
   {{foreach $pageHistory as $commit}}
-  <tr><td>
-      <table id="rev-{{$commit.hash}}" onclick="$('#details-{{$commit.hash}}').show()" width="100%">
-        <tr><td width="10%">Date</td><td width="70%">{{$commit.date}}</td>
+  <tr class="wikis-index-row"><td>
+      <table id="rev-{{$commit.revision}}" onclick="$('#details-{{$commit.revision}}').show()" style="width: 100%;">
+        <tr><td width="10%">{{$date_lbl}}</td><td width="70%">{{$commit.date}}</td>
             <td rowspan="3" width="20%" align="right">
-		{{if $permsWrite}}
-              <button id="revert-{{$commit.hash}}" class="btn btn-danger btn-sm" onclick="wiki_revert_page('{{$commit.hash}}')">Revert</button>
+                {{if $permsWrite}}
+              <button id="revert-{{$commit.revision}}" class="btn btn-danger btn-sm" onclick="wiki_revert_page('{{$commit.revision}}')">{{$revert_btn}}</button>
               <br><br>
-		{{/if}}
-              <button id="compare-{{$commit.hash}}" class="btn btn-warning btn-sm" onclick="wiki_compare_page('{{$commit.hash}}')">Compare</button>
+                {{/if}}
+              <button id="compare-{{$commit.revision}}" class="btn btn-warning btn-sm" onclick="wiki_compare_page('{{$commit.revision}}')">{{$compare_btn}}</button>
             </td></tr>
-        <tr><td>Name</td><td>{{$commit.name}} &lt;{{$commit.email}}&gt;</td></tr>
-        <tr><td>Message</td><td>{{$commit.title}}</td></tr>
+        <tr><td>{{$name_lbl}}</td><td>{{$commit.name}}</td></tr>
+        <tr><td>{{$msg_label}}</td><td>{{$commit.title}}</td></tr>
       </table>
     </td></tr>
   {{/foreach}}

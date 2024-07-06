@@ -42,8 +42,8 @@
 	<div id="wiki-content-container" class="section-content-wrapper">
 		<ul class="nav nav-tabs" id="wiki-nav-tabs">
 			<li class="nav-item" id="edit-pane-tab"><a class="nav-link" data-bs-toggle="tab" href="#edit-pane">{{$editOrSourceLabel}}</a></li>
-			<li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#preview-pane" id="wiki-get-preview">{{$view_lbl}}</a></li>
-			<li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#page-history-pane" id="wiki-get-history">{{$history_lbl}}</a></li>
+			<li class="nav-item" id="preview-pane-tab"><a class="nav-link active" data-bs-toggle="tab" href="#preview-pane" id="wiki-get-preview">{{$view_lbl}}</a></li>
+			<li class="nav-item" id="page-history-pane-tab"><a class="nav-link" data-bs-toggle="tab" href="#page-history-pane" id="wiki-get-history">{{$history_lbl}}</a></li>
 		</ul>
 		<div class="tab-content" id="wiki-page-tabs">
 			<div id="edit-pane" class="tab-pane">
@@ -286,17 +286,22 @@
 		$.post("wiki/{{$channel_address}}/revert/page", {commitHash: commitHash, name: window.wiki_page_name, resource_id: window.wiki_resource_id},
 		function (data) {
 			if (data.success) {
-			$('button[id^=revert-]').removeClass('btn-success');
-			$('button[id^=revert-]').addClass('btn-danger');
-			$('button[id^=revert-]').html('Revert');
-			$('#revert-'+commitHash).removeClass('btn-danger');
-			$('#revert-'+commitHash).addClass('btn-success');
-			$('#revert-'+commitHash).html('Page reverted<br>but not saved');
-			window.wiki_page_commit = commitHash;
-			// put contents in editor
-			editor.getSession().setValue(data.content);
+				window.wiki_page_commit = commitHash;
+
+				// put contents in editor
+				{{if !$mimeType || $mimeType == 'text/markdown'}}
+				editor.getSession().setValue(data.content);
+				{{else}}
+				editor[0].value = data.content;
+				{{/if}}
+
+				toast('Commit reverted, please save page manualy!', 'info');
+				$('#id_{{$commitMsg.0}}_wrapper').show();
+				$('#save-page').removeClass('disabled');
+				window.saved = false;
+
 			} else {
-			window.console.log('Error reverting page.');
+				toast('Error reverting page', 'danger');
 			}
 		}, 'json');
 	}

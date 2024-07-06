@@ -1471,6 +1471,16 @@ function pubcrawl_encode_addressing($arr) {
 		if (isset($parent_i['cc']) && is_array($parent_i['cc'])) {
 			$arr['encoded']['cc'] = array_values(array_unique(array_merge($arr['encoded']['cc'], $parent_i['cc'])));
 		}
+
+		$mentions = Activity::map_mentions($arr['item']);
+		if (count($mentions) > 0) {
+			if (!$arr['encoded']['to']) {
+				$arr['encoded']['to'] = $mentions;
+			} else {
+				$arr['encoded']['to'] = array_values(array_unique(array_merge($arr['encoded']['to'], $mentions)));
+			}
+		}
+
 	} else {
 		// private activity
 
@@ -1485,6 +1495,7 @@ function pubcrawl_encode_addressing($arr) {
 				$arr['encoded']['cc'] = array_values(array_unique(array_merge($arr['encoded']['cc'], $parent_i['cc'])));
 			}
 
+/* todo: only add mentions if they are in the group
 			if (isset($arr['encoded']['tag']) && $arr['encoded']['tag']) {
 				$mentions_str = '';
 				foreach ($arr['encoded']['tag'] as $mention) {
@@ -1512,9 +1523,8 @@ function pubcrawl_encode_addressing($arr) {
 						}
 					}
 				}
-
 			}
-
+*/
 			$d = q("select hubloc.*  from hubloc left join item on hubloc_hash = owner_xchan where item.parent_mid = '%s' and item.uid = %d limit 1",
 				dbesc($arr['item']['parent_mid']),
 				intval($arr['item']['uid'])
@@ -1528,15 +1538,6 @@ function pubcrawl_encode_addressing($arr) {
 				}
 				$arr['encoded']['cc'][] = $addr;
 			}
-		}
-	}
-
-	$mentions = Activity::map_mentions($arr['item']);
-	if (count($mentions) > 0) {
-		if (!$arr['encoded']['to']) {
-			$arr['encoded']['to'] = $mentions;
-		} else {
-			$arr['encoded']['to'] = array_values(array_unique(array_merge($arr['encoded']['to'], $mentions)));
 		}
 	}
 
