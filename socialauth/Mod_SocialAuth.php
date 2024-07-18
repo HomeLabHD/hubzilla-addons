@@ -102,11 +102,11 @@ class SocialAuthSignin extends Controller {
 
 		}
 		catch ( \Hybridauth\Exception\HttpClientFailureException $e ) {
-			logger('Network error : ' . print_r( $auth->getHttpClient()->getResponseClientError(), true) , LOGGER_NORMAL, LOG_ERR);
+			logger('Network error : ' . print_r( $adapter->getHttpClient()->getResponseClientError(), true) , LOGGER_NORMAL, LOG_ERR);
 			info ( t('Network error') . EOL );
 		}
 		catch ( \Hybridauth\Exception\HttpRequestFailedException $e ) {
-			logger('Raw API response: ' . print_r( $auth->getHttpClient()->getResponseBody(), true), LOGGER_NORMAL, LOG_ERR);
+			logger('Raw API response: ' . print_r( $adapter->getHttpClient()->getResponseBody(), true), LOGGER_NORMAL, LOG_ERR);
 			info ( t('API error') . EOL );
 		}
 		catch ( \Exception $e ) {

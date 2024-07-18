@@ -62,7 +62,7 @@ function socialauth_login(&$o) {
 				$adapter_output .= '
 <ul>
 	<li>
-		<a href="'. SocialAuthConfig::getCallback() . '?provider='. $name .'"/>Sign in with <strong>'. $providername .'</strong>
+		<a href="'. SocialAuthConfig::getCallback() . '?provider='. $name .'"/><strong>'. $providername .'</strong></a>
 	</li>
 </ul>
 ';
@@ -96,9 +96,9 @@ function redirect_socialauth(url) {
 <body>
 <div class="socialauthlabel">
 <span>Sign in with:</span>
+'. $adapter_output .'
 </div>
-</body>
-'. $adapter_output;
- 
+</body>';
+
 	return $o;
 }
