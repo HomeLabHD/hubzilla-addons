@@ -1,7 +1,7 @@
-version: 0.5
+version: 0.5.1
 url: $baseurl/socialauth
 name: Social authentication
 requires: local_channel
-photo: icon:share-alt
+photo: icon:box-arrow-in-left
 categories: Networking
 desc: Sign in to Hubzilla using a social account.

@@ -1,7 +1,7 @@
-version: 2
+version: 3
 url: $baseurl/startpage
 requires: local_channel
 name: Startpage
-photo: icon:play-circle-o
+photo: icon:house-heart
 categories: System
 desc: Configure your personal startpage after login.

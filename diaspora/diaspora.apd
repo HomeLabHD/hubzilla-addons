@@ -1,7 +1,7 @@
-version: 2
+version: 3
 url: $baseurl/diaspora
 requires: local_channel
 name: Diaspora Protocol
-photo: icon:diaspora
+photo: $baseurl/addon/diaspora/diaspora.png
 categories: Networking
 desc: This app enables your channel to communicate with the Diaspora network.

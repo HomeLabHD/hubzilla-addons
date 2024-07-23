@@ -1,6 +1,6 @@
-version: 2
+version: 3
 url: $baseurl/planets
 requires: local_channel
 name: Random Planet
-photo: icon:empire
+photo: icon:geo
 desc: Set a random planet from the Star Wars Empire as your location when posting.

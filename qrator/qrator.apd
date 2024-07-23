@@ -1,3 +1,4 @@
+version: 1
 url: $baseurl/qrator
 name: QRator
-photo: $baseurl/addon/qrator/qrator.png
+photo: icon:qr-code

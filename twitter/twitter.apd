@@ -2,6 +2,6 @@ version: 2
 url: $baseurl/twitter
 requires: local_channel
 name: Twitter Crosspost Connector
-photo: icon:twitter
+photo: icon:share
 categories: Networking
 desc: Relay public posts to Twitter.
