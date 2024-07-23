@@ -3,9 +3,9 @@
 /**
  * Name: Social auth 
  * Description: Login to Hubzilla using a social account (Google, Facebook, Twitter etc or even a custom OAuth2 Provider) 
- * Version: 0.2
- * Author: Pascal Deklerck <http://hub.eenoog.org/profile/pascal>
- * Maintainer: Pascal Deklerck <pascal.deklerck@gmail.com> 
+ * Version: 0.5
+ * Author: Pascal Deklerck <https://hz.eenoog.org/profile/pascal>
+ * Maintainer: Pascal Deklerck
  */
 
 
