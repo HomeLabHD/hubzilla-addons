@@ -50,7 +50,7 @@ function articles_channel_apps(&$arr) {
 		'sel'   => ((argv(0) == 'articles') ? 'active' : ''),
 		'title' => t('View Articles'),
 		'id'    => 'articles-tab',
-		'icon'  => 'file-text-o'
+		'icon'  => 'newspaper'
 	];
 }
 
