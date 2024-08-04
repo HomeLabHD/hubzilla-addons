@@ -65,6 +65,8 @@ $(document).ready(function() {
 			return;
 
 		var options = {
+			closeSVG: '<i class="bi bi-x-lg text-white"></i>',
+			zoomSVG: '<i class="bi bi-zoom-in text-white"></i>',
 			dataSource: items,
 			bgOpacity: 1,
 			bgClickAction: 'toggle-controls',

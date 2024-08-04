@@ -86,6 +86,7 @@
 				html: '<i class="bi bi-download text-white" style="padding: 1.7rem; font-size: 1rem"></i>',
 				onInit: (el, pswp) => {
 					el.setAttribute('download', '');
+					el.setAttribute('class', 'pswp__button');
 					el.setAttribute('target', '_blank');
 					el.setAttribute('rel', 'noopener');
 					el.setAttribute('style', 'align-content: center', 'text-align: center');
@@ -115,6 +116,7 @@
 						html: '<i class="bi bi-arrow-90deg-right text-white" style="padding: 1.7rem; font-size: 1rem"></i>',
 						onInit: (el, pswp) => {
 							el.setAttribute('target', '_blank');
+							el.setAttribute('class', 'pswp__button');
 							el.setAttribute('rel', 'noopener');
 							el.setAttribute('style', 'align-content: center', 'text-align: center');
 							el.href = 'rpost?f=&title=' + encodeURIComponent('Album: ' + album) + '&body=' + share_str;
