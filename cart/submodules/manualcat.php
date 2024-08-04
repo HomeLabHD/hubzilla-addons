@@ -170,7 +170,7 @@ class Cart_manualcat {
 
     $formelements= replace_macros(get_markup_template('field_input.tpl'), array(
                 '$field'	=> array('SKU', t('New Sku'), "")));
-    $formelements.=' <button class="btn btn-sm" type="submit" name="submit"><i class="fa fa-plus fa-fw" aria-hidden="true"></i></button>';
+    $formelements.=' <button class="btn btn-sm" type="submit" name="submit"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>';
     $macrosubstitutes=Array("security_token"=>get_form_security_token(),"skulist"=>$skulist,"formelements"=>$formelements);
 
     $pagecontent .= replace_macros(get_markup_template('manualcat.itemadmin.tpl','addon/cart/submodules/'),$macrosubstitutes);
