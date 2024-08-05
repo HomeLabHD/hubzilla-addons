@@ -11,7 +11,7 @@
 		</div>
 		{{if $item.info}}
 		<div class="catalog-item-info pb-2">
-			<i class="fa fa-info-circle"></i> {{$item.info}}
+			<i class="bi bi-info-circle"></i> {{$item.info}}
 		</div>
 		{{/if}}
 	</div>

@@ -39,38 +39,38 @@
         </div>
     </div>
     <div>
-        <button class="btn" id="face-edit-set-name" onclick="setName()"><i class="fa fa-thumbs-up fa-2x"></i>
+        <button class="btn" id="face-edit-set-name" onclick="setName()"><i class="bi bi-hand-thumbs-up"></i>
         </button>
         <button class="btn" id="face-edit-set-unknown" onclick="setNameUnkown()"><i
-                class="fa fa-question fa-2x"></i> </button>
+                class="bi bi-question-lg"></i> </button>
         <button class="btn" id="face-edit-set-ignore" onclick="setNameIgnore()"><i
-                class="fa fa-eye-slash fa-2x"></i></button>
+                class="bi bi-eye-slash"></i></button>
     </div>
 </div>
 <!-- controls that are permanently shown at the bottom of the page -->
 <div id="face-footer-buttons">
     <div class="d-flex justify-content-center">
         <div>
-            <button class="btn" id="button-faces-filter"><i class="fa fa-filter fa-2x"></i></button>
+            <button class="btn" id="button-faces-filter"><i class="bi bi-funnel"></i></button>
         </div>
         <div>
-            <button class="btn" id="button-faces-hide-frames"><i class="fa fa-eye-slash fa-2x"></i></button>
+            <button class="btn" id="button-faces-hide-frames"><i class="bi bi-eye-slash"></i></button>
         </div>
         <div>
             <button class="btn" id="button_share_box">
                 <span id="button_share_box_counter_upload"></span>
-                <i class="fa fa-refresh fa-2x"></i>
+                <i class="bi bi-arrow-repeat"></i>
                 <span id="button_share_box_counter_download"></span>
             </button>
         </div>
         <div id="faces_server_status"></div>
         <div>
             <button class="btn faces_zoom" id="button_faces_zoom_in"><i
-                    class="fa fa-search-plus fa-2x"></i></button>
+                    class="bi bi-zoom-in"></i></button>
         </div>
         <div>
             <button class="btn faces_zoom" id="button_faces_zoom_out"><i
-                    class="fa fa-search-minus fa-2x"></i></button>
+                    class="bi bi-zoom-out"></i></button>
         </div>
     </div>
 </div>
@@ -97,8 +97,8 @@
             <div class="form-group d-flex justify-content-center">
                 <input type="date" id="face-date-from" class="face-date faces-search-inputs"
                        name="face-date-from" class="form-control">
-                <label for="face-date-from"> <i class="fa fa-arrow-left fa-2x"></i> </label>
-                <label for="face-date-to"> <i class="fa fa-arrow-right fa-2x"></i> </label>
+                <label for="face-date-from"> <i class="bi bi-arrow-left"></i> </label>
+                <label for="face-date-to"> <i class="bi bi-arrow-right"></i> </label>
                 <input type="date" id="face-date-to" class="face-date faces-search-inputs" name="face-date-to"
                        class="form-control">
             </div>
