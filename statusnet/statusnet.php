@@ -142,7 +142,7 @@ function statusnet_jot_nets(&$b) {
 	$statusnet_defpost = get_pconfig(local_channel(),'statusnet','post_by_default');
 	$selected = ((intval($statusnet_defpost) == 1) ? ' checked="checked" ' : '');
 	$b .= '<div class="profile-jot-net"><input type="checkbox" name="statusnet_enable"' . $selected . ' value="1" /> '
-		. '<i class="fa fa-fw fa-gnu-social"></i> ' . t('Post to GNU social') . '</div>';
+		. '<i class="bi bi-share"></i> ' . t('Post to GNU social') . '</div>';
 }
 
 function statusnet_post_local(&$b) {

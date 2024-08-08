@@ -48,7 +48,7 @@ function rtof_jot_nets(&$b) {
 	$rtof_defpost = get_pconfig(local_channel(),'rtof','post_by_default');
 	$selected = ((intval($rtof_defpost) == 1) ? ' checked="checked" ' : '');
 	$b .= '<div class="profile-jot-net"><input type="checkbox" name="rtof_enable"' . $selected . ' value="1" /> '
-		. '<i class="fa fa-fw fa-friendica"></i> ' . t('Post to Friendica') . '</div>';
+		. '<i class="bi bi-share"></i> ' . t('Post to Friendica') . '</div>';
 }
 
 function rtof_post_local(&$b) {

@@ -47,7 +47,7 @@ function redred_jot_nets(&$b) {
 	$redred_defpost = get_pconfig(local_channel(),'redred','post_by_default');
 	$selected = ((intval($redred_defpost) == 1) ? ' checked="checked" ' : '');
 	$b .= '<div class="profile-jot-net"><input type="checkbox" name="redred_enable"' . $selected . ' value="1" /> '
-		. '<i class="fa fa-fw fa-hubzilla"></i> ' . t('Post to Hubzilla') . '</div>';
+		. '<i class="bi bi-share"></i> ' . t('Post to Hubzilla') . '</div>';
 }
 
 

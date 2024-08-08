@@ -44,7 +44,7 @@ function nofed_jot_nets(&$b) {
 	$nofed_defpost = get_pconfig(local_channel(),'nofed','post_by_default');
 	$selected = ((intval($nofed_defpost) == 1) ? ' checked="checked" ' : '');
 	$b .= '<div class="profile-jot-net"><input type="checkbox" name="nofed_enable"' . $selected . ' value="1" /> '
-		. '<i class="fa fa-fw fa-paper-plane-o"></i> ' . t('Federate') . '</div>';
+		. '<i class="bi bi-send-check"></i> ' . t('Federate') . '</div>';
 }
 
 function nofed_post_local(&$b) {
