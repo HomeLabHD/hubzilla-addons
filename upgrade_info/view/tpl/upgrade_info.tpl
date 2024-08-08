@@ -5,7 +5,7 @@
 	<p class="text-center"><strong>{{$content.1}}</strong></p>
 	<p>{{$content.2}} {{$content.3}} {{$content.4}}</p>
 	<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-	<button id="upgrade_info_dismiss" type="button" class="btn btn-sm btn-success"><i class="fa fa-check"></i> {{$dismiss}}</button>
+	<button id="upgrade_info_dismiss" type="button" class="btn btn-sm btn-success"><i class="bi bi-check-lg"></i> {{$dismiss}}</button>
 	<script>
 		$('#upgrade_info_dismiss').click(function() {
 			$.post(

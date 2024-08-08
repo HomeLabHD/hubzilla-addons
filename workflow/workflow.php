@@ -327,7 +327,7 @@ class Workflow_Utils {
                 $arr = $extras;
 
                 $item_link = $extras['item']['plink'];
-                $arr['dropdown_extras'] .= '<a class="dropdown-item" href="#" onclick="workflowShowNewItemForm(\''.$item_link.'\',\''.$posturl.'\'); return false;" title="Workflow"><i class="generic-icons-nav fa fa-fw fa-tasks"></i>' . t('Create New Workflow Item') .'</a>';
+                $arr['dropdown_extras'] .= '<a class="dropdown-item" href="#" onclick="workflowShowNewItemForm(\''.$item_link.'\',\''.$posturl.'\'); return false;" title="Workflow"><i class="generic-icons-nav bi bi-list-ol"></i>' . t('Create New Workflow Item') .'</a>';
                 $extras = $arr;
         }
 
@@ -1290,7 +1290,7 @@ class Workflow_Utils {
 		$basicfilters .= "<h4><a data-bs-toggle='collapse' data-bs-target='#basicfilters-collapse' href='#' class='collapsed' aria-expanded='false'>Search Parameters</a></h4>";
 		$basicfilters .= "</div>";
 		$basicfilters .= "<div id='basicfilters-collapse' class='collapse' role='tabpanel' aria-labelledby='basicfilters' data-bs-parent='#basicfilters' style='z-index:100;position:absolute;background-color:#fff;padding:4px 20px 4px 20px;border:solid 4px black;'>";
-		$basicfilters .= "<div id='basicfilters-tool' style='float:right;'><a data-bs-toggle='collapse' data-bs-target='#basicfilters-collapse' class='btn btn-outline-secondary btn-sm border-0' style='margin-right:-25px;margin-top:-10px;' href='#'><i class='fa fa-close'></i></a></div>";
+		$basicfilters .= "<div id='basicfilters-tool' style='float:right;'><a data-bs-toggle='collapse' data-bs-target='#basicfilters-collapse' class='btn btn-outline-secondary btn-sm border-0' style='margin-right:-25px;margin-top:-10px;' href='#'><i class='bi bi-x-lg'></i></a></div>";
 		$basicfilters .= "<form method='get'>";
 		$minprio = isset($_REQUEST['minpriority']) ? intval($_REQUEST['minpriority']) : 1;
 		$assigned = (isset($_REQUEST['assigned']) && is_array($_REQUEST['assigned'])) ? $_REQUEST['assigned'] : [];
@@ -1346,7 +1346,7 @@ class Workflow_Utils {
 		if (local_channel() != App::$profile_uid) {
 			$url = z_root().'/workflow/'.$channel['channel_address'];
 
-			$tool .= "<div class='workflow-toolbar-item'><a href='".$url."' title='Local Task List'><i class='generic-icons-nav fa fa-fw fa-tasks'></i>Local Task List</a></div>";
+			$tool .= "<div class='workflow-toolbar-item'><a href='".$url."' title='Local Task List'><i class='generic-icons-nav bi bi-list-ol'></i>Local Task List</a></div>";
 		}
 
 		if ( $observer = get_observer_hash() ) {
@@ -1363,7 +1363,7 @@ class Workflow_Utils {
 			//$url = z_root().'/workflow/'.$channel['channel_address'];
 			$url = $hub['hubloc_url'].'/workflow/'.substr($hub['hubloc_addr'],0,strpos($hub['hubloc_addr'],'@'));
 
-			$tool .= "<div class='workflow-toolbar-item'><a href='".$url."' title='My Task List'><i class='generic-icons-nav fa fa-fw fa-tasks'></i>My Task List</a></div>";
+			$tool .= "<div class='workflow-toolbar-item'><a href='".$url."' title='My Task List'><i class='generic-icons-nav bi bi-list-ol'></i>My Task List</a></div>";
 		}
 
 		if ($tool) {
@@ -1382,7 +1382,7 @@ class Workflow_Utils {
 		$tools = $hookinfo['tools'];
 
 		$tool = '';
-		$tool .= "<div class='workflow-toolbar-item'><a href='#' onclick='workflowShowNewItemForm(\"\",\"\"); return false;' title='Add Issue'><i class='generic-icons-nav fa fa-fw fa-plus'></i>Add Issue</a></div>";
+		$tool .= "<div class='workflow-toolbar-item'><a href='#' onclick='workflowShowNewItemForm(\"\",\"\"); return false;' title='Add Issue'><i class='generic-icons-nav bi bi-plus-lg'></i>Add Issue</a></div>";
 
 		$newhookinfo['tools'][] = [
 			'tool' => $tool,
@@ -2215,7 +2215,7 @@ class Workflow_Utils {
                 $thismeta = '<b>Assigned:</b>';
 		if ($posturl && $iframeurl) {
                 	$miscdata = json_encode(['action'=>'item_basiccontacts','uuid'=>$uuid,'mid'=>$mid,'iframeurl'=>$iframeurl]);
-                	$thismeta .= "<a href='#' onclick='return false;' class='workflow-showmodal-iframe' data-posturl='".$posturl."' data-action='getmodal_getiframe' data-miscdata='".$miscdata."' data-toggle='tooltip' title='edit'><i class='fa fa-pencil'></i></a>";
+                	$thismeta .= "<a href='#' onclick='return false;' class='workflow-showmodal-iframe' data-posturl='".$posturl."' data-action='getmodal_getiframe' data-miscdata='".$miscdata."' data-toggle='tooltip' title='edit'><i class='bi bi-pencil'></i></a>";
 		}
  		$thismeta .= $contacts;
 
@@ -2398,7 +2398,7 @@ class Workflow_Utils {
                 $thismeta = 'Status: '.$itemstatus.' (Priority: '.$itempriority.')';
 		if ($posturl && $iframeurl) {
                 	$miscdata = json_encode(['action'=>'item_basicmeta','uuid'=>$uuid,'mid'=>$mid,'iframeurl'=>$iframeurl]);
-                	$thismeta .= "<a href='#' onclick='return false;' class='workflow-showmodal-iframe' data-posturl='".$posturl."' data-action='getmodal_getiframe' data-miscdata='".$miscdata."' data-toggle='tooltip' title='edit'><i class='fa fa-pencil'></i></a>";
+                	$thismeta .= "<a href='#' onclick='return false;' class='workflow-showmodal-iframe' data-posturl='".$posturl."' data-action='getmodal_getiframe' data-miscdata='".$miscdata."' data-toggle='tooltip' title='edit'><i class='bi bi-pencil'></i></a>";
 		}
 
 		$newhookinfo['itemmeta'][] = [

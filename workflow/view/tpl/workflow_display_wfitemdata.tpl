@@ -1,7 +1,7 @@
 			<div class="row">
 			    <div class="col-12 workflow wfheading">
 				{{$items.0.title}}
- 				<a href="#" onclick='return false;' class="workflow-showmodal-iframe" data-posturl='{{$posturl}}' data-action='{{$addlinkaction}}' data-miscdata='{{$edittaskjsondata}}' data-toggle="tooltip" title="edit"><i class="fa fa-pencil"></i></a>
+ 				<a href="#" onclick='return false;' class="workflow-showmodal-iframe" data-posturl='{{$posturl}}' data-action='{{$addlinkaction}}' data-miscdata='{{$edittaskjsondata}}' data-toggle="tooltip" title="edit"><i class="bi bi-pencil"></i></a>
 			    </div>
 			</div>
 			<div class="row">
