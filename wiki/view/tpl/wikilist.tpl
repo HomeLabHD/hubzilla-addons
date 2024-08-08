@@ -1,7 +1,7 @@
 <div class="generic-content-wrapper">
 	<div class="section-title-wrapper clearfix">
 		{{if $owner}}
-		<button type="button" class="btn btn-success btn-sm float-end acl-form-trigger" onclick="openClose('new-wiki-form-wrapper');" data-form_id="new-wiki-form"><i class="fa fa-plus-circle"></i>&nbsp;{{$create}}</button>
+		<button type="button" class="btn btn-success btn-sm float-end acl-form-trigger" onclick="openClose('new-wiki-form-wrapper');" data-form_id="new-wiki-form"><i class="bi bi-plus-lg"></i>&nbsp;{{$create}}</button>
 		{{/if}}
 		<h2>{{$header}}</h2>
 	</div>
@@ -15,7 +15,7 @@
 			<div>
 				<div class="btn-group float-end">
 					<button id="dbtn-acl" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#aclModal" title="Permission settings" onclick="return false;">
-						<i id="jot-perms-icon" class="fa fa-{{$lockstate}} jot-icons"></i>
+						<i id="jot-perms-icon" class="bi bi-{{$lockstate}} jot-icons"></i>
 					</button>
 					<button id="new-wiki-submit" class="btn btn-primary btn-sm" type="submit" name="submit" >{{$submit}}</button>
 				</div>
@@ -43,17 +43,17 @@
 				<td><a href="/wiki/{{$channel}}/{{$wiki.urlName}}/Home" title="{{$view}}"{{if $wiki.active}} class="active"{{/if}}>{{$wiki.title}}</a></td>
 				<td>{{if $wiki.typelock}}{{$wiki.mimeType}}{{else}}{{$unlocked}}{{/if}}</td>
 				{{if $owner}}
-				<td><i class="fa fa-pencil" onclick="openCloseTR('wikis-index-edit-{{$wiki.id}}')"></i></td>
+				<td><i class="bi bi-pencil" onclick="openCloseTR('wikis-index-edit-{{$wiki.id}}')"></i></td>
 				{{/if}}
 				<td class="dropdown">
 					{{if $wiki.lockstate == 'lock'}}
-					<i class="fa fa-lock lockview" data-bs-toggle="dropdown" onclick="lockview('item',{{$wiki.id}});"></i>
+					<i class="bi bi-lock lockview" data-bs-toggle="dropdown" onclick="lockview('item',{{$wiki.id}});"></i>
 					<ul id="panel-{{$wiki.id}}" class="lockview-panel dropdown-menu dropdown-menu-end"></ul>
 					{{/if}}
 				</td>
-				<td><i class="fa fa-download" onclick="wiki_download_wiki('{{$wiki.resource_id}}'); return false;"></i></td>
+				<td><i class="bi bi-download" onclick="wiki_download_wiki('{{$wiki.resource_id}}'); return false;"></i></td>
 				{{if $owner}}
-				<td><i class="fa fa-trash-o drop-icons" onclick="wiki_delete_wiki('{{$wiki.title|escape:'javascript'}}', '{{$wiki.resource_id}}'); return false;"></i></td>
+				<td><i class="bi bi-trash" onclick="wiki_delete_wiki('{{$wiki.title|escape:'javascript'}}', '{{$wiki.resource_id}}'); return false;"></i></td>
 				{{/if}}
 			</tr>
 			{{if $owner}}
@@ -64,10 +64,10 @@
 						{{include file="field_input.tpl" field=['updateRawName', $edit_wiki_name, $wiki.title]}}
 						<div class="btn-group float-end">
 							<button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#aclModal" type="button">
-								<i class="jot-perms-icon fa fa-{{$wiki.lockstate}}"></i>
+								<i class="jot-perms-icon bi bi-{{$wiki.lockstate}}"></i>
 							</button>
 							<button class="btn btn-primary btn-sm" type="submit" value="edit">Submit</button>
-						</div>						
+						</div>
 					</form>
 				</td>
 			</tr>
