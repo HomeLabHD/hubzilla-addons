@@ -1,5 +1,5 @@
 <div id="upgrade_info_aside" class="alert alert-info alert-dismissible fade show">
-	<h3><i class="fa fa-hubzilla"></i> {{$title}}</h3>
+	<h3>{{$title}}</h3>
 	<hr>
 	<p>{{$content.0}}</p>
 	<p class="text-center"><strong>{{$content.1}}</strong></p>
