@@ -205,7 +205,7 @@ rv.getMarkers = function () {
 			markerListEl.addClass('list-group');
 			var locatedMarkers = 0;
 			for (var i = 0; i < markers.length; i++) {
-				
+
 				var newLiEl = document.createElement( "button" );
 				var marker = L.marker([markers[i].lat, markers[i].lng], {icon: rv.icons.greenIcon});
 				locatedMarkers += 1;
@@ -213,16 +213,16 @@ rv.getMarkers = function () {
 				$(newLiEl).attr('id', "marker-"+markers[i].id);
 				$(newLiEl).html(markers[i].name);
 				markerListEl.append(newLiEl);
-				
+
 				var span = document.createElement( "span" );
-				$(span).html('<i class="fa fa-map-marker"></i>&nbsp;');
+				$(span).html('<i class="bi bi-geo-alt"></i>&nbsp;');
 				$(newLiEl).prepend(span);
 				$(newLiEl).on('click', function (e) {
 					rv.map.panTo(new L.LatLng(rv.markers[e.target.id.substring(7)].lat, rv.markers[e.target.id.substring(7)].lng));
 					rv.markers[e.target.id.substring(7)].marker.openPopup();
 					window.history.pushState({}, '', window.location.origin + '/rendezvous/' + rv.group.id + '/marker/' + e.target.id.substring(7) + '/' + rv.map.getZoom());
 				});
-				
+
 				var id = markers[i].id;
 				var name = markers[i].name;
 				var description = markers[i].description;
@@ -236,10 +236,10 @@ rv.getMarkers = function () {
 					lat: markers[i].lat,
 					lng: markers[i].lng
 				};
-				
+
 				rv.checkMarkerProximity(id);
 			}
-		
+
 			rv.centerOnItem();
 		} else {
 			window.console.log(data['message']);
@@ -252,7 +252,7 @@ rv.getMarkers = function () {
 };
 
 rv.centerOnItem = function () {
-	
+
 	if(rv.centerOn !== null) {
 		console.log('centerOn is not null: ' + JSON.stringify(rv.centerOn));
 		var zoom = parseInt(rv.centerOn.zoom);
@@ -268,7 +268,7 @@ rv.centerOnItem = function () {
 			}
 		}
 	}
-	
+
 };
 
 rv.addMarkerToMap = function (marker, id) {
@@ -312,7 +312,7 @@ rv.createMarker = function (e) {
 				name: name,
 				description: description
 			};
-			
+
 			// Verify that distance is an integer
 			if (Number(distance) === distance && distance % 1 === 0) {
 				rv.proximity[id] = { distance: distance } ;
@@ -322,7 +322,7 @@ rv.createMarker = function (e) {
 			} else {
 				alert('Distance value must be an integer');
 			}
-			
+
 		} else {
 			alert('Error creating marker');
 			window.console.log(data['message']);
@@ -412,7 +412,7 @@ rv.getIdentity = function () {
 		}
 		if (rv.markerUpdateID === null) {
 			rv.markerUpdateID = window.setInterval(rv.getMarkers, rv.memberUpdateInterval);
-		}		
+		}
 		if (typeof (proximity) !== 'undefined') {
 			rv.proximity = proximity;
 		}
@@ -475,7 +475,7 @@ rv.getMembers = function () {
 			var selfDeleted = true;
 			var memberListEl = $('#member-list').append('<ul>').find('ul');
 			memberListEl.addClass('list-group');
-			for (var i = 0; i < members.length; i++) {	
+			for (var i = 0; i < members.length; i++) {
 				var newLiEl = document.createElement( "button" );
 				var updateTime = new Date(members[i].updated);
 				updateTime.setMinutes(updateTime.getMinutes() - rv.identity.timeOffset);
@@ -497,9 +497,9 @@ rv.getMembers = function () {
 						$(newLiEl).addClass('list-group-item');
 						$(newLiEl).attr('id', members[i].mid);
 						$(newLiEl).html(members[i].name);
-						memberListEl.append(newLiEl);	
+						memberListEl.append(newLiEl);
 						var gpsSpan = document.createElement( "span" );
-						$(gpsSpan).html('<i class="fa fa-crosshairs"></i>&nbsp;');
+						$(gpsSpan).html('<i class="bi bi-crosshair"></i>&nbsp;');
 						$(newLiEl).prepend(gpsSpan);
 						$(newLiEl).on('click', function (e) {
 							rv.map.panTo(new L.LatLng(rv.members[e.target.id].lat, rv.members[e.target.id].lng));
@@ -552,13 +552,13 @@ rv.getMembers = function () {
 				}
 			}
 			var newLiEl = document.createElement( "button" );
-			$(newLiEl).addClass('list-group-item').html('<i class="fa fa-star"></i>'+'&nbsp;'+rv.identity.name);
-			
+			$(newLiEl).addClass('list-group-item').html('<i class="bi bi-star"></i>'+'&nbsp;'+rv.identity.name);
+
 			$(newLiEl).on('click', function (e) {
 				if (rv.gps.lat !== null && rv.gps.lng !== null) {
 					rv.map.panTo(new L.LatLng(rv.gps.lat, rv.gps.lng));
 				}
-			});	
+			});
 			memberListEl.prepend(newLiEl);
 			if (selfDeleted) {
 				rv.identityDeletedDialog.dialog('open');
@@ -575,7 +575,7 @@ rv.getMembers = function () {
 };
 
 rv.checkProximity = function (mid) {
-	
+
 	if(typeof(rv.proximity[mid]) !== 'undefined' && rv.proximity[mid] !== null && rv.proximity[mid].distance > 0) {
 		if (rv.gps.lat !== null && rv.gps.lng !== null) {
 			// Calculate the distance in meters between member mid and self
@@ -584,7 +584,7 @@ rv.checkProximity = function (mid) {
 				var proximityMessage = 'Proximity alert! ' + rv.members[mid].name  + ' is within ' + rv.proximity[mid].distance + ' meters of your location.';
 				rv.issue_notification(proximityMessage, 'Rendezvous');
 				$('#generic-message').html('<p>' + proximityMessage + '</p>');
-				$('#generic-message').dialog();			
+				$('#generic-message').dialog();
 				rv.proximity[mid] = null;
 				Cookies.set('proximity', rv.proximity, {expires: 365, path: ''});
 				return true;
@@ -595,11 +595,11 @@ rv.checkProximity = function (mid) {
 	} else {
 		return false;
 	}
-	
+
 };
 
 rv.checkMarkerProximity = function (id) {
-	
+
 	if(typeof(rv.proximity[id]) !== 'undefined' && rv.proximity[id] !== null && rv.proximity[id].distance > 0) {
 		if (rv.gps.lat !== null && rv.gps.lng !== null) {
 			// Calculate the distance in meters between marker and self
@@ -619,7 +619,7 @@ rv.checkMarkerProximity = function (id) {
 	} else {
 		return false;
 	}
-	
+
 };
 
 rv.distanceBetween = function (latLng1, latLng2) {
@@ -686,7 +686,7 @@ rv.memberMenu = function (tDiff, tUnit) {
 			} else {
 				$('#member-proximity-distance').val(0);
 			}
-			rv.editProximityAlertDialog.dialog('open'); 
+			rv.editProximityAlertDialog.dialog('open');
 		});
 	}, 300);
 	var memberInfo = '';
@@ -754,7 +754,7 @@ rv.editMarkerProximityAlertDialog.find("form").on("submit", function (event) {
 });
 
 rv.editMarkerProximityAlert = function () {
-	
+
 	if (rv.markers[rv.currentMarkerID]) {
 		var distance = parseInt($('#edit-marker-proximity-distance').val());
 		// Verify that distance is an integer
@@ -799,7 +799,7 @@ rv.editProximityAlertDialog.find("form").on("submit", function (event) {
 });
 
 rv.editProximityAlert = function () {
-	
+
 	if (rv.members[rv.currentMemberID]) {
 		var distance = parseInt($('#member-proximity-distance').val());
 		// Verify that distance is an integer
@@ -1006,7 +1006,7 @@ rv.notification_init = function () {
 	// Let's check whether notification permissions have already been granted
 	else if (Notification.permission === "granted") {
 		// If it's okay let's create a notification
-		rv.notify.granted = true; 
+		rv.notify.granted = true;
 	}
 
 	// Otherwise, we need to ask the user for permission
@@ -1014,7 +1014,7 @@ rv.notification_init = function () {
 		Notification.requestPermission(function (permission) {
 			// If the user accepts, let's create a notification
 			if (permission === "granted") {
-				rv.notify.granted = true; 
+				rv.notify.granted = true;
 			}
 		});
 	}
@@ -1034,8 +1034,8 @@ rv.issue_notification = function (theBody,theTitle) {
 	}
 	var n = new Notification(theTitle,options);
 	n.onclick = function (event) {
-		setTimeout(n.close.bind(n), 300); 
-	} 
+		setTimeout(n.close.bind(n), 300);
+	}
 	rv.notify.audio.play();
 }
 
@@ -1045,9 +1045,9 @@ $(window).load(function () {
 		// Select input field contents
 		this.select();
 	});
-	
+
 	rv.notification_init();
 	// Start the background updates by obtaining an identity and joining the group
 	rv.getIdentity();
-	
+
 });

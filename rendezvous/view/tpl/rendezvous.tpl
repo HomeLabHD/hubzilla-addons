@@ -6,7 +6,7 @@
 		<div class="clear" ></div>
 		<br>
 		<button id="add-new-group" class="btn btn-success btn-xs" title="{{$addnewrendezvous}}">
-				<i class="fa fa-plus"></i><span>&nbsp;{{$addnewrendezvous}}</span>
+				<i class="bi bi-plus-lg"></i><span>&nbsp;{{$addnewrendezvous}}</span>
 		</button>
 		<div id="group-list" class="list-group" style="margin-top: 20px;margin-bottom: 20px;"></div>
 </div>
