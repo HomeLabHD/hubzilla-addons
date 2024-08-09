@@ -43,17 +43,17 @@
 				<td><a href="/wiki/{{$channel}}/{{$wiki.urlName}}/Home" title="{{$view}}"{{if $wiki.active}} class="active"{{/if}}>{{$wiki.title}}</a></td>
 				<td>{{if $wiki.typelock}}{{$wiki.mimeType}}{{else}}{{$unlocked}}{{/if}}</td>
 				{{if $owner}}
-				<td><i class="bi bi-pencil" onclick="openCloseTR('wikis-index-edit-{{$wiki.id}}')"></i></td>
+				<td><i class="bi bi-pencil generic-icons-right" onclick="openCloseTR('wikis-index-edit-{{$wiki.id}}')"></i></td>
 				{{/if}}
 				<td class="dropdown">
 					{{if $wiki.lockstate == 'lock'}}
-					<i class="bi bi-lock lockview" data-bs-toggle="dropdown" onclick="lockview('item',{{$wiki.id}});"></i>
+					<i class="bi bi-lock lockview generic-icons-right" data-bs-toggle="dropdown" onclick="lockview('item',{{$wiki.id}});"></i>
 					<ul id="panel-{{$wiki.id}}" class="lockview-panel dropdown-menu dropdown-menu-end"></ul>
 					{{/if}}
 				</td>
-				<td><i class="bi bi-download" onclick="wiki_download_wiki('{{$wiki.resource_id}}'); return false;"></i></td>
+				<td><i class="bi bi-download generic-icons-right" onclick="wiki_download_wiki('{{$wiki.resource_id}}'); return false;"></i></td>
 				{{if $owner}}
-				<td><i class="bi bi-trash" onclick="wiki_delete_wiki('{{$wiki.title|escape:'javascript'}}', '{{$wiki.resource_id}}'); return false;"></i></td>
+				<td><i class="bi bi-trash generic-icons-right" onclick="wiki_delete_wiki('{{$wiki.title|escape:'javascript'}}', '{{$wiki.resource_id}}'); return false;"></i></td>
 				{{/if}}
 			</tr>
 			{{if $owner}}
