@@ -1437,7 +1437,7 @@ function cart_channel_apps(&$hookdata) {
 			'sel'   => ((argv(0) == 'cart') ? 'active' : ''),
 			'title' => t('Shop'),
 			'id'    => 'cart-tab',
-			'icon'  => 'shopping-cart'
+			'icon'  => 'cart'
 		];
 	}
 }
