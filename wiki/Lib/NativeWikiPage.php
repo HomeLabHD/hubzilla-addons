@@ -2,6 +2,7 @@
 
 use App;
 use Zotlabs\Access\PermissionLimits;
+use Zotlabs\Lib\MarkdownSoap;
 
 class NativeWikiPage {
 
@@ -472,7 +473,7 @@ class NativeWikiPage {
 			$loaded        = self::load_page($x);
 
 			if ($loaded) {
-				$content = $loaded['body'];
+				$content = (($w['mimeType'] === 'text/markdown') ? MarkdownSoap::unescape($loaded['body']) : $loaded['body']);
 				return ['content' => $content, 'success' => true];
 			}
 			return ['success' => false];
@@ -497,13 +498,16 @@ class NativeWikiPage {
 		$x['revision'] = (-1);
 
 		$currpage = self::load_page($x);
-		if ($currpage)
-			$currentContent = $currpage['body'];
+		if ($currpage) {
+			$currentContent = (($w['mimeType'] === 'text/markdown') ? MarkdownSoap::unescape($currpage['body']) : $currpage['body']);
+		}
+
 
 		$x['revision'] = $compareCommit;
 		$comppage      = self::load_page($x);
-		if ($comppage)
-			$compareContent = $comppage['body'];
+		if ($comppage) {
+			$compareContent = (($w['mimeType'] === 'text/markdown') ? MarkdownSoap::unescape($comppage['body']) : $comppage['body']);
+		}
 
 		if ($currpage && $comppage) {
 			require_once('library/class.Diff.php');
