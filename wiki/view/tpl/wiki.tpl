@@ -5,19 +5,19 @@
 			{{if $showPageControls}}
 			<div id="page-tools" class="btn-group" style="display: none;">
 				<button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
-					<i class="fa fa-cog"></i>&nbsp;{{$tools_label}}
+					<i class="bi bi-gear"></i>&nbsp;{{$tools_label}}
 				</button>
 				<div class="dropdown-menu dropdown-menu-end">
 					{{if $renamePage}}
-					<a class="dropdown-item rename-page" href="#"><i class="fa fa-fw fa-edit"></i>&nbsp;{{$renamePage}}</a>
+					<a class="dropdown-item rename-page" href="#"><i class="bi bi-pencil"></i>&nbsp;{{$renamePage}}</a>
 					{{/if}}
-					<a id="embed-image" class="dropdown-item" href="#"><i class="fa fa-fw fa-picture-o"></i>&nbsp;Embed Image</a>
+					<a id="embed-image" class="dropdown-item" href="#"><i class="bi bi-image"></i>&nbsp;Embed Image</a>
 				</div>
 			</div>
 			{{/if}}
-			<button type="button" class="btn btn-outline-secondary btn-sm" title="{{$sharePage}}" onclick="window.location.href='rpost?f=&body={{$shareLink}}';"><i class="fa fa-fw fa-share"></i></button>
-			<button id="fullscreen-btn" type="button" class="btn btn-outline-secondary btn-sm" onclick="makeFullScreen(); adjustFullscreenEditorHeight();"><i class="fa fa-expand"></i></button>
-			<button id="inline-btn" type="button" class="btn btn-outline-secondary btn-sm" onclick="makeFullScreen(false); adjustInlineEditorHeight()"><i class="fa fa-compress"></i></button>
+			<button type="button" class="btn btn-outline-secondary btn-sm" title="{{$sharePage}}" onclick="window.location.href='rpost?f=&body={{$shareLink}}';"><i class="bi bi-arrow-90deg-right"></i></button>
+			<button id="fullscreen-btn" type="button" class="btn btn-outline-secondary btn-sm" onclick="makeFullScreen(); adjustFullscreenEditorHeight();"><i class="bi bi-arrows-angle-expand"></i></button>
+			<button id="inline-btn" type="button" class="btn btn-outline-secondary btn-sm" onclick="makeFullScreen(false); adjustInlineEditorHeight()"><i class="bi bi-arrows-angle-contract"></i></button>
 		</div>
 		<h2>
 			<span id="wiki-header-name">{{$wikiheaderName}}</span>:
@@ -380,7 +380,7 @@
 					$('#embedPhotoModalBodyAlbumDialog').html('\
 							<div><ul class="nav nav-pills flex-column">\n\
 								<li class="nav-item"><a class="nav-link" href="#" onclick="initializeEmbedPhotoDialog();return false;">\n\
-									<i class="fa fa-chevron-left"></i>&nbsp;\n\
+									<i class="bi bi-chevron-left"></i>&nbsp;\n\
 									{{$modaldiffalbum}}\n\
 									</a>\n\
 								</li>\n\

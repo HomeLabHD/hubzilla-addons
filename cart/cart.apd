@@ -1,7 +1,7 @@
-version: 3
+version: 4
 url: $baseurl/cart/$nick, $baseurl/settings/cart
 requires: local_channel
 name: Cart
-photo: icon:shopping-cart
+photo: icon:cart
 categories: E-Commerce
 desc: A webshop with cart utilities for orders and payments.

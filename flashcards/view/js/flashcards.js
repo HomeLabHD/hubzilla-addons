@@ -82,9 +82,9 @@ var boxLocalStore = new BoxLocalStore();
 var stringContentOldCard = '';
 /*
  * The card stores its data in an array in the form
- * 
+ *
  * index - value
- * 
+ *
  * 0 - id = creation timestamp, milliseconds, Integer
  * 1 - Language A, String
  * 2 - Language B, String
@@ -95,7 +95,7 @@ var stringContentOldCard = '';
  * 7 - progress in deck default 0, Integer
  * 8 - How often learned (information for the user only), Integer
  * 9 - last modified progress, milliseconds as Integer
- * 10 - has local changes, Boolean 
+ * 10 - has local changes, Boolean
  */
 class Card {
     constructor() {
@@ -169,7 +169,7 @@ class Card {
             return true;
         }
         var daysToWait = Math.pow(box.content.cardsDeckWaitExponent, deck - 1);
-//		var repetitionsPerDeck = box.content.cardsRepetitionsPerDeck;	
+//		var repetitionsPerDeck = box.content.cardsRepetitionsPerDeck;
         var daysToWaitInDeck = Math.pow(box.content.cardsDeckWaitExponent, deck - 2);
         daysToWaitInDeck = Math.round(daysToWaitInDeck);
         if (deckProgress > 0) {
@@ -250,7 +250,7 @@ class Card {
         return false;
     }
     /* Get the content of the card. Every data is store in an array.
-     * 
+     *
      * returns Array the content
      */
     getContent() {
@@ -258,7 +258,7 @@ class Card {
     }
     /*
      * Set the content
-     * 
+     *
      * param Array the content
      */
     setContent(contentArray) {
@@ -372,7 +372,7 @@ class Box {
     }
     validate() {
         // id = Integer = ms = creation time of card
-        //this.content.boxID = this.checkInteger(this.content.boxID);		
+        //this.content.boxID = this.checkInteger(this.content.boxID);
         this.content.title = this.checkString(this.content.title, 80);
         this.content.description = this.checkString(this.content.description, 1000);
         this.content.creator = this.checkString(this.content.creator, 256);
@@ -485,7 +485,7 @@ class Box {
         // s += this.content.size;
         // "creator":"",
         // "lastShared":0,
-        // "boxPublicID":0, 
+        // "boxPublicID":0,
         // "lastEditor":"",
         // "lastChangedPublicMetaData":0,
         // "maxLengthCardField":1000,
@@ -630,7 +630,7 @@ class Box {
                     filtered.push(card);
                 }
             }
-        } else {            
+        } else {
             if (filterArray) {
                 this.content.private_filter = filterArray;
             } else {
@@ -1280,7 +1280,7 @@ function createTable(reload) {
             }
         }
         html += '</tr>';
-        if(box.content.private_show_card_sort) {            
+        if(box.content.private_show_card_sort) {
             html += '<tr>';
             var i;
             for (i = 0; i < 11; i++) {
@@ -1291,15 +1291,15 @@ function createTable(reload) {
                     html += '<span>';
                     if (box.content.private_sortColumn == i) {
                         if (!box.content.private_sortReverse) {
-                            html += '<i class="fa fa-fw fa-sort-asc fa-lg" sortCol="' + i + '" style="color:red;"></i>';
-                            html += '<i class="fa fa-fw fa-sort-desc fa-lg" sortCol="' + i + '"></i>';
+                            html += '<i class="bi bi-sort-down-alt" sortCol="' + i + '" style="color:red;"></i>';
+                            html += '<i class="bi bi-sort-down" sortCol="' + i + '"></i>';
                         } else {
-                            html += '<i class="fa fa-fw fa-sort-asc fa-lg" sortCol="' + i + '"></i>';
-                            html += '<i class="fa fa-fw fa-sort-desc fa-lg" sortCol="' + i + '" style="color:red;"></i>';
+                            html += '<i class="bi bi-sort-down-alt" sortCol="' + i + '"></i>';
+                            html += '<i class="bi bi-sort-down" sortCol="' + i + '" style="color:red;"></i>';
                         }
                     } else {
-                        html += '<i class="fa fa-fw fa-sort-asc fa-lg" sortCol="' + i + '"></i>';
-                        html += '<i class="fa fa-fw fa-sort-desc fa-lg" sortCol="' + i + '"></i>';
+                        html += '<i class="bi bi-sort-down-alt" sortCol="' + i + '"></i>';
+                        html += '<i class="bi bi-sort-down" sortCol="' + i + '"></i>';
                     }
                     html += '</span>';
                     html += '</th>';
@@ -1414,7 +1414,7 @@ function mark(text, search) {
         }
     }
     return result;
-} 
+}
 
 function setCardsStatus() {
     logger.log('setCardsStatus() ...');
@@ -1452,7 +1452,7 @@ function setCardsStatus() {
     }
     if (due > 0) {
         $('#span_flashcards_cards_due').html(due);
-        var colorButton = $("i.fa-graduation-cap").css('color'); // TODO: does not work
+        var colorButton = $("i.bi-mortarboard").css('color'); // TODO: does not work
         colorButton = "#007bff";
         $("#button_flashcards_learn_play").prop("disabled", false).css({"color": colorButton});
         $('#button_flashcards_learn_play').show();
@@ -1782,12 +1782,12 @@ $(document).on("click", "#button_delete_box", function () {
 });
 
 function animate_on() {
-    $('#button_share_box').find('.fa').addClass("fa-spin").addClass("fa-fw");
+    $('#button_share_box').find('.bi').addClass("bi-arrow-repeat");
     fixTitleLength();
 }
 
 function animate_off() {
-    $('#button_share_box').find('.fa').removeClass("fa-spin").removeClass("fa-fw");
+    $('#button_share_box').find('.bi').removeClass("bi-arrow-repeat");
 }
 
 $(document).on("click", "#button_share_box", function () {
@@ -1961,14 +1961,14 @@ $(document).on("click", "#button_flashcards_settings_default", function () {
     visualiseLearnSystem();
 });
 
-$(document).on("click", "i.fa-sort-asc", function () {
+$(document).on("click", "i.bi-sort-down-alt", function () {
     box.content.private_sortColumn = parseInt($(this).attr("sortCol"));
     box.content.private_sortReverse = false;
     showCards(false);
     colorSortArrow();
 });
 
-$(document).on("click", "i.fa-sort-desc", function () {
+$(document).on("click", "i.bi-sort-down-alt", function () {
     box.content.private_sortColumn = parseInt($(this).attr("sortCol"));
     box.content.private_sortReverse = true;
     showCards(false);
@@ -1976,7 +1976,7 @@ $(document).on("click", "i.fa-sort-desc", function () {
 });
 
 function colorSortArrow() {
-    $('i.fa-sort-desc').each(function (i, obj) {
+    $('i.bi-sort-down').each(function (i, obj) {
         var col = $(this).attr("sortCol");
         if (box.content.private_sortColumn == col && box.content.private_sortReverse) {
             $(this).css({'color': 'red'});
@@ -1984,7 +1984,7 @@ function colorSortArrow() {
             $(this).css({'color': 'black'});
         }
     });
-    $('i.fa-sort-asc').each(function (i, obj) {
+    $('i.bi-sort-down-alt').each(function (i, obj) {
         var col = $(this).attr("sortCol");
         if (box.content.private_sortColumn == col && !box.content.private_sortReverse) {
             $(this).css({'color': 'red'});
@@ -2070,7 +2070,7 @@ $(document).on("click", "#flashcards_show_help", function () {
 
 $(document).on("click", "#button_flashcards_close", function () {
     logger.log('Clicked on button_flashcards_close');
-    conductGUIelements('start');    
+    conductGUIelements('start');
 });
 
 $(document).on("click", "#flashcards_show_boxes", function () {
@@ -2107,7 +2107,7 @@ function loadCloudBoxes() {
                 box = new Box();
                 box.store();
                 loadStartPage();
-            } else {                
+            } else {
                 var html = 'No flashcards on this server or no permissions to view them';
                 $("#panel_cloud_boxes_header").html('');
                 $("#panel_cloud_boxes_content").html(html);
@@ -2168,7 +2168,7 @@ function createBoxListContent(showAllBoxes) {
         html += '   ' + description + '';
         html += '   <br><b>Owner: </b>' + cloudBox["current_owner"] + '';
         html += '   <br><b>Size: </b>' + cloudBox["size"] + '';
-        if(flashcards_editor === '') {            
+        if(flashcards_editor === '') {
             html += '   <br>Unknow observer. Please login to view this box';
         }else if (cloudBox["boxID"] !== box.content.boxID) {
             if (flashcards_editor === currentOwner) {
@@ -2176,7 +2176,7 @@ function createBoxListContent(showAllBoxes) {
             } else {
                 html += '       &nbsp;<b>Delete learn results: </b>&nbsp;';
             }
-            html += '       <i class="fa fa-trash" id="link_delete_box" boxid="' + cloudBox["boxID"] + '" title_box_delete="' + cloudBox["title"] + '"></i>';
+            html += '       <i class="bi bi-trash" id="link_delete_box" boxid="' + cloudBox["boxID"] + '" title_box_delete="' + cloudBox["title"] + '"></i>';
         }
         html += '</div>';
     }
@@ -2461,7 +2461,7 @@ function test_box_validate() {
     if (test_card_00.content[0] === "1528468538430") {
         return false;
     }
-    
+
     if (testBox.content.private_block !== false) {
         return false;
     }
@@ -3122,7 +3122,7 @@ function test_box_merge() {
     if (localTestBox.getContent().private_block !== false) {
         return false;
     }
-    // remote wins private and public metadata	
+    // remote wins private and public metadata
     localTestBox.edit();
     localTestBox.getContent().description = "ab"; // public meta data
     localTestBox.getContent().cardsDeckWaitExponent = 1; // private meta data
@@ -3363,7 +3363,7 @@ function loadBox() {
  * Check local storage for a box
  * - If found load the box
  * - If not found look for a boxID in the URL and try to load
- * 
+ *
  * this is a stupid test
  */
 $(document).ready(function () {

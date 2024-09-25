@@ -82,13 +82,6 @@ class Card_edit extends \Zotlabs\Web\Controller {
 			}
 		}
 
-
-		$mimetype = $itm[0]['mimetype'];
-
-		$content = $itm[0]['body'];
-
-
-
 		$rp = 'cards/' . $channel['channel_address'];
 
 		$x = array(
@@ -110,17 +103,17 @@ class Card_edit extends \Zotlabs\Web\Controller {
 			'ptyp' => $itm[0]['type'],
 			'mimeselect' => false,
 			'mimetype' => $itm[0]['mimetype'],
-			'body' => undo_post_tagging($content),
+			'body' => htmlspecialchars_decode(undo_post_tagging($itm[0]['body']), ENT_COMPAT),
 			'post_id' => $post_id,
 			'visitor' => true,
-			'title' => htmlspecialchars($itm[0]['title'],ENT_COMPAT,'UTF-8'),
-			'summary' => htmlspecialchars($itm[0]['summary'],ENT_COMPAT,'UTF-8'),
+			'title' => htmlspecialchars_decode($itm[0]['title'], ENT_COMPAT),
+			'summary' => htmlspecialchars_decode($itm[0]['summary'], ENT_COMPAT),
 			'placeholdertitle' => t('Title (optional)'),
 			'pagetitle' => $card_title,
 			'profile_uid' => (intval($channel['channel_id'])),
 			'catsenabled' => $catsenabled,
 			'category' => $category,
-			'bbcode' => (($mimetype  == 'text/bbcode') ? true : false)
+			'bbcode' => ($itm[0]['mimetype'] === 'text/bbcode')
 		);
 
 		$editor = status_editor($x, false, 'Card_edit');

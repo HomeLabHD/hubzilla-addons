@@ -35,23 +35,23 @@
 </ul>
 <p>
     Confirm by pressing enter or
-    <button class="btn" id="face-edit-set-name"> <i class="fa fa-thumbs-up fa-2x"></i></button>.
+    <button class="btn" id="face-edit-set-name"> <i class="bi bi-hand-thumbs-up"></i></button>.
 </p>
 
 <h2>What you can do with detected faces</h2>
 
 <p>
-    <button class="btn" id="face-edit-set-name"> <i class="fa fa-thumbs-up fa-2x"></i></button>
+    <button class="btn" id="face-edit-set-name"> <i class="bi bi-hand-thumbs-up"></i></button>
     Confirm the name. The face will be used to find the same person in other images.
 </p>
 <p>
-    <button class="btn" id="face-edit-set-unknown"> <i class="fa fa-question fa-2x"></i></button>
+    <button class="btn" id="face-edit-set-unknown"> <i class="bi bi-question-lg"></i></button>
     This is person you don't know. This face will not be matched with known
     faces anymore but you still will see a grey dotted frame around the face and will be able
     to set a name later on.
 </p>
 <p>
-    <button class="btn" id="face-edit-set-ignore"> <i class="fa fa-eye-slash fa-2x"></i></button>
+    <button class="btn" id="face-edit-set-ignore"> <i class="bi bi-eye-slash"></i></button>
     This is no face at all. Tell the face recognition to ignore this. You will
     never see this face again.
 </p>
@@ -59,7 +59,7 @@
 
 <h2>Appearance</h2>
 
-<h3><button class="btn" id="button-faces-filter"><i class="fa fa-filter fa-2x"></i></button> Filter Pictures</h3>
+<h3><button class="btn" id="button-faces-filter"><i class="bi bi-funnel"></i></button> Filter Pictures</h3>
 <p>
     <strong>Name</strong>: Choose one or more names from the list.
 </p>
@@ -83,16 +83,16 @@ Be aware that pictures without exif date will not be shown if
 the exif date is the filter criterion.
 </p>
 
-<h3><button class="btn" id="button-faces-hide-frames"><i class="fa fa-eye-slash fa-2x"></i></button> Toogle Frames</h3>
+<h3><button class="btn" id="button-faces-hide-frames"><i class="bi bi-eye-slash"></i></button> Toogle Frames</h3>
 <p>    
     Hide the frames for better visibility of faces.
 </p>
 
 <h3>
     <button class="btn faces_zoom" id="button_faces_zoom_in"><i
-            class="fa fa-search-plus fa-2x"></i></button>
+            class="bi bi-zoom-in"></i></button>
     <button class="btn faces_zoom" id="button_faces_zoom_out"><i
-            class="fa fa-search-minus fa-2x"></i></button> Zoom
+            class="bi bi-zoom-out"></i></button> Zoom
 </h3>
 <p>
     Show one or up to six images in one row. Set the default zoom under

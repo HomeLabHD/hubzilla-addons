@@ -1,7 +1,7 @@
-version: 3
+version: 4
 url: $baseurl/articles/$nick
 name: Articles
 requires: local_channel
-photo: icon:file-text-o
+photo: icon:newspaper
 categories: nav_featured_app, Productivity
 desc: Create interactive articles

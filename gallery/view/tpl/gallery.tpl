@@ -64,8 +64,9 @@
 
 	function pswp_init(items, album) {
 		let share_str = '';
-
 		let options = {
+			closeSVG: '<i class="bi bi-x-lg text-white"></i>',
+			zoomSVG: '<i class="bi bi-zoom-in text-white"></i>',
 			preload: [1, 3],
 			bgOpacity: 1,
 			bgClickAction: 'toggle-controls',
@@ -77,17 +78,18 @@
 
 		lightbox.on('uiRegister', function() {
 			lightbox.pswp.ui.registerElement({
-				name: 'download-button',
+				name: 'download',
 				title: 'Download this photo',
 				order: 8,
 				isButton: true,
 				tagName: 'a',
-				html: '<i class="fa fa-download text-white" style="padding: 1.7rem; font-size: 1rem"></i>',
+				html: '<i class="bi bi-download text-white" style="padding: 1.7rem; font-size: 1rem"></i>',
 				onInit: (el, pswp) => {
 					el.setAttribute('download', '');
+					el.setAttribute('class', 'pswp__button');
 					el.setAttribute('target', '_blank');
 					el.setAttribute('rel', 'noopener');
-
+					el.setAttribute('style', 'align-content: center', 'text-align: center');
 					pswp.on('change', () => {
 						el.href = pswp.currSlide.data.osrc;
 					});
@@ -106,15 +108,17 @@
 			if (share_str) {
 				lightbox.on('uiRegister', function() {
 					lightbox.pswp.ui.registerElement({
-						name: 'share-button',
+						name: 'share',
 						title: 'Share this album',
 						order: 9,
 						isButton: true,
 						tagName: 'a',
-						html: '<i class="fa fa-share text-white" style="padding: 1.7rem; font-size: 1rem"></i>',
+						html: '<i class="bi bi-arrow-90deg-right text-white" style="padding: 1.7rem; font-size: 1rem"></i>',
 						onInit: (el, pswp) => {
 							el.setAttribute('target', '_blank');
+							el.setAttribute('class', 'pswp__button');
 							el.setAttribute('rel', 'noopener');
+							el.setAttribute('style', 'align-content: center', 'text-align: center');
 							el.href = 'rpost?f=&title=' + encodeURIComponent('Album: ' + album) + '&body=' + share_str;
 						}
 					});

@@ -6,7 +6,7 @@
 				<link href="/addon/rendezvous/view/css/rendezvous.css?v=0.1.0" rel='stylesheet' type='text/css'>
 				<link href="/vendor/twbs/bootstrap/dist/css/bootstrap.min.css?v=4.1.3" rel='stylesheet' type='text/css'>
 				<link href="/library/fork-awesome/css/fork-awesome.min.css?v=3.3.3" rel="stylesheet" type="text/css" media="screen">
-				
+
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 				<link href="/addon/rendezvous/view/css/leaflet.css" rel='stylesheet' type='text/css'>
 				<link href="/addon/rendezvous/view/css/leaflet-gps.css" rel='stylesheet' type='text/css'>
@@ -16,17 +16,17 @@
 
 		</head>
 		<body>
-				<div class="zoom-fit" style="position:absolute; top: 130px; left: 10px; z-index: 1000;"><button class="btn btn-primary btn-md" title="Auto fit"><span><i class="fa fa-arrows-alt"></i></span></button></div>
-				<div id="member-list-container" style="position:absolute; top: 10px; left: 60px; z-index: 1000;"> 
-						<div id="member-list-btn" ><button class="btn btn-default btn-md" title="Members"><span><i class="fa fa-users">&nbsp;<span class="badge badge-success" id="number-members">1</span></i></span></button></div>
+				<div class="zoom-fit" style="position:absolute; top: 130px; left: 10px; z-index: 1000;"><button class="btn btn-primary btn-md" title="Auto fit"><span><i class="bi bi-arrows-angle-expand"></i></span></button></div>
+				<div id="member-list-container" style="position:absolute; top: 10px; left: 60px; z-index: 1000;">
+						<div id="member-list-btn" ><button class="btn btn-default btn-md" title="Members"><span><i class="bi bi-people">&nbsp;<span class="badge badge-success" id="number-members">1</span></i></span></button></div>
 						<div id="member-list" style="display: none;">
 								<ul class="list-group">
 										<li class="list-group-item">Member</li>
 								</ul>
 						</div>
 				</div>
-				<div id="marker-list-container" style="position:absolute; top: 10px; left: 140px; z-index: 1000;"> 
-						<div id="marker-list-btn" ><button class="btn btn-default btn-md" title="Markers"><span><i class="fa fa-map-marker">&nbsp;<span class="badge badge-success" id="number-markers">1</span></i></span></button></div>
+				<div id="marker-list-container" style="position:absolute; top: 10px; left: 140px; z-index: 1000;">
+						<div id="marker-list-btn" ><button class="btn btn-default btn-md" title="Markers"><span><i class="bi bi-geo-alt">&nbsp;<span class="badge badge-success" id="number-markers">1</span></i></span></button></div>
 						<div id="marker-list" style="display: none;">
 								<ul class="list-group">
 										<li class="list-group-item">Member</li>
@@ -38,26 +38,26 @@
 				<div id="add-marker-button-wrapper" style="display: none;">
 <!--						<div><button class="add-marker btn btn-default" title="Add marker"><span><i class="fa fa-plus">&nbsp;Add marker</i></span></button></div>
 						<div><button class="zoom-fit btn btn-default" title="Auto fit"><span><i class="fa fa-arrows-alt">&nbsp;Auto fit</i></span></button></div>-->
-						<div><button class="add-marker btn btn-success btn-sm" title="{{$newMarker}}"><span><i class="fa fa-plus">&nbsp;Add marker</i></span></button></div>
-						
+						<div><button class="add-marker btn btn-success btn-sm" title="{{$newMarker}}"><span><i class="bi bi-plus-lg">&nbsp;Add marker</i></span></button></div>
+
 				</div>
-				
+
 				<div id="edit-marker-button-wrapper" style="display: none;">
 						<div>
-								<button class="edit-marker btn btn-default btn-sm" title="{{$editMarker}}"><span><i class="fa fa-pencil"></i></span></button>
-								<button class="delete-marker btn btn-danger btn-sm" title="{{$deleteMarker}}"><span><i class="fa fa-trash-o"></i></span></button>
+								<button class="edit-marker btn btn-default btn-sm" title="{{$editMarker}}"><span><i class="bi bi-pencil"></i></span></button>
+								<button class="delete-marker btn btn-danger btn-sm" title="{{$deleteMarker}}"><span><i class="bi bi-trash"></i></span></button>
 						</div>
 				</div>
 
 				<div id="delete-member-button-wrapper" style="display: none;">
 
-								<button class="delete-member btn btn-danger btn-sm" title="{{$deleteMember}}"><span><i class="fa fa-trash-o"></i></span></button>
+								<button class="delete-member btn btn-danger btn-sm" title="{{$deleteMember}}"><span><i class="bi bi-trash"></i></span></button>
 
 				</div>
 
 				<div id="member-proximity-button-wrapper" style="display: none;">
 
-								<button class="member-proximity btn btn-success btn-sm" title="{{$memberProximity}}"><span><i class="fa fa-bell-o"></i></span></button>
+								<button class="member-proximity btn btn-success btn-sm" title="{{$memberProximity}}"><span><i class="bi bi-bell"></i></span></button>
 
 				</div>
 
@@ -75,7 +75,7 @@
 				</div>
 
 				<div id="new-marker-form" title="{{$newMarker}}">
-						
+
 						<form>
 							<fieldset style='width: 100px;'>
 								<label for="new-marker-name">{{$nameText}}</label>
@@ -94,7 +94,7 @@
 						</form>
 				</div>
 				<div id="edit-marker-form" title="{{$editMarker}}">
-						
+
 						<form>
 							<fieldset style='width: 100px;'>
 								<label for="edit-marker-name">{{$nameText}}</label>
@@ -146,7 +146,7 @@
 							zoom: '{{$centerOn.zoom}}'
 						}
 						{{/if}}
-						
+
 //						$(document).ready(function () {
 //							if(rv.centerOn !== null) {
 //								if(rv.centerOn.type === 'marker') {

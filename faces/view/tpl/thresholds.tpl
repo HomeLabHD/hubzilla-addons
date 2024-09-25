@@ -1,6 +1,6 @@
 
 <h1 id="face_thresholds">Thresholds</h1>
-<button class="btn" id="face-edit-set-name" onclick="setDefaults()"><i class="fa fa-compass fa-2x"></i>
+<button class="btn" id="face-edit-set-name" onclick="setDefaults()"><i class="bi bi-compass"></i>
 </button>
 
 <form id="face_form_thresholds" method="post" action="http://localhost/admin/addons/faces/" class="">

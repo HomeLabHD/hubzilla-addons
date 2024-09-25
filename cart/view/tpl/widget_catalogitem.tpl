@@ -11,7 +11,7 @@
 		</div>
 		{{if $item.info}}
 		<div class="catalog-item-info pb-2">
-			<i class="fa fa-info-circle"></i> {{$item.info}}
+			<i class="bi bi-info-circle"></i> {{$item.info}}
 		</div>
 		{{/if}}
 	</div>
@@ -23,7 +23,7 @@
 			<div class="input-group">
 				<input class="form-control form-control-sm" type="text" name="qty-{{$item.id}}" value="{{$item.order_qty}}" style="width: 4em;float:left;">
 				<button class="btn btn-sm btn-primary" type="submit" name="Submit" value="{{$item.item_sku}}">Update Quantity</button>
-				<button class="btn btn-sm btn-outline-danger btn-outline" type="submit" name="delsku" value="{{$item.item_sku}}" title="Remove from cart"><i class="fa fa-remove"></i></button>
+				<button class="btn btn-sm btn-outline-danger btn-outline" type="submit" name="delsku" value="{{$item.item_sku}}" title="Remove from cart"><i class="bi bi-x-lg"></i></button>
 			</div>
 		</form>
 		{{else}}
@@ -31,7 +31,7 @@
 			<input type="hidden" name="cart_posthook" value="update_item">
 			<input type="hidden" name="delsku" value="{{$item.item_sku}}">
 			<b>Item Already in your cart!</b>
-			<button class="btn btn-sm btn-outline-danger btn-outline" type="submit" name="remove" title="Remove from cart"><i class="fa fa-remove"></i></button>
+			<button class="btn btn-sm btn-outline-danger btn-outline" type="submit" name="remove" title="Remove from cart"><i class="bi bi-x-lg"></i></button>
 			</form>
 		{{/if}}
 		{{else}}

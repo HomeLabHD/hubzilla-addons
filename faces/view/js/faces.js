@@ -75,7 +75,7 @@ $(".collapseit").click(function () {
     } else {
         content.style.display = "block";
     }
-    //document.getElementById("face-panel-config-remove").style.visibility = "visible"; 
+    //document.getElementById("face-panel-config-remove").style.visibility = "visible";
 });
 
 function getMinWidth() {
@@ -105,7 +105,7 @@ function postConfigZoom(zoom) {
 
 /*
  * This startst the face detection and recognition in the backend
- * 
+ *
  * @returns {undefined}
  */
 function postDetectAndRecognize() {
@@ -164,7 +164,7 @@ function postRecognize() {
 
 /*
  * Download the results of the face recognition and show
- * 
+ *
  * @returns {undefined}
  */
 function postDownloadResults() {
@@ -265,7 +265,7 @@ function downloadFaceData() {
         }
     } else if (filesToLoad.faces.length > 0) {
         // Read faces.json per directory.
-        // faces.json contains the information about the postition of faces in 
+        // faces.json contains the information about the postition of faces in
         // images and their names.
         let f = filesToLoad.faces.shift();
         ((loglevel >= 2) ? console.log(t() + " load face data - requesting file " + f) : null);
@@ -367,9 +367,9 @@ function postCleanupSharedFaces() {
 /*
  * Read names that where set by the user (browser) and are not processed
  * yet by the face recognition. The server will send old names and the browser will
- * show thoses old names to the user. The user will irritated because he has 
+ * show thoses old names to the user. The user will irritated because he has
  * set the name already and thinks something went wrong.
- * 
+ *
  * This function is useing face id's. This is not safe if more than one
  * detector and one model is generating the faces.
  */
@@ -583,7 +583,7 @@ function replaceNameForXchan_hash(chan_hash) {
  * The user has tagged a contact.
  * This is permitted because the closeness of the contact is less or equal the
  * closness required by the addon (see pages settings or sharing).
- * 
+ *
  * What could happen?
  * The user now changes the closeness of the contact.
  * Assume the value of the closeness became now greater
@@ -837,7 +837,7 @@ function addSearchName() {
             return;
         }
     }
-    $("#face-active-filter-names").append("<button class=\"btn btn-face-search-name\">" + name + " <i class=\"fa fa-remove fa-lg faces-search-inputs\"></i></button>");
+    $("#face-active-filter-names").append("<button class=\"btn btn-face-search-name\">" + name + " <i class=\"bi bi-x-lg faces-search-inputs\"></i></button>");
     ((loglevel >= 1) ? console.log(t() + " created button for search name =  " + name) : null);
     search();
 }
@@ -1070,8 +1070,8 @@ var isShowFrameON = true;
 $("#button-faces-hide-frames").click(function () {
     ((loglevel >= 1) ? console.log(t() + " user clicked button to show/hide faces") : null);
     if (isShowFrameON) {
-        $('#button-faces-hide-frames').find('.fa').removeClass("fa-eye-slash");
-        $('#button-faces-hide-frames').find('.fa').addClass("fa-eye");
+        $('#button-faces-hide-frames').find('.bi').removeClass("bi-eye-slash");
+        $('#button-faces-hide-frames').find('.bi').addClass("bi-eye");
         var frames = document.getElementsByClassName("face-frame-name");
         var k;
         for (k = 0; k < frames.length; k++) {
@@ -1080,8 +1080,8 @@ $("#button-faces-hide-frames").click(function () {
         }
         isShowFrameON = false;
     } else {
-        $('#button-faces-hide-frames').find('.fa').removeClass("fa-eye");
-        $('#button-faces-hide-frames').find('.fa').addClass("fa-eye-slash");
+        $('#button-faces-hide-frames').find('.bi').removeClass("bi-eye");
+        $('#button-faces-hide-frames').find('.bi').addClass("bi-eye-slash");
         styleAllAgain();
         isShowFrameON = true;
     }
@@ -1140,7 +1140,7 @@ function zoomPictures() {
         zoomLastPictures();
         hideEditFrame();
     }
-    
+
     postConfigZoom(zoom);
 }
 
@@ -1682,12 +1682,12 @@ function isImageDownloadFinished() {
 function animate_on() {
     document.getElementById("button_share_box").style.visibility = "visible";
     document.getElementById("button_share_box").disabled = true;
-    $('#button_share_box').find('.fa').addClass("fa-spin").addClass("fa-fw");
+    $('#button_share_box').find('.bi').addClass("bi-arrow-circle");
     ((loglevel >= 1) ? console.log(t() + " animate on") : null);
 }
 
 function animate_off() {
-    $('#button_share_box').find('.fa').removeClass("fa-spin").removeClass("fa-fw");
+    $('#button_share_box').find('.bi').removeClass("bi-arrow-circle");
     document.getElementById("button_share_box").style.visibility = "hidden";
     $('#face-scroll-top-message').text("");
     $('#face-scroll-top-message').fadeOut();

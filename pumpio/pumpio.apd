@@ -1,7 +1,7 @@
-version: 2
+version: 3
 url: $baseurl/pumpio
 requires: local_channel
 name: Pump.io Crosspost Connector
-photo: icon:chevron-circle-right
+photo: icon:play-circle
 categories: Networking
 desc: Relay public posts to pump.io.

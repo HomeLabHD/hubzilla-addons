@@ -66,15 +66,15 @@ var activeCommentID = 0;
 var activeCommentText = '';
 
 	$(document).ready(function() {
-	
+
 		$("#profile-jot-text").focus(enableOnUser);
 		$("#profile-jot-text").click(enableOnUser);
 
 		$('#id_mimetype').on('load', jotSetMime);
 		$('#id_mimetype').on('change', jotSetMime);
 
-		function jotSetMime() { 
-			var mtype = $('#id_mimetype').val(); 
+		function jotSetMime() {
+			var mtype = $('#id_mimetype').val();
 			if(mtype == 'text/bbcode')
 				$('#profile-jot-submit-left').show();
 			else
@@ -356,7 +356,7 @@ var activeCommentText = '';
 				return false;
 			});
 		});
-		
+
 	}
 
 	function itemBookmark(id) {
@@ -371,26 +371,15 @@ var activeCommentText = '';
 		timer = setTimeout(updateInit,1000);
 	}
 
-	function toggleVoting() {
-		if($('#jot-consensus').val() > 0) {
-			$('#jot-consensus').val(0);
-			$('#profile-voting, #profile-voting-sub').removeClass('fa-check-square-o').addClass('fa-square-o');
-		}
-		else {
-			$('#jot-consensus').val(1);
-			$('#profile-voting, #profile-voting-sub').removeClass('fa-square-o').addClass('fa-check-square-o');
-		}
-	}
-
 	function toggleNoComment() {
 		if($('#jot-nocomment').val() > 0) {
 			$('#jot-nocomment').val(0);
-			$('#profile-nocomment, #profile-nocomment-sub').removeClass('fa-comments-o').addClass('fa-comments');
+			$('#profile-nocomment, #profile-nocomment-sub').removeClass('bi-chat').addClass('bi-chat-dots');
 			$('#profile-nocomment-wrapper').attr('title', '{{$nocomment_enabled|escape:'javascript'}}');
 		}
 		else {
 			$('#jot-nocomment').val(1);
-			$('#profile-nocomment, #profile-nocomment-sub').removeClass('fa-comments').addClass('fa-comments-o');
+			$('#profile-nocomment, #profile-nocomment-sub').removeClass('bi-chat-dots').addClass('bi-chat');
 			$('#profile-nocomment-wrapper').attr('title', '{{$nocomment_disabled|escape:'javascript'}}');
 		}
 	}
@@ -426,7 +415,7 @@ var activeCommentText = '';
                     $('#embedPhotoModalBodyAlbumDialog').html('\
                             <div><div class="nav nav-pills flex-column">\n\
                                 <li class="nav-item"><a class="nav-link" href="#" onclick="initializeEmbedPhotoDialog();return false;">\n\
-                                    <i class="fa fa-chevron-left"></i>&nbsp\n\
+                                    <i class="bi bi-chevron-left"></i>&nbsp\n\
                                     {{$modaldiffalbum}}\n\
                                     </a>\n\
                                 </li>\n\
@@ -580,7 +569,7 @@ $( document ).on( "click", ".wall-item-delete-link,.page-delete-link,.layout-del
 				localStorage.removeItem("post_body" + postid);
 				localStorage.removeItem("post_category" + postid);
 			}
-		} 
+		}
 
 	}
 
@@ -643,7 +632,7 @@ $( document ).on( "click", ".wall-item-delete-link,.page-delete-link,.layout-del
     			isSelfClosing: false,
     			isInline: true,
 			allowsempty: true,
-			
+
     			format: function(element,content) {
 				if (!element.attr('href'))
 					return content;
@@ -652,7 +641,7 @@ $( document ).on( "click", ".wall-item-delete-link,.page-delete-link,.layout-del
     			html: function(token,attrs,content) {
 				return '<a href="' + attrs.defaultattr + '">' + content + '</a>';
 			},
-			
+
     			quoteType: sceditor.BBCodeParser.QuoteType.auto
 		}
 	);
@@ -663,7 +652,7 @@ $( document ).on( "click", ".wall-item-delete-link,.page-delete-link,.layout-del
     			isSelfClosing: false,
     			isInline: true,
 			allowsempty: true,
-			
+
     			format: function(element,content) {
 				if (!element.attr('src'))
 					return '';
@@ -671,7 +660,7 @@ $( document ).on( "click", ".wall-item-delete-link,.page-delete-link,.layout-del
 				size = 0;
 				if (element.attr('width') && element.attr('height'))
 					size = element.attr('width') + 'x' + element.attr('height');
-				if (size) 
+				if (size)
 					return '[zmg=' + size + ']' + element.attr('src') + '[/zmg]';
 				else
 					return '[zmg]' + element.attr('src') + '[/zmg]';
@@ -683,7 +672,7 @@ $( document ).on( "click", ".wall-item-delete-link,.page-delete-link,.layout-del
 					sizeinfo = 'width = "' + sizearray[0] + '" height = "' + sizearray[1] + '"';
 				return '<img src="' + content + '" ' + sizeinfo + '/>';
 			},
-			
+
     			quoteType: sceditor.BBCodeParser.QuoteType.auto
 		}
 

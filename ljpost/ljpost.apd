@@ -2,6 +2,6 @@ version: 2
 url: $baseurl/ljpost
 requires: local_channel
 name: Livejournal Crosspost Connector
-photo: icon:pencil-square-o
+photo: icon:pencil-square
 categories: Networking
 desc: Relay public posts to Livejournal.

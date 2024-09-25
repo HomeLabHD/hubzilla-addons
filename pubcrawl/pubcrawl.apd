@@ -1,7 +1,7 @@
-version: 2
+version: 4
 url: $baseurl/pubcrawl
 requires: local_channel
 name: Activitypub Protocol
-photo: icon:activitypub
+photo: $baseurl/addon/pubcrawl/activitypub.png
 categories: Networking
 desc: This app enables your channel to communicate with platforms implementing the Activitypub protocol. This includes Mastodon, Pixelfed, Peertube and many others.

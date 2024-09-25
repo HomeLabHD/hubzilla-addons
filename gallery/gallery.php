@@ -233,12 +233,12 @@ function gallery_prepare_body(&$arr) {
 					}
 					if($('#gallery-wrapper-$id .jg-entry-visible').length < $('#gallery-wrapper-$id .jg-entry').length) {
 						var more_count = $('#gallery-wrapper-$id .jg-entry').length - $('#gallery-wrapper-$id .jg-entry-visible').length;
-						$('#gallery-wrapper-$id').append('<div id="jg-more-count-$id" class="jg-more-count">+ ' + more_count + ' <i class="fa fa-image"></i></div>');
+						$('#gallery-wrapper-$id').append('<div id="jg-more-count-$id" class="jg-more-count">+ ' + more_count + ' <i class="bi bi-image"></i></div>');
 					}
 				}).on('jg.resize', function(e){
 					if($('#gallery-wrapper-$id .jg-entry-visible').length < $('#gallery-wrapper-$id .jg-entry').length) {
 						var more_count = $('#gallery-wrapper-$id .jg-entry').length - $('#gallery-wrapper-$id .jg-entry-visible').length;
-						$('#jg-more-count-$id').html('+ ' + more_count + ' <i class="fa fa-image"></i>');
+						$('#jg-more-count-$id').html('+ ' + more_count + ' <i class="bi bi-image"></i>');
 					}
 				});
 

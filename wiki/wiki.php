@@ -15,16 +15,42 @@ require_once('addon/wiki/Lib/NativeWiki.php');
 require_once('addon/wiki/Lib/NativeWikiPage.php');
 
 function wiki_load() {
+	Hook::register('channel_apps', 'addon/wiki/wiki.php', 'wiki_channel_apps');
 	Hook::register('channel_activities_widget', 'addon/wiki/wiki.php', 'wiki_channel_activities_widget');
 	Widget::register('addon/wiki/Widget/Wiki_pages.php', 'wiki_pages');
 	Widget::register('addon/wiki/Widget/Wiki_list.php', 'wiki_list');
 }
 
 function wiki_unload() {
+	Hook::unregister('channel_apps', 'addon/wiki/wiki.php', 'wiki_channel_apps');
 	Hook::unregister('channel_activities_widget', 'addon/wiki/wiki.php', 'wiki_channel_activities_widget');
 	Widget::unregister('addon/wiki/Widget/Wiki_pages.php', 'wiki_pages');
 	Widget::unregister('addon/wiki/Widget/Wiki_list.php', 'wiki_list');
 }
+
+function wiki_channel_apps(&$arr) {
+	$uid = ((App::$profile_uid) ? App::$profile_uid : intval(local_channel()));
+
+	if(!Apps::addon_app_installed($uid, 'wiki')) {
+		return;
+	}
+
+	$p = get_all_perms($uid, get_observer_hash());
+
+	if (!$p['view_pages']) {
+		return;
+	}
+
+	$arr['tabs'][] = [
+		'label' => t('Wikis'),
+		'url'   => z_root() . '/wiki/' . $arr['nickname'],
+		'sel'   => ((argv(0) == 'wiki') ? 'active' : ''),
+		'title' => t('View Cards'),
+		'id'    => 'cards-tab',
+		'icon'  => 'pencil-square'
+	];
+}
+
 
 function wiki_channel_activities_widget(&$arr){
 

@@ -66,31 +66,23 @@ function openstreetmap_location(&$item) {
 	$zoom = get_config('openstreetmap', 'zoom', 16);
 	$marker = get_config('openstreetmap', 'marker', 1);
 
-	$location = '';
-	$coord = '';
+	$coord = null;
 
-	$location = $item['location'];
-
-	$location = (($location && (! $item['coord'])) ? '<a target="map" title="' . $item['location'] . '" href="'.$nomserver . '?q=' . urlencode($item['location']) . '">' . $item['location'] . '</a>' : $location);
+	$location = (($item['location'] && (! $item['coord'])) ? '<a target="map" title="' . $item['location'] . '" href="'.$nomserver . '?q=' . urlencode($item['location']) . '"><i class="bi bi-geo-alt"></i></a>' : '');
 
 	if($item['coord']) {
 		$coords = explode(' ', $item['coord']);
 		if(count($coords) > 1) {
 			$lat = urlencode(round($coords[0], 5));
 			$lon = urlencode(round($coords[1], 5));
-			$coord = '<a target="map" class="OSMMapLink" title="' . $item['coord'] . '" href="'. $tmsserver;
+			$coord = '<a target="map" class="OSMMapLink" title="' . (($item['location']) ? $item['location'] . ' (' . $item['coord'] . ')': $item['coord']) . '" href="'. $tmsserver;
 			if($marker > 0)
 				$coord .= '?mlat=' . $lat . '&mlon=' . $lon;
-			$coord .= '#map=' . intval($zoom) . '/' . $lat . '/' . $lon .'">Map</a>';
+			$coord .= '#map=' . intval($zoom) . '/' . $lat . '/' . $lon .'"><i class="bi bi-geo-alt"></i></a>';
 		}
 	}
-	if(strlen($coord)) {
-		if($location)
-			$location .= '&nbsp;<span class="smalltext">(' . $coord . ')</span>';
-		else
-			$location = '<span class="smalltext">' . $coord . '</span>';
-	}
-	$item['html'] = $location;
+
+	$item['html'] = $coord ?? $location;
 }
 
 

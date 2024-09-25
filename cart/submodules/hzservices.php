@@ -162,7 +162,7 @@ class Cart_hzservices {
 
     $formelements= replace_macros(get_markup_template('field_input.tpl'), array(
                 '$field'	=> array('SKU', t('New Sku'), "")));
-    $formelements.=' <button class="btn btn-sm" type="submit" name="submit"><i class="fa fa-plus fa-fw" aria-hidden="true"></i></button>';
+    $formelements.=' <button class="btn btn-sm" type="submit" name="submit"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>';
     $macrosubstitutes=Array("security_token"=>get_form_security_token(),"skulist"=>$skulist,"formelements"=>$formelements);
 
     $pagecontent .= replace_macros(get_markup_template('hzservices.itemadmin.tpl','addon/cart/submodules/'),$macrosubstitutes);
@@ -694,17 +694,17 @@ class Cart_hzservices {
             $cmdtext.="Add buyer to privacy group: ";
             $grouprec = AccessList::by_hash($seller_uid,$command["params"]["group"]);
             $cmdtext.=$grouprec["gname"];
-            $cmdtext.=' <button class="btn btn-sm" type="submit" name="del" value="'.$command["cmdhash"].'"><i class="fa fa-trash fa-fw" aria-hidden="true"></i></button>';
+            $cmdtext.=' <button class="btn btn-sm" type="submit" name="del" value="'.$command["cmdhash"].'"><i class="bi bi-trash" aria-hidden="true"></i></button>';
             break;
           case "addconnection":
             $cmdtext.="Add buyer as connection.";
-            $cmdtext.=' <button class="btn btn-sm" type="submit" name="del" value="'.$command["cmdhash"].'"><i class="fa fa-trash fa-fw" aria-hidden="true"></i></button>';
+            $cmdtext.=' <button class="btn btn-sm" type="submit" name="del" value="'.$command["cmdhash"].'"><i class="bi bi-trash" aria-hidden="true"></i></button>';
         }
         if (Cart_hzservices::is_admin_merchant()) {
           switch($command["cmd"]) {
             case 'setsvcclass':
               $cmdtext.="Set service class of user to <b>".$command["params"]["class"]."</b>.";
-              $cmdtext.=' <button class="btn btn-sm" type="submit" name="del" value="'.$command["cmdhash"].'"><i class="fa fa-trash fa-fw" aria-hidden="true"></i></button>';
+              $cmdtext.=' <button class="btn btn-sm" type="submit" name="del" value="'.$command["cmdhash"].'"><i class="bi bi-trash" aria-hidden="true"></i></button>';
               break;
           }
         }
@@ -734,17 +734,17 @@ class Cart_hzservices {
             $cmdtext.="Remove buyer from privacy group: ";
             $grouprec = AccessList::by_hash($seller_uid,$command["params"]["group"]);
             $cmdtext.=$grouprec["gname"];
-            $cmdtext.=' <button class="btn btn-sm" type="submit" name="del" value="'.$command["cmdhash"].'"><i class="fa fa-trash fa-fw" aria-hidden="true"></i></button>';
+            $cmdtext.=' <button class="btn btn-sm" type="submit" name="del" value="'.$command["cmdhash"].'"><i class="bi bi-trash" aria-hidden="true"></i></button>';
             break;
           case "rmvconnection":
             $cmdtext.="Remove buyer as connection.";
-            $cmdtext.=' <button class="btn btn-sm" type="submit" name="del" value="'.$command["cmdhash"].'"><i class="fa fa-trash fa-fw" aria-hidden="true"></i></button>';
+            $cmdtext.=' <button class="btn btn-sm" type="submit" name="del" value="'.$command["cmdhash"].'"><i class="bi bi-trash" aria-hidden="true"></i></button>';
         }
         if (Cart_hzservices::is_admin_merchant()) {
           switch($command["cmd"]) {
             case 'setsvcclass':
               $cmdtext.="Set service class of user to <b>".$command["params"]["class"]."</b>.";
-              $cmdtext.=' <button class="btn btn-sm" type="submit" name="del" value="'.$command["cmdhash"].'"><i class="fa fa-trash fa-fw" aria-hidden="true"></i></button>';
+              $cmdtext.=' <button class="btn btn-sm" type="submit" name="del" value="'.$command["cmdhash"].'"><i class="bi bi-trash" aria-hidden="true"></i></button>';
               break;
           }
         }

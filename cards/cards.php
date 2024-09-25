@@ -50,7 +50,7 @@ function cards_channel_apps(&$arr) {
 		'sel'   => ((argv(0) == 'cards') ? 'active' : ''),
 		'title' => t('View Cards'),
 		'id'    => 'cards-tab',
-		'icon'  => 'list'
+		'icon'  => 'card-text'
 	];
 }
 

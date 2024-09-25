@@ -1,7 +1,7 @@
-version: 2
+version: 3
 url: $baseurl/pageheader
 requires: admin
 name: Page Header
-photo: icon:header
+photo: icon:window-sidebar
 desc: Inserts a page header.
 

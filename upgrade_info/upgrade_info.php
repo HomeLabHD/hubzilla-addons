@@ -57,7 +57,7 @@ function upgrade_info_construct_page(&$b){
 	$tpl = get_markup_template('upgrade_info.tpl', 'addon/upgrade_info');
 
 	$o = replace_macros($tpl, [
-		'$title' => t('Upgrade Info'),
+		'$title' => t('$Projectname Upgrade Info'),
 		'$content' => $content,
 		'$std_version' => STD_VERSION,
 		'$form_security_token' => get_form_security_token('pconfig'),

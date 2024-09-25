@@ -1,7 +1,7 @@
-version: 2
+version: 3
 url: $baseurl/nofed
 requires: local_channel
 name: No Federation
-photo: icon:paper-plane-o
+photo: icon:send-slash
 categories: Networking
 desc: Prevent posting from being federated to anybody. It will exist only on your channel page.

@@ -103,13 +103,13 @@ Class WorkflowSettingsUtil {
 		}
 
 	$content .= '</div>';
-	$content .= '<button class="btn btn-block btn-primary btn-sm" type="button" id="button-addstatus" href="#"><i class="generic-icons-nav fa fa-fw fa-plus-circle"></i></a>';
+	$content .= '<button class="btn btn-block btn-primary btn-sm" type="button" id="button-addstatus" href="#"><i class="generic-icons-nav bi bi-plus-lg"></i></a>';
 
 	$blanklistitem='';
 	$templatevars = [ 'status' => [
 		"status[]",
 		""
-	], 
+	],
 	'priority' => [
 		"priority[]",
 		""

@@ -1,7 +1,7 @@
 <div id="panel_box_navigation" style="display: none;">
 	<ul class="nav nav-pills bg-light">
 		<li class="nav-item dropdown flashcards_nav">
-			<a class="nav-pill nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-2x fa-fw fa-graduation-cap"></i></a>
+			<a class="nav-pill nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="bi bi-mortarboard"></i></a>
 			<div class="dropdown-menu">
 				<a class="dropdown-item" id="flashcards_new_box">New Box</a>
 				<a class="dropdown-item" id="flashcards_edit_box">Edit Box</a>
@@ -14,38 +14,38 @@
 		</li>
 		<div class="navbar-brand nav-pill">
 			<span id="flashcards_navbar_brand" class="flashcards_nav"></span>
-			<button class="btn flashcards_nav" id="button_flashcards_learn_play"><i class="fa fa-play fa-lg"></i> <sup><span id="span_flashcards_cards_due"></span></sup></button>
+			<button class="btn flashcards_nav" id="button_flashcards_learn_play"><i class="bi bi-play"></i> <sup><span id="span_flashcards_cards_due"></span></sup></button>
 		</div>
 		<button class="btn btn-default nav-pill ml-auto" id="button_share_box">
-			<i class="fa fa-refresh fa-lg"></i>
+			<i class="bi bi-arrow-repeat"></i>
 			<span id="button_share_box_counter"></span>
 		</button>
 		<button class="btn btn-default nav-pill ml-auto" id="button_flashcards_save_box" style="display: none;">
-			<i class="fa fa-save fa-lg"></i> Save
+			<i class="bi bi-save"></i> Save
 		</button>
 		<button class="btn btn-default nav-pill ml-auto" id="button_flashcards_close" style="display: none;">
-			<i class="fa fa-window-close fa-lg"></i> Close
+			<i class="bi bi-x-lg"></i> Close
 		</button>
 	</ul>
 </div>
 
 <div class="d-flex justify-content-center" id="flashcards_panel_learn_buttons">
     <div class="p-2">
-        <button class="btn flashcards_learn" id="button_flashcards_learn_stopp"><i class="fa fa-stop fa-lg"></i></button>
+        <button class="btn flashcards_learn" id="button_flashcards_learn_stopp"><i class="bi bi-stop"></i></button>
     </div>
     <div class="p-2">
-        <button class="btn flashcards_learn" id="button_flashcards_learn_next"><i class="fa fa-step-forward fa-lg"></i></button>
+        <button class="btn flashcards_learn" id="button_flashcards_learn_next"><i class="bi bi-step-forward"></i></button>
     </div>
     <div class="p-2">
-        <button class="btn flashcards_learn" id="button_flashcards_learn_passed"><i class="fa fa-thumbs-o-up fa-lg"></i></button>
+        <button class="btn flashcards_learn" id="button_flashcards_learn_passed"><i class="bi bi-hand-thumbs-up"></i></button>
     </div>
     <div class="p-2">
-        <button class="btn flashcards_learn" id="button_flashcards_learn_failed"><i class="fa fa-thumbs-o-down fa-lg"></i></button>
+        <button class="btn flashcards_learn" id="button_flashcards_learn_failed"><i class="bi bi-hand-thumbs-down"></i></button>
     </div>
 </div>
 
-<div id="panel_box_attributes" class="panel-collapse collapse">	
-	<div class="container-fluid"> 
+<div id="panel_box_attributes" class="panel-collapse collapse">
+	<div class="container-fluid">
 		<div class="row">
 			<div class="col-sm-12">
 				<div class="form-group">
@@ -63,12 +63,12 @@
 					<small class="form-text text-muted">Description of box (between 10 to 800 characters)</small>
 				</div>
 			</div>
-		</div>     
+		</div>
 		<div class="row" id="flashcards-block-changes-row">
                         <div class="col-sm-12">
                                 <label><input type="checkbox" id="flashcards-block-changes"> Only the owner (you) can make changes to the original</label>
                         </div>
-		</div>    
+		</div>
 		<div class="row">
 			<div class="col-sm-12">
 				<div class="form-group">
@@ -76,13 +76,13 @@
                                         <small id="flashcards_editor" class="form-text text-muted">{{$flashcards_editor}}</small>
 				</div>
 			</div>
-		</div>      
+		</div>
 		<div class="row">
 			<div class="col-sm-10">
-				<button class="btn" data-toggle="collapse" id="flashcards_perms" href="#panel_flashcards_permissions" role="button" aria-expanded="false" aria-controls="panel_flashcards__permissions"><i class="fa fa-community fa-lg"></i> Permissions</button>
-			</div>      
+				<button class="btn" data-toggle="collapse" id="flashcards_perms" href="#panel_flashcards_permissions" role="button" aria-expanded="false" aria-controls="panel_flashcards__permissions"><i class="bi bi-people"></i> Permissions</button>
+			</div>
 			<div class="col-sm-2">
-				<button class="btn" data-toggle="collapse" href="#panel_flashbox_settings" role="button" aria-expanded="false" aria-controls="panel_flashbox_settings"><i class="fa fa-cogs fa-lg"></i> Settings</button>
+				<button class="btn" data-toggle="collapse" href="#panel_flashbox_settings" role="button" aria-expanded="false" aria-controls="panel_flashbox_settings"><i class="bi bi-gear"></i> Settings</button>
 			</div>
 		</div>
 		<div id="panel_flashbox_settings" class="panel-collapse collapse">
@@ -106,7 +106,7 @@
 					Restore all settings below to default values
 				</div>
 				<div class="col-sm-2">
-					<button class="btn" id="button_flashcards_settings_default"><i class="fa fa-mail-reply fa-lg"></i> Restore</button>
+					<button class="btn" id="button_flashcards_settings_default"><i class="bi bi-x-lg"></i> Restore</button>
 				</div>
 			</div>
 			<div class="row">
@@ -180,7 +180,7 @@
 				</div>
 			</div>
 			<div class="row">
-				<div class="col-sm-12">					
+				<div class="col-sm-12">
 					<div class="form-group">
 						<label for="flashcards-learn-system-decks"><br>Number of Decks</label>
 						<input type="number" class="form-control flashcards-learn-params" id="flashcards-learn-system-decks" placeholder="7" min="4" max="10">
@@ -188,7 +188,7 @@
 				</div>
 			</div>
 			<div class="row">
-				<div class="col-sm-12">					
+				<div class="col-sm-12">
 					<div class="form-group">
 						<label for="flashcards-learn-system-deck-repetitions">Repetitions per deck (classic Leitner is "1")</label>
 						<input type="number" class="form-control flashcards-learn-params" id="flashcards-learn-system-deck-repetitions" placeholder="3" min="1" max="10">
@@ -196,7 +196,7 @@
 				</div>
 			</div>
 			<div class="row">
-				<div class="col-sm-12">					
+				<div class="col-sm-12">
 					<div class="form-group">
 						<label for="flashcards-learn-system-exponent">Exponent to calculate the wait time inside a deck... <span id="fc_leitner_calculation"></span></label>
 						<input type="number" class="form-control flashcards-learn-params" id="flashcards-learn-system-exponent" placeholder="3" min="1" max="5">
@@ -296,18 +296,18 @@
 		<div class="panel-heading flashcards_nav" id="flashcards_panel_card_header">
 		    <h2 class="panel-title">
 				Card
-				<button class="btn" id="flashcards_cardedit_save"><i class="fa fa-save fa-lg"></i></button>	
-				<button class="btn" id="flashcards_cardedit_cancel"><i class="fa fa-window-close"></i></button>
+				<button class="btn" id="flashcards_cardedit_save"><i class="bi bi-save"></i></button>
+				<button class="btn" id="flashcards_cardedit_cancel"><i class="bi bi-x-lg"></i></button>
 		    </h2>
-		</div>      
-		<div id="flashcards_main_card">        
-            <div class="container-fluid"> 
+		</div>
+		<div id="flashcards_main_card">
+            <div class="container-fluid">
               <div class="row">
                 <div class="col-sm-6">
                      <div class="form-group">
                       <label for="flashcards_language1">Side 1:</label>
                       <textarea class="form-control card-content" rows="5" id="flashcards_language1"></textarea>
-                    </div> 
+                    </div>
                 </div>
                 <div class="col-sm-6">
                      <div class="form-group">
@@ -334,28 +334,28 @@
               </div>
               <div class="row">
                 <div class="col-sm-12">
-                     <small class="form-text text-muted" id="flashcard_learn_card_details"></small>	
+                     <small class="form-text text-muted" id="flashcard_learn_card_details"></small>
                 </div>
               </div>
             </div>
 		</div>
 	</div>
 </div>
-                        
+
 <div id="panel_flashcards_permissions" class="panel-collapse collapse">
 </div>
-                        
+
 <div id="panel_flashcards_cards_actions" style="display: none;">
 	<span class="navbar-brand">
-            <div class="container-fluid"> 
+            <div class="container-fluid">
               <div class="row">
                 <div class="col-sm-12">
                     <div class="form-group">
                         <button class="nav-item btn btn-default" id="button_flashcards_search_cards" style="display: none;">
-                            <i class="fa fa-search"></i>
+                            <i class="bi bi-search"></i>
                         </button>
                         <button class="nav-item btn btn-default" id="button_flashcards_new_card">
-                            <i class="fa fa-calendar-plus-o"></i>
+                            <i class="bi bi-calendar-date"></i>
                         </button>
                         <span id="span_flashcards_cards_actions_status"></span>
                         <span>Cards</span>
@@ -438,11 +438,11 @@
 	<button class="btn" id="run_unit_tests"">Test</button>
 </p>
 -->
-				
 
 
-<!-- 
-Modal to delete a box 
+
+<!--
+Modal to delete a box
 -->
 <div class="modal fade" id="delete_box_modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
 	<div class="modal-dialog" role="document">

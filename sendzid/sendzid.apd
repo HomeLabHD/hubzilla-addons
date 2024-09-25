@@ -1,7 +1,7 @@
-version: 2
+version: 3
 url: $baseurl/sendzid
 requires: local_channel
 name: Send ZID
-photo: icon:send-o
+photo: icon:person-vcard
 categories: System
 desc: Send your identity to all websites.

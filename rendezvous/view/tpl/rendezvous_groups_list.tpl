@@ -6,7 +6,7 @@
 			</td>
 			<td style="width: 20%;">
 				<button class="btn btn-danger btn-xs delete-group-button pull-right" type="button">
-						<span class="delete-group-id" id="{{$group}}"><i class="fa fa-trash"></i></span>
+						<span class="delete-group-id" id="{{$group}}"><i class="bi bi-trash"></i></span>
 				</button>
 			</td>
 		</tr>
