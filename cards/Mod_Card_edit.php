@@ -103,7 +103,7 @@ class Card_edit extends \Zotlabs\Web\Controller {
 			'ptyp' => $itm[0]['type'],
 			'mimeselect' => false,
 			'mimetype' => $itm[0]['mimetype'],
-			'body' => htmlspecialchars_decode(undo_post_tagging($itm[0]['body']), ENT_COMPAT);,
+			'body' => htmlspecialchars_decode(undo_post_tagging($itm[0]['body']), ENT_COMPAT),
 			'post_id' => $post_id,
 			'visitor' => true,
 			'title' => htmlspecialchars_decode($itm[0]['title'], ENT_COMPAT),
