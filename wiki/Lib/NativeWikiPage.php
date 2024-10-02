@@ -565,9 +565,9 @@ class NativeWikiPage {
 				$pages[]    = $title;
 			}
 			$idx = 0;
-			while (strpos($s, '[[') !== false) {
+			while (isset($pages[$idx])) {
 				$replace = '<a href="' . $wikiURL . '/' . $pageURLs[$idx] . '">' . $pages[$idx] . '</a>';
-				$s       = preg_replace("/\[\[(.*?)\]\]/", $replace, $s, 1);
+				$s = preg_replace("/\[\[(.*?)\]\]/", $replace, $s, 1);
 				$idx++;
 			}
 		}
