@@ -158,7 +158,7 @@ function cards_channel_activities_widget(&$arr){
 
 	$arr['activities']['cards'] = [
 		'label' => t('Cards'),
-		'icon' => 'list',
+		'icon' => 'card-text',
 		'url' => z_root() . '/cards/' . $arr['channel']['channel_address'],
 		'date' => $r[0]['edited'],
 		'items' => $i,
