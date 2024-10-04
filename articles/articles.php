@@ -158,7 +158,7 @@ function articles_channel_activities_widget(&$arr){
 
 	$arr['activities']['articles'] = [
 		'label' => t('Articles'),
-		'icon' => 'file-text-o',
+		'icon' => 'newspaper',
 		'url' => z_root() . '/articles/' . $arr['channel']['channel_address'],
 		'date' => $r[0]['edited'],
 		'items' => $i,

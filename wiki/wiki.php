@@ -96,7 +96,7 @@ function wiki_channel_activities_widget(&$arr){
 
 	$arr['activities']['wiki'] = [
 		'label' => t('Wikis'),
-		'icon' => 'pencil-square-o',
+		'icon' => 'pencil-square',
 		'url' => z_root() . '/wiki/' . $arr['channel']['channel_address'],
 		'date' => $r[0]['changed'],
 		'items' => $i,
