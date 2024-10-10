@@ -126,6 +126,16 @@ class Inbox extends Controller {
 			return;
 		}
 
+		if (in_array($AS->type, ['Add', 'Remove'])
+			&& is_array($AS->obj)
+			&& array_key_exists('object', $AS->obj)
+			&& array_key_exists('actor', $AS->obj)
+			&& !empty($AS->tgt)) {
+
+			logger('unsupported collection operation', LOGGER_DEBUG);
+			return;
+		}
+
 		if (is_array($AS->actor) && array_key_exists('id', $AS->actor)) {
 			Activity::actor_store($AS->actor);
 		}
