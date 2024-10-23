@@ -106,9 +106,19 @@ function pubcrawl_fetch_provider($arr) {
 	// check if is_an_actor, otherwise import activity
 	if (is_array($AS->obj) && !ActivityStreams::is_an_actor($AS->obj)) {
 		$item = Activity::decode_note($AS);
-		$item['item_fetched'] = true;
+
 		if ($item) {
+			$item['item_fetched'] = true;
+
 			Activity::store($channel, get_observer_hash(), $AS, $item, true, true);
+
+			if (isset(App::$cache['as_fetch_objects'])) {
+				// Some items are slated for background fetch. This indicates we need to fetch something.
+				// Since in this case we are fetching manually we can just use the info we already have
+				// and dismiss the info provided in App::$cache['as_fetch_objects'].
+				Activity::fetch_and_store_parents($channel, get_observer_hash(), $item, $AS, true);
+			}
+
 			goaway(z_root() . '/hq/' . $item['uuid']);
 		}
 	}
