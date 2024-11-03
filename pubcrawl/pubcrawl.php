@@ -223,13 +223,12 @@ function pubcrawl_encode_item(&$arr) {
 	}
 
 	// if the the item comes from one of our alternate locations
-	// rewrite the id host to the primary hub
+	// rewrite the id host to the local hub
 
 	if (!empty($arr['item']['single_activity'])) {
 		$parsed = parse_url($arr['encoded']['id']);
-		$parsed_primary = parse_url($arr['item']['author']['hubloc_url']);
-		$parsed_new = array_merge($parsed, $parsed_primary);
-		$arr['encoded']['id'] = unparse_url($parsed_new);
+		$parsed['host'] = App::get_hostname();
+		$arr['encoded']['id'] = unparse_url($parsed);
 	}
 
 	$images = false;
@@ -286,13 +285,12 @@ function pubcrawl_encode_activity(&$arr) {
 	}
 
 	// if the the item comes from one of our alternate locations
-	// rewrite the id host to the primary hub
+	// rewrite the id host to the local hub
 
 	if (!empty($arr['item']['single_activity'])) {
 		$parsed = parse_url($arr['encoded']['id']);
-		$parsed_primary = parse_url($arr['item']['author']['hubloc_url']);
-		$parsed_new = array_merge($parsed, $parsed_primary);
-		$arr['encoded']['id'] = unparse_url($parsed_new);
+		$parsed['host'] = App::get_hostname();
+		$arr['encoded']['id'] = unparse_url($parsed);
 	}
 
 	$addressing = pubcrawl_encode_addressing($arr);
@@ -1044,15 +1042,10 @@ function pubcrawl_permissions_create(&$x) {
 		return;
 	}
 
-	$p = $x['sender']['xchan_url'];
-	if (!$p) {
-		return;
-	}
-
 	$obj = [
 		'id'     => z_root() . '/follow/' . $x['recipient']['abook_id'] . '#follow',
 		'type'   => 'Follow',
-		'actor'  => $p,
+		'actor'  => channel_url($x['sender']),
 		'object' => $x['recipient']['xchan_hash'],
 		'to'     => [$x['recipient']['xchan_hash']]
 	];
@@ -1106,23 +1099,20 @@ function pubcrawl_permissions_accept(&$x) {
 	// we currently are not handling send of reject follow activities; this is permitted by protocol
 
 	$accept = get_abconfig($x['recipient']['abook_channel'], $x['recipient']['xchan_hash'], 'pubcrawl', 'their_follow_id');
-	if (!$accept)
-		return;
 
-	$p = $x['sender']['xchan_url'];
-	if (!$p) {
+	if (!$accept) {
 		return;
 	}
 
 	$obj = [
 		'id'     => z_root() . '/follow/' . $x['recipient']['abook_id'] . '#accept',
 		'type'   => 'Accept',
-		'actor'  => $p,
+		'actor'  => channel_url($x['sender']),
 		'object' => [
 			'type'   => 'Follow',
 			'id'     => $accept,
 			'actor'  => $x['recipient']['xchan_hash'],
-			'object' => z_root() . '/channel/' . $x['sender']['channel_address']
+			'object' => channel_url($x['sender'])
 		],
 		'to'     => [$x['recipient']['xchan_hash']]
 	];
