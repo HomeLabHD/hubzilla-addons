@@ -89,7 +89,7 @@ class Card_edit extends \Zotlabs\Web\Controller {
 			'bbco_autocomplete'=> 'bbcode',
 			'return_path' => $rp,
 			'webpage' => ITEM_TYPE_CARD,
-			'button' => t('Edit'),
+			'button' => t('Save'),
 			'writefiles' => perm_is_allowed($owner, get_observer_hash(), 'write_pages'),
 			'weblink' => t('Insert web link'),
 			'hide_voting' => false,
