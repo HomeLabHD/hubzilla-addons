@@ -66,7 +66,7 @@ $(document).ready(function() {
 
 		var options = {
 			closeSVG: '<i class="bi bi-x-lg text-white"></i>',
-			zoomSVG: '<i class="bi bi-zoom-in text-white"></i>',
+			zoomSVG: '<i id="zoom-icon" class="bi bi-zoom-in text-white"></i>',
 			dataSource: items,
 			bgOpacity: 1,
 			bgClickAction: 'toggle-controls',
@@ -74,6 +74,12 @@ $(document).ready(function() {
 		};
 
 		const lightbox = new PhotoSwipeLightbox(options);
+
+		lightbox.on('beforeZoomTo', () => {
+			let zoomIcon = document.getElementById('zoom-icon');
+			zoomIcon.classList.toggle('bi-zoom-in');
+			zoomIcon.classList.toggle('bi-zoom-out');
+		});
 
 		lightbox.on('uiRegister', function() {
 		  lightbox.pswp.ui.registerElement({
