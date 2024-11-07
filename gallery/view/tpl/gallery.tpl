@@ -78,8 +78,21 @@
 
 		lightbox.on('beforeZoomTo', () => {
 			let zoomIcon = document.getElementById('zoom-icon');
-			zoomIcon.classList.toggle('bi-zoom-in');
-			zoomIcon.classList.toggle('bi-zoom-out');
+			if (lightbox.pswp.element.classList.contains("pswp--zoomed-in")) {
+				zoomIcon.classList.remove('bi-zoom-out');
+				zoomIcon.classList.add('bi-zoom-in');
+
+			}
+			else {
+				zoomIcon.classList.add('bi-zoom-out');
+				zoomIcon.classList.remove('bi-zoom-in');
+			}
+		});
+
+		lightbox.on('change', () => {
+			let zoomIcon = document.getElementById('zoom-icon');
+			zoomIcon.classList.remove('bi-zoom-out');
+			zoomIcon.classList.add('bi-zoom-in');
 		});
 
 		lightbox.on('uiRegister', function() {
