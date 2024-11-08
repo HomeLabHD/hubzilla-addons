@@ -108,7 +108,7 @@ class NativeWikiPage {
 		$arr['item_unpublished'] = 1;
 
 		set_iconfig($arr, 'nwikipage', 'pagetitle', (($name) ? $name : t('(No Title)')), true);
-		$p = item_store($arr, false, false);
+		$p = item_store($arr, deliver: false, addAndSync: false);
 
 		if ($p['item_id']) {
 			$page = [
@@ -397,7 +397,7 @@ class NativeWikiPage {
 			}
 		}
 
-		$ret = item_store($item, false, false);
+		$ret = item_store($item, deliver: false, addAndSync: false);
 
 		if ($ret['item_id']) {
 			q("update item set changed = '%s' where id = %d and uid = %d",

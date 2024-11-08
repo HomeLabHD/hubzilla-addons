@@ -88,15 +88,16 @@ class NativeWiki {
 
 		$post = item_store($arr);
 
-		$item_id = $post['item_id'];
+		if ($post['success']) {
+			Master::Summon(['Notifier', 'activity', $post['item_id']]);
+			if (!empty($post['approval_id'])) {
+				Master::Summon(['Notifier', 'activity', $post['approval_id']]);
+			}
 
-		if($item_id) {
-			\Zotlabs\Daemon\Master::Summon(array('Notifier', 'activity', $item_id));
-			return array('item' => $post['item'], 'item_id' => $item_id, 'success' => true);
+			return ['item' => $post['item'], 'item_id' => $post['item_id'], 'success' => true];
 		}
-		else {
-			return array('item' => null, 'success' => false);
-		}
+
+		return ['item' => null, 'success' => false];
 	}
 
 
