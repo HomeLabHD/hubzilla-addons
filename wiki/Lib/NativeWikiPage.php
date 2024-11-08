@@ -441,7 +441,7 @@ class NativeWikiPage {
 		}
 
 		if ($ids) {
-			drop_items($ids, true, DROPITEM_PHASE1);
+			drop_items($ids, DROPITEM_PHASE1);
 			return ['success' => true];
 		}
 

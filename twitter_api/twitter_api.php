@@ -1036,7 +1036,7 @@ function api_statuses_destroy( $type){
 
 	logger('API: api_statuses_destroy: '.$id);
 	require_once('include/items.php');
-	drop_item($id, false);
+	drop_item($id);
 
 
 	if ($type == 'xml')

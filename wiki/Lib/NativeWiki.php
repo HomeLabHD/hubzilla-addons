@@ -199,7 +199,7 @@ class NativeWiki {
 			);
 
 			$ids = array_column($r, 'id');
-			drop_items($ids, true, DROPITEM_PHASE1);
+			drop_items($ids, DROPITEM_PHASE1);
 
 			info(t('Wiki files deleted successfully'));
 

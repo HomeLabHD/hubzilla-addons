@@ -1801,7 +1801,7 @@ class Diaspora_Receiver {
 
 				if(link_compare($r[0]['author_xchan'],$contact['xchan_hash'])
 					|| link_compare($r[0]['owner_xchan'],$contact['xchan_hash'])) {
-					drop_item($r[0]['id'],false, $stage);
+					drop_item($r[0]['id'], $stage);
 
 					// notification is not done in drop_item() unless the process is interactive
 					// so call it now
@@ -1877,7 +1877,7 @@ class Diaspora_Receiver {
 			if($r) {
 				if($r[0]['author_xchan'] == $contact['xchan_hash']) {
 
-					drop_item($r[0]['id'],false, DROPITEM_PHASE1);
+					drop_item($r[0]['id'], DROPITEM_PHASE1);
 
 					// Now check if the retraction needs to be relayed by us
 					//
@@ -2153,7 +2153,7 @@ class Diaspora_Receiver {
 						return;
 					}
 				}
-				drop_item($rv['id'],false);
+				drop_item($rv['id']);
 			}
 		}
 
