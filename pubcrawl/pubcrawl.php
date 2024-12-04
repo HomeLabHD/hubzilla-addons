@@ -360,7 +360,7 @@ function pubcrawl_post_local(&$x) {
 
 	$jmsg = Activity::build_packet(Activity::encode_activity($item[0]), $channel);
 
-	set_iconfig($x, 'activitypub', 'rawmsg', $jmsg, true);
+	set_iconfig($x, 'activitypub', 'rawmsg', json_decode($jmsg, true), true);
 }
 
 function pubcrawl_webfinger(&$b) {
