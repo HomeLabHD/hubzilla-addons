@@ -358,9 +358,9 @@ function pubcrawl_post_local(&$x) {
 
 	xchan_query($item);
 
-	$jmsg = Activity::build_packet(Activity::encode_activity($item[0]), $channel);
+	$msg = Activity::build_packet(Activity::encode_activity($item[0]), $channel, false);
 
-	set_iconfig($x, 'activitypub', 'rawmsg', json_decode($jmsg, true), true);
+	set_iconfig($x, 'activitypub', 'rawmsg', $msg, true);
 }
 
 function pubcrawl_webfinger(&$b) {
