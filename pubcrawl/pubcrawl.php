@@ -673,9 +673,13 @@ function pubcrawl_notifier_process(&$arr) {
 		}
 	}
 
-	// Add anyone from the 'to' field which will include mentions
+	$raw_msg = get_iconfig($arr['target_item'], 'activitypub', 'rawmsg');
+	if (!is_array($raw_msg)) {
+		// Try to decode it
+		$raw_msg = json_decode($raw_msg, true);
+	}
 
-	$raw_msg = json_decode(get_iconfig($arr['target_item'], 'activitypub', 'rawmsg'), true);
+	// Add anyone from the 'to' field which will include mentions
 
 	if (isset($raw_msg['to'])) {
 		foreach ($raw_msg['to'] as $to) {
