@@ -778,14 +778,9 @@ function pubcrawl_notifier_hub(&$arr) {
 	}
 
 	if (is_array($signed_msg)) {
-		// If it's an array it is probably an encrypted zot6 package
-		// which are in the wild due to a bug before 5.4.
-		// Probably in this case it's the best to just unset it.
-		logger('Signed message is array: ' . print_r($signed_msg, true), LOGGER_DEBUG);
-		$signed_msg = '';
+		$jmsg = json_encode($signed_msg);
 	}
-
-	if (is_string($signed_msg)) {
+	elseif (is_string($signed_msg)) {
 		$jmsg = $signed_msg;
 	}
 

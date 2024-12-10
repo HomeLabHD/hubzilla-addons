@@ -90,9 +90,10 @@ class Inbox extends Controller {
 			http_status_exit(403, 'Permission denied');
 		}
 
-		$AS = new ActivityStreams($data, $hsig['portable_id']);
+		$AS = new ActivityStreams($data, portable_id: $hsig['portable_id']);
 
 		$announce_actor = null;
+		$is_collection_operation = false;
 
 		if (
 			$AS->is_valid() && $AS->type === 'Announce' && is_array($AS->obj)
@@ -108,7 +109,29 @@ class Inbox extends Controller {
 				$announce_actor = $AS->actor['id'];
 			}
 
-			$AS = new ActivityStreams($AS->obj);
+			$AS = new ActivityStreams($AS->obj, portable_id: $hsig['portable_id']);
+		}
+
+		// use the data object, as it will not include actor expansion
+		if (in_array($AS->type, ['Add', 'Remove'])
+			&& is_array($AS->obj)
+			&& array_key_exists('object', $AS->obj)
+			&& array_key_exists('actor', $AS->obj)
+			&& !empty($AS->tgt)) {
+
+			logger('relayed collection operation', LOGGER_DEBUG);
+			$is_collection_operation = true;
+
+			$original_id = $AS->id;
+			$original_type = $AS->type;
+
+			$raw_activity = $AS->data;
+
+			$AS = new ActivityStreams($raw_activity['object'], portable_id: $hsig['portable_id']);
+
+			// Store the original activity id and type for later usage
+			$AS->meta['original_id'] = $original_id;
+			$AS->meta['original_type'] = $original_type;
 		}
 
 		// logger('debug: ' . $AS->debug());
@@ -530,7 +553,7 @@ class Inbox extends Controller {
 
 			if ($item) {
 				logger('parsed_item: ' . print_r($item, true), LOGGER_DATA);
-				Activity::store($channel, $observer_hash, $AS, $item);
+				Activity::store($channel, $observer_hash, $AS, $item, true, false, $is_collection_operation);
 			}
 		}
 
