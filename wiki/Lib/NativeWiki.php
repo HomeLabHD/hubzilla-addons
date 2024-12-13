@@ -1,6 +1,7 @@
 <?php
 
 use Zotlabs\Lib\Libsync;
+use Zotlabs\Daemon\Master;
 
 define ( 'NWIKI_ITEM_RESOURCE_TYPE', 'nwiki' );
 
