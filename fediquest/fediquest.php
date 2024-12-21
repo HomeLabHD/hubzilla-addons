@@ -186,8 +186,12 @@ function fediquest_notifier_process($arr) {
 	call_hooks('post_local', $arr);
 	$post = item_store($arr);
 
-	Master::Summon(['Notifier', 'comment-new', $post['item_id']]);
-
+	if ($post['success']) {
+		Master::Summon(['Notifier', 'comment-new', $post['item_id']]);
+		if (!empty($post['approval_id'])) {
+			Master::Summon(['Notifier', 'comment-new', $post['approval_id']]);
+		}
+	}
 }
 
 function fediquest_replace($str) {

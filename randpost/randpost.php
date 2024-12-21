@@ -8,6 +8,8 @@
  */
 
 use Zotlabs\Lib\Crypto;
+use Zotlabs\Daemon\Master;
+
 
 require_once('include/crypto.php');
 
@@ -212,13 +214,15 @@ function randpost_enotify_store(&$b) {
 	$x['sig'] = base64url_encode(Crypto::sign($x['body'],$c[0]['channel_prvkey']));
 
 	$post = item_store($x);
-	$post_id = $post['item_id'];
 
-	$x['id'] = $post_id;
+	call_hooks('post_local_end', $post['item']);
 
-	call_hooks('post_local_end', $x);
-
-	Zotlabs\Daemon\Master::Summon(array('Notifier','comment-new',$post_id));
+	if ($post['success']) {
+		Master::Summon(['Notifier', 'comment-new', $post['item_id']]);
+		if (!empty($post['approval_id'])) {
+			Master::Summon(['Notifier', 'comment-new', $post['approval_id']]);
+		}
+	}
 
 }
 
@@ -276,13 +280,15 @@ function randpost_fetch(&$b) {
 				$x['sig'] = base64url_encode(Crypto::sign($x['body'],$c[0]['channel_prvkey']));
 
 				$post = item_store($x);
-				$post_id = $post['item_id'];
 
-				$x['id'] = $post_id;
+				call_hooks('post_local_end', $post['item']);
 
-				call_hooks('post_local_end', $x);
-
-				Zotlabs\Daemon\Master::Summon(array('Notifier','wall-new',$post_id));
+				if ($post['success']) {
+					Master::Summon(['Notifier', 'wall-new', $post['item_id']]);
+					if (!empty($post['approval_id'])) {
+						Master::Summon(['Notifier', 'wall-new', $post['approval_id']]);
+					}
+				}
 			}
 		}
 	}

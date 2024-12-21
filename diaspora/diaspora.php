@@ -547,7 +547,7 @@ function diaspora_process_outbound(&$arr) {
 			return;
 		}
 
-		if($arr['target_item']['verb'] === 'Announce') {
+		if(in_array($arr['target_item']['verb'], ['Announce', 'Add', 'Remove'])) {
 			return;
 		}
 	}

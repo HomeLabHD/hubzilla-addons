@@ -358,9 +358,9 @@ function pubcrawl_post_local(&$x) {
 
 	xchan_query($item);
 
-	$jmsg = Activity::build_packet(Activity::encode_activity($item[0]), $channel);
+	$msg = Activity::build_packet(Activity::encode_activity($item[0]), $channel, false);
 
-	set_iconfig($x, 'activitypub', 'rawmsg', $jmsg, true);
+	set_iconfig($x, 'activitypub', 'rawmsg', $msg, true);
 }
 
 function pubcrawl_webfinger(&$b) {
@@ -673,9 +673,13 @@ function pubcrawl_notifier_process(&$arr) {
 		}
 	}
 
-	// Add anyone from the 'to' field which will include mentions
+	$raw_msg = get_iconfig($arr['target_item'], 'activitypub', 'rawmsg');
+	if (!is_array($raw_msg)) {
+		// Try to decode it
+		$raw_msg = json_decode($raw_msg, true);
+	}
 
-	$raw_msg = json_decode(get_iconfig($arr['target_item'], 'activitypub', 'rawmsg'), true);
+	// Add anyone from the 'to' field which will include mentions
 
 	if (isset($raw_msg['to'])) {
 		foreach ($raw_msg['to'] as $to) {
@@ -774,14 +778,9 @@ function pubcrawl_notifier_hub(&$arr) {
 	}
 
 	if (is_array($signed_msg)) {
-		// If it's an array it is probably an encrypted zot6 package
-		// which are in the wild due to a bug before 5.4.
-		// Probably in this case it's the best to just unset it.
-		logger('Signed message is array: ' . print_r($signed_msg, true), LOGGER_DEBUG);
-		$signed_msg = '';
+		$jmsg = json_encode($signed_msg);
 	}
-
-	if (is_string($signed_msg)) {
+	elseif (is_string($signed_msg)) {
 		$jmsg = $signed_msg;
 	}
 

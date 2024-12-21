@@ -1988,8 +1988,15 @@ class Workflow_Utils {
 
 		$itemstore=item_store_update($items[0]);
 
-		sync_an_item($itemowneruid,$itemstore['item_id']);
-		Master::Summon([ 'Notifier','activity',$itemstore['item_id'] ]);
+		// sync is done in item_store_update()
+		//sync_an_item($itemowneruid,$itemstore['item_id']);
+
+		if ($itemstore['success']) {
+			Master::Summon(['Notifier', 'activity', $itemstore['item_id']]);
+			if (!empty($itemstore['approval_id'])) {
+				Master::Summon(['Notifier', 'activity', $itemstore['approval_id']]);
+			}
+		}
 
 		return true;
 	}
@@ -2091,11 +2098,17 @@ class Workflow_Utils {
 		unset($items[0]['owner']);
 		unset($items[0]['author']);
 
-		$itemstore=item_store_update($items[0],false,true);
+		$itemstore=item_store_update($items[0]);
 
-		sync_an_item($uid,$itemstore['item_id']);
+		// sync is done in item_store_update()
+		//sync_an_item($itemowneruid,$itemstore['item_id']);
 
-		Master::Summon([ 'Notifier','activity',$itemstore['item_id'] ]);
+		if ($itemstore['success']) {
+			Master::Summon(['Notifier', 'activity', $itemstore['item_id']]);
+			if (!empty($itemstore['approval_id'])) {
+				Master::Summon(['Notifier', 'activity', $itemstore['approval_id']]);
+			}
+		}
 
 		return true;
 	}
@@ -2180,11 +2193,17 @@ class Workflow_Utils {
 		}
 		$items[0]['allow_cid'] = '<'.implode('><',$allow).'>';
 
-		$itemstore=item_store_update($items[0],false,true);
+		$itemstore=item_store_update($items[0]);
 
-		sync_an_item($uid,$itemstore['item_id']);
+		// sync is done in item_store_update()
+		//sync_an_item($itemowneruid,$itemstore['item_id']);
 
-		Master::Summon([ 'Notifier','activity',$itemstore['item_id'] ]);
+		if ($itemstore['success']) {
+			Master::Summon(['Notifier', 'activity', $itemstore['item_id']]);
+			if (!empty($itemstore['approval_id'])) {
+				Master::Summon(['Notifier', 'activity', $itemstore['approval_id']]);
+			}
+		}
 
 		return true;
 	}
@@ -2365,16 +2384,22 @@ class Workflow_Utils {
 			}
 			$items[0]['allow_cid'] = '<'.implode('><',$allow).'>';
 
-			$itemstore = item_store_update($items[0],false,true);
-			$success = true;
+			$itemstore = item_store_update($items[0]);
 
-			if ($success) {
-				sync_an_item($uid,$itemstore['item_id']);
-				Master::Summon([ 'Notifier','activity',$itemstore['item_id'] ]);
+			if ($itemstore['success']) {
+				// sync is done in item_store_update()
+				//sync_an_item($itemowneruid,$itemstore['item_id']);
+
+				Master::Summon(['Notifier', 'activity', $itemstore['item_id']]);
+				if (!empty($itemstore['approval_id'])) {
+					Master::Summon(['Notifier', 'activity', $itemstore['approval_id']]);
+				}
+
 				json_return_and_die(['html'=>'<script>window.workflowiframeCloseModal();</script>']);
-			} else {
-				json_return_and_die(['html'=>'<h2>Error</h2>There was an error processing your request.']);
 			}
+
+			json_return_and_die(['html'=>'<h2>Error</h2>There was an error processing your request.']);
+
 		}
 
 		json_return_and_die(['html'=> self::basic_form($action,'getmodal_getiframecontent',$content,false,$data)]);
@@ -2557,19 +2582,23 @@ class Workflow_Utils {
 			}
 			$items[0]['allow_cid'] = '<'.implode('><',$allow).'>';
 
-			$itemstore = item_store_update($items[0],false,true);
+			$itemstore = item_store_update($items[0]);
 
-			$success = $itemstore['success'];
-
-			if ($success) {
+			if ($itemstore['success']) {
 				logger("Item update succeeded.");
-				sync_an_item(App::$profile_uid,$itemstore['item_id']);
-				Master::Summon([ 'Notifier','activity',$itemstore['item_id'] ]);
+
+				// sync is done in item_store_update()
+				//sync_an_item($itemowneruid,$itemstore['item_id']);
+
+				Master::Summon(['Notifier', 'activity', $itemstore['item_id']]);
+				if (!empty($itemstore['approval_id'])) {
+					Master::Summon(['Notifier', 'activity', $itemstore['approval_id']]);
+				}
 			} else {
 				logger("Item Update Failed.");
 			}
 
-			return $success;
+			return $itemstore['success'];
 	}
 
 	public static function form_addlink($data) {
@@ -2895,14 +2924,14 @@ class Workflow_Utils {
 					}
 			}
 
-		if ($updated) {
-			IConfig::Set($orig, 'workflow','itemupdate:'.time(),json_encode(['observer'=>$observer,'details'=>$updatedetails]));
-			$orig['mimetype'] = 'text/bbcode';
-			unset($orig['obj']);
-			$obj = self::encode_workflow_object($orig);
-			//$obj = Activity::encode_item($orig);
-			//$obj['https://purl.org/dm42/as/workflow#workflowmeta'] = self::encode_workflow_meta_jsonld($orig);
-			$orig['obj']=json_encode($obj);
+			if ($updated) {
+				IConfig::Set($orig, 'workflow','itemupdate:'.time(),json_encode(['observer'=>$observer,'details'=>$updatedetails]));
+				$orig['mimetype'] = 'text/bbcode';
+				unset($orig['obj']);
+				$obj = self::encode_workflow_object($orig);
+				//$obj = Activity::encode_item($orig);
+				//$obj['https://purl.org/dm42/as/workflow#workflowmeta'] = self::encode_workflow_meta_jsonld($orig);
+				$orig['obj']=json_encode($obj);
 			}
 
 			$wfusers = self::get_workflowusers();
@@ -2924,8 +2953,16 @@ class Workflow_Utils {
 			return $err;
 		}
 
-		sync_an_item($channel['channel_id'],$itemstore['item_id']);
-		Master::Summon([ 'Notifier','activity',$itemstore['item_id'] ]);
+		if ($itemstore['success']) {
+			// sync is done in item_store_update()
+			//sync_an_item($channel['channel_id'],$itemstore['item_id']);
+
+			Master::Summon(['Notifier', 'activity', $itemstore['item_id']]);
+			if (!empty($itemstore['approval_id'])) {
+				Master::Summon(['Notifier', 'activity', $itemstore['approval_id']]);
+			}
+		}
+
 	}
 
 	protected static function datastore($datastore,$requestdata,$parameters=[]) {

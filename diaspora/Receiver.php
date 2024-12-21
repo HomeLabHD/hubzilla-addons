@@ -495,9 +495,11 @@ class Diaspora_Receiver {
 		}
 
 		if ($result['success']) {
-			sync_an_item($this->importer['channel_id'], $result['item_id']);
-			if ($this->force)
+			// sync is now done in item_store() and item_store_update()
+			// sync_an_item($this->importer['channel_id'], $result['item_id']);
+			if ($this->force) {
 				diaspora_send_participation($this->importer, $xchan, $result['item']);
+			}
 
 			return 200;
 		}
@@ -710,9 +712,11 @@ class Diaspora_Receiver {
 		$result = item_store($datarray);
 
 		if($result['success']) {
-			sync_an_item($this->importer['channel_id'],$result['item_id']);
-			if($this->force)
+			// sync is now done in item_store() and item_store_update()
+			// sync_an_item($this->importer['channel_id'],$result['item_id']);
+			if($this->force) {
 				diaspora_send_participation($this->importer, $contact, $result['item']);
+			}
 
 			return 200;
 		}
@@ -1097,15 +1101,19 @@ class Diaspora_Receiver {
 			$result = item_store($datarray);
 		}
 
-		if ($result && $result['success'])
-			$message_id = $result['item_id'];
-
-		if ($parent_item['owner_xchan'] === $this->importer['channel_hash']) {
-			// We are the owner of this conversation, so send all received comments back downstream
-			Zotlabs\Daemon\Master::Summon(['Notifier', 'comment-import', $message_id]);
-		}
-
 		if ($result['success']) {
+			if ($parent_item['owner_xchan'] === $this->importer['channel_hash']) {
+				// We are the owner of this conversation, so send all received comments back downstream
+				Master::Summon(['Notifier', 'comment-import', $result['item_id']]);
+				if (!empty($result['approval_id'])) {
+					Master::Summon(['Notifier', 'comment-import', $result['approval_id']]);
+				}
+			}
+
+			send_status_notifications($result['item_id'], $result['item']);
+			return 200;
+
+			/* sync is done in item_store()
 			$r = q("select * from item where id = %d limit 1",
 				intval($result['item_id'])
 			);
@@ -1114,6 +1122,7 @@ class Diaspora_Receiver {
 				sync_an_item($this->importer['channel_id'], $result['item_id']);
 				return 200;
 			}
+			*/
 		}
 
 		return 202;
@@ -1264,7 +1273,8 @@ class Diaspora_Receiver {
 		$result = item_store($datarray);
 
 		if ($result['success']) {
-			sync_an_item($this->importer['channel_id'], $result['item_id']);
+			// sync is done in item_store()
+			//sync_an_item($this->importer['channel_id'], $result['item_id']);
 			return 200;
 		}
 
@@ -1402,7 +1412,8 @@ class Diaspora_Receiver {
 
 		if ($result['success']) {
 			send_status_notifications($result['item_id'], $result['item']);
-			sync_an_item($this->importer['channel_id'], $result['item_id']);
+			// sync is done in item_store()
+			// sync_an_item($this->importer['channel_id'], $result['item_id']);
 			return 200;
 		}
 
@@ -1751,9 +1762,15 @@ class Diaspora_Receiver {
 			// the existence of parent_author_signature means the parent_author or owner
 			// is already relaying. The parent_item['origin'] indicates the message was created on our system
 
-			if (intval($parent_item['item_origin']) && (!$parent_author_signature))
+			if (intval($parent_item['item_origin']) && (!$parent_author_signature)) {
 				Master::Summon(['Notifier', 'comment-import', $result['item_id']]);
-			sync_an_item($this->importer['channel_id'], $result['item_id']);
+				if (!empty($result['approval_id'])) {
+					Master::Summon(['Notifier', 'comment-import', $result['approval_id']]);
+				}
+			}
+
+			// sync is done in item_store()
+			// sync_an_item($this->importer['channel_id'], $result['item_id']);
 
 			return 200;
 		}
@@ -1801,7 +1818,7 @@ class Diaspora_Receiver {
 
 				if(link_compare($r[0]['author_xchan'],$contact['xchan_hash'])
 					|| link_compare($r[0]['owner_xchan'],$contact['xchan_hash'])) {
-					drop_item($r[0]['id'],false, $stage);
+					drop_item($r[0]['id'], $stage);
 
 					// notification is not done in drop_item() unless the process is interactive
 					// so call it now
@@ -1877,7 +1894,7 @@ class Diaspora_Receiver {
 			if($r) {
 				if($r[0]['author_xchan'] == $contact['xchan_hash']) {
 
-					drop_item($r[0]['id'],false, DROPITEM_PHASE1);
+					drop_item($r[0]['id'], DROPITEM_PHASE1);
 
 					// Now check if the retraction needs to be relayed by us
 					//
@@ -2153,7 +2170,7 @@ class Diaspora_Receiver {
 						return;
 					}
 				}
-				drop_item($rv['id'],false);
+				drop_item($rv['id']);
 			}
 		}
 
@@ -2306,9 +2323,15 @@ class Diaspora_Receiver {
 			// the existence of parent_author_signature means the parent_author or owner
 			// is already relaying. The parent_item['origin'] indicates the message was created on our system
 
-			if(intval($parent_item['item_origin']) && (! $parent_author_signature))
-				Zotlabs\Daemon\Master::Summon(array('Notifier','comment-import',$result['item_id']));
-			sync_an_item($this->importer['channel_id'],$result['item_id']);
+			if (intval($parent_item['item_origin']) && (!$parent_author_signature)) {
+				Master::Summon(['Notifier', 'comment-import', $result['item_id']]);
+				if (!empty($result['approval_id'])) {
+					Master::Summon(['Notifier', 'comment-import', $result['approval_id']]);
+				}
+			}
+			// sync is done in item_store();
+			//sync_an_item($this->importer['channel_id'],$result['item_id']);
+
 		}
 
 		return;

@@ -548,7 +548,7 @@ function diaspora_deliver_local_comments($item,$parent) {
 			continue;
 		$new_item['uid'] = $rv['uid'];
 		$new_item['aid'] = $rv['aid'];
-		item_store($new_item);
+		item_store($new_item, deliver: true, addAndSync: false);
 	}
 
 }

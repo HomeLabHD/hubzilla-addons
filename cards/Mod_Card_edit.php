@@ -82,7 +82,7 @@ class Card_edit extends \Zotlabs\Web\Controller {
 			}
 		}
 
-		$rp = 'cards/' . $channel['channel_address'];
+		$rp = 'cards/' . $channel['channel_address'] . '/' . $itm[0]['uuid'];
 
 		$x = array(
 			'nickname' => $channel['channel_address'],
@@ -113,7 +113,8 @@ class Card_edit extends \Zotlabs\Web\Controller {
 			'profile_uid' => (intval($channel['channel_id'])),
 			'catsenabled' => $catsenabled,
 			'category' => $category,
-			'bbcode' => ($itm[0]['mimetype'] === 'text/bbcode')
+			'bbcode' => ($itm[0]['mimetype'] === 'text/bbcode'),
+			'item' => $itm[0]
 		);
 
 		$editor = status_editor($x, false, 'Card_edit');
