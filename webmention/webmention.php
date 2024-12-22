@@ -7,10 +7,8 @@
  *
  */
 
-require_once('library/HTML5/Parser.php');
 
-
-// Please see https://webmention.rocks for test cases. This is a demo plugin which has not been fully tested. 
+// Please see https://webmention.rocks for test cases. This is a demo plugin which has not been fully tested.
 
 function webmention_load() {
 
@@ -33,7 +31,7 @@ function webmention_post_local_end(&$x) {
 	if($x['item_type'] || $x['item_private'] || $x['resource_type'])
 		return;
 	\Zotlabs\Daemon\Master::Summon([ 'Addon', 'webmention', $x['id'] ]);
- 
+
 }
 
 
@@ -78,7 +76,7 @@ function webmention_process_links($header,&$links) {
 			}
 		}
 	}
-}	
+}
 
 
 function webmention_process($url,$source) {
@@ -99,7 +97,7 @@ function webmention_process($url,$source) {
 			if(array_key_exists('content-type',$y)) {
 				$type = explode(';',$y['content-type']);
 				if($type && trim($type[0]) === 'text/html') {
-					$html_content = true;                    
+					$html_content = true;
 					continue;
 				}
 			}
@@ -165,6 +163,6 @@ function webmention_post($links,$url,$source) {
 
 	foreach($links as $target) {
 		$x = z_post_url($target,$postopts,$recurse, [ 'novalidate' => true ]);
-		logger('post returns: ' . print_r($x,true), LOGGER_DATA, LOG_INFO);	
+		logger('post returns: ' . print_r($x,true), LOGGER_DATA, LOG_INFO);
 	}
 }
