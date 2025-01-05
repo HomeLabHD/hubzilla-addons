@@ -57,7 +57,10 @@ class Startpage extends Controller {
 		$page = $r[0]['channel_startpage'];
 
 		$sc .= replace_macros(get_markup_template('field_input.tpl'), array(
-			'$field'	=> array('startpage', t('Page to load after login'), $page, t('Examples: &quot;apps&quot;, &quot;network?f=&gid=37&quot; (privacy collection), &quot;channel&quot; or &quot;notifications/system&quot; (leave blank for default network page (grid).'))
+			'$field'	=> array(
+				'startpage', t('Page to load after login'),
+				$page,
+				t('Examples: &quot;apps&quot;, &quot;network?f=&gid=37&quot; (privacy collection), &quot;channel&quot; or &quot;notifications/system&quot; (leave blank for default HQ page.'))
 		));
 
 		$tpl = get_markup_template("settings_addon.tpl");
