@@ -60,7 +60,7 @@ class Startpage extends Controller {
 			'$field'	=> array(
 				'startpage', t('Page to load after login'),
 				$page,
-				t('Examples: &quot;apps&quot;, &quot;network?f=&gid=37&quot; (privacy collection), &quot;channel&quot; or &quot;notifications/system&quot; (leave blank for default HQ page.'))
+				t('Examples: &quot;apps&quot;, &quot;network?f=&gid=37&quot; (privacy collection), &quot;channel&quot; or &quot;notifications/system&quot; (leave blank for default HQ page.)'))
 		));
 
 		$tpl = get_markup_template("settings_addon.tpl");
