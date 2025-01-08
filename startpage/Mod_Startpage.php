@@ -60,8 +60,7 @@ class Startpage extends Controller {
 			'$field' => array(
 				'startpage', t('Page to load after login'),
 				$page,
-				t('Examples: "apps", "network?f=&gid=37" (privacy collection),
-				"channel" or "notifications/system" (leave blank for default HQ page.)'),
+				t('Examples: "apps", "network?f=&gid=37" (privacy collection), "channel" or "notifications/system" (leave blank for default.)'),
 			)
 		));
 
