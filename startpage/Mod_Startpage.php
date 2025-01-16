@@ -56,13 +56,17 @@ class Startpage extends Controller {
 
 		$page = $r[0]['channel_startpage'];
 
-		$sc .= replace_macros(get_markup_template('field_input.tpl'), array(
-			'$field'	=> array('startpage', t('Page to load after login'), $page, t('Examples: &quot;apps&quot;, &quot;network?f=&gid=37&quot; (privacy collection), &quot;channel&quot; or &quot;notifications/system&quot; (leave blank for default network page (grid).'))
+		$sc = replace_macros(get_markup_template('field_input.tpl'), array(
+			'$field' => array(
+				'startpage', t('Page to load after login'),
+				$page,
+				t('Examples: "apps", "network?f=&gid=37" (privacy collection), "channel" or "notifications/system" (leave blank for default.)'),
+			)
 		));
 
 		$tpl = get_markup_template("settings_addon.tpl");
 
-		$o .= replace_macros($tpl, array(
+		return replace_macros($tpl, array(
 			'$action_url' => 'startpage',
 			'$form_security_token' => get_form_security_token("startpage"),
 			'$title' => t('Startpage'),
@@ -70,8 +74,6 @@ class Startpage extends Controller {
 			'$baseurl'   => z_root(),
 			'$submit'    => t('Submit'),
 		));
-
-		return $o;
 
 	}
 
