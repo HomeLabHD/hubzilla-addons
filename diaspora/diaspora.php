@@ -1039,6 +1039,10 @@ function diaspora_discover(&$b) {
 
 function diaspora_post_local(&$item) {
 
+	if ($item['verb'] === 'Add') {
+		return;
+	}
+
 	if (!Apps::addon_app_installed($item['uid'], 'diaspora'))
 		return;
 
@@ -1219,8 +1223,9 @@ function diaspora_post_local(&$item) {
 		}
 	}
 
-	if($meta)
+	if ($meta) {
 		set_iconfig($item,'diaspora','fields', $meta, true);
+	}
 
 }
 
