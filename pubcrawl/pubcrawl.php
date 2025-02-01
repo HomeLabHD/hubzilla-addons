@@ -338,6 +338,10 @@ function pubcrawl_channel_links(&$b) {
 function pubcrawl_post_local(&$x) {
 	$item[] = $x;
 
+	if ($item[0]['verb'] === 'Add') {
+		return;
+	}
+
 	if ($item[0]['mid'] === $item[0]['parent_mid']) {
 		return;
 	}
@@ -357,6 +361,21 @@ function pubcrawl_post_local(&$x) {
 	}
 
 	xchan_query($item);
+
+	// Filter previous rawmsg/fields in case it is an edit
+	$filtered_iconfig = [];
+	foreach($item[0]['iconfig'] as $iconfig) {
+		if ($iconfig['cat'] === 'activitypub' && $iconfig['k'] === 'rawmsg') {
+			continue;
+		}
+		if ($iconfig['cat'] === 'diaspora' && $iconfig['k'] === 'fields') {
+			continue;
+		}
+
+		$filtered_iconfig[] = $iconfig;
+	}
+
+	$item[0]['iconfig'] = $filtered_iconfig;
 
 	$msg = Activity::build_packet(Activity::encode_activity($item[0]), $channel, false);
 
