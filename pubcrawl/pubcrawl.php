@@ -273,9 +273,8 @@ function pubcrawl_encode_item(&$arr) {
 		}
 	}
 
-	$addressing = pubcrawl_encode_addressing($arr);
-	$arr['encoded']['to'] = $addressing['to'];
-	$arr['encoded']['cc'] = $addressing['cc'];
+	pubcrawl_encode_addressing($arr);
+
 }
 
 function pubcrawl_encode_activity(&$arr) {
@@ -293,9 +292,10 @@ function pubcrawl_encode_activity(&$arr) {
 		$arr['encoded']['id'] = unparse_url($parsed);
 	}
 
-	$addressing = pubcrawl_encode_addressing($arr);
-	$arr['encoded']['to'] = $addressing['to'];
-	$arr['encoded']['cc'] = $addressing['cc'];
+
+
+	pubcrawl_encode_addressing($arr);
+
 }
 
 
@@ -663,10 +663,8 @@ function pubcrawl_notifier_process(&$arr) {
 	if ($arr['target_item']['item_private'])
 		return;
 
-	if ($arr['parent_item']['owner']['xchan_network'] !== 'activitypub')
-		return;
-
-	if ($arr['parent_item']['author']['xchan_network'] !== 'activitypub')
+	// In a contained thread we will not allow to extend the audience
+	if (str_contains($arr['parent_item']['tgt_type'], 'Collection'))
 		return;
 
 	if (!Apps::addon_app_installed($arr['channel']['channel_id'], 'pubcrawl'))
@@ -698,6 +696,8 @@ function pubcrawl_notifier_process(&$arr) {
 		$raw_msg = json_decode($raw_msg, true);
 	}
 
+
+
 	// Add anyone from the 'to' field which will include mentions
 
 	if (isset($raw_msg['to'])) {
@@ -710,6 +710,8 @@ function pubcrawl_notifier_process(&$arr) {
 			$arr['recipients'][] = '\'' . $to . '\'';
 		}
 	}
+
+
 
 	// deliver to local subscribers directly
 	$sys = get_sys_channel();
@@ -1443,140 +1445,62 @@ function pubcrawl_queue_deliver(&$b) {
 }
 
 function pubcrawl_create_identity($b) {
-
 	if (get_config('system', 'activitypub_allowed')) {
 		Apps::app_install($b, 'Activitypub Protocol');
 	}
-
 }
 
-function pubcrawl_encode_addressing($arr) {
-
+function pubcrawl_encode_addressing(&$arr) {
 	$arr['encoded']['to'] = [];
 	$arr['encoded']['cc'] = [];
-	$parent_i = [];
-	$recips = [];
 	$top_level = ($arr['item']['mid'] === $arr['item']['parent_mid']);
+	$public = (intval($arr['item']['item_private']) === 0);
+
+	if ($arr['item']['verb'] === 'Add') {
+		// Copy the adressing from the encoded object and be done with it
+		$arr['encoded']['to'] = $arr['encoded']['object']['to'] ?? [];
+		$arr['encoded']['cc'] = $arr['encoded']['object']['cc'] ?? [];
+		return;
+	}
 
 	if (!$top_level) {
-		if (isset($arr['item']['parent']) && $arr['item']['parent']) {
-			$recips = get_iconfig($arr['item']['parent'], 'activitypub', 'recips');
-		} else {
-			// if we are encoding this item for storage there won't be a parent.
-			$p = q("select parent from item where parent_mid = '%s' and uid = %d",
-				dbesc($arr['item']['parent_mid']),
-				intval($arr['item']['uid'])
-			);
-			if ($p) {
-				$recips = get_iconfig($p[0]['parent'], 'activitypub', 'recips');
-			}
-		}
+		$parent = q("SELECT * FROM item WHERE mid = '%s' AND uid = %d",
+			dbesc($arr['item']['parent_mid']),
+			intval($arr['item']['uid'])
+		);
+
+		// $recips is set for any imported content (not our own)
+		$recips = get_iconfig($parent[0]['id'], 'activitypub', 'recips');
+
 		if ($recips) {
-			$parent_i['to'] = $recips['to'] ?? [];
-			$parent_i['cc'] = $recips['cc'] ?? [];
+			$arr['encoded']['to'] = $recips['to'] ?? [];
+			$arr['encoded']['cc'] = $recips['cc'] ?? [];
+
+			if (!str_contains($parent[0]['tgt_type'], 'Collection')) {
+				// if the parent is not contained we allow to add mentions
+				$mentions = Activity::map_mentions($arr['item']);
+				if ($mentions) {
+					$arr['encoded']['to'] = array_values(array_unique(array_merge($arr['encoded']['to'], $mentions)));
+				}
+			}
+			return;
 		}
 	}
 
-
-	if (intval($arr['item']['item_private']) === 0) {
+	// toplevel or comment on a toplevel of our own
+	if ($public) {
 		$arr['encoded']['to'] = [ACTIVITY_PUBLIC_INBOX];
-		if (isset($parent_i['to']) && is_array($parent_i['to'])) {
-			$arr['encoded']['to'] = array_values(array_unique(array_merge($arr['encoded']['to'], $parent_i['to'])));
-		}
+
 		if ($arr['item']['item_origin']) {
 			$arr['encoded']['cc'] = [z_root() . '/followers/' . substr($arr['item']['author']['xchan_addr'], 0, strpos($arr['item']['author']['xchan_addr'], '@'))];
 		}
-		if (isset($parent_i['cc']) && is_array($parent_i['cc'])) {
-			$arr['encoded']['cc'] = array_values(array_unique(array_merge($arr['encoded']['cc'], $parent_i['cc'])));
-		}
 
-		$mentions = Activity::map_mentions($arr['item']);
-		if (count($mentions) > 0) {
-			if (!$arr['encoded']['to']) {
-				$arr['encoded']['to'] = $mentions;
-			} else {
-				$arr['encoded']['to'] = array_values(array_unique(array_merge($arr['encoded']['to'], $mentions)));
-			}
-		}
-
-	} else {
-		// private activity
-
-		if ($top_level) {
-			$arr['encoded']['to'] = Activity::map_acl($arr['item']);
-			if (isset($parent_i['to']) && is_array($parent_i['to'])) {
-				$arr['encoded']['to'] = array_values(array_unique(array_merge($arr['encoded']['to'], $parent_i['to'])));
-			}
-		} else {
-			$arr['encoded']['cc'] = Activity::map_acl($arr['item']);
-			if (isset($parent_i['cc']) && is_array($parent_i['cc'])) {
-				$arr['encoded']['cc'] = array_values(array_unique(array_merge($arr['encoded']['cc'], $parent_i['cc'])));
-			}
-
-/* todo: only add mentions if they are in the group
-			if (isset($arr['encoded']['tag']) && $arr['encoded']['tag']) {
-				$mentions_str = '';
-				foreach ($arr['encoded']['tag'] as $mention) {
-					if (isset($mention['type']) && in_array($mention['type'], ['Mention']) && isset($mention['href']) && $mention['href']) {
-						$mentions_str .= '\'' . dbesc($mention['href']) . '\',';
-					}
-				}
-
-				$mentions_str = trim($mentions_str, ',');
-				$h = null;
-
-				if ($mentions_str) {
-					$h = dbq("select hubloc_network, hubloc_hash, hubloc_id_url from hubloc where hubloc_id_url in ($mentions_str) or hubloc_hash in ($mentions_str)");
-				}
-
-				if ($h) {
-					foreach ($h as $hh) {
-						if ($hh['hubloc_network'] === 'activitypub') {
-							$addr = $hh['hubloc_hash'];
-						} else {
-							$addr = $hh['hubloc_id_url'];
-						}
-						if (!in_array($addr, $arr['encoded']['to'])) {
-							$arr['encoded']['to'][] = $addr;
-						}
-					}
-				}
-			}
-*/
-			$d = q("select hubloc.*  from hubloc left join item on hubloc_hash = owner_xchan where item.parent_mid = '%s' and item.uid = %d limit 1",
-				dbesc($arr['item']['parent_mid']),
-				intval($arr['item']['uid'])
-			);
-
-			if ($d && $d[0]['hubloc_hash'] !== $arr['item']['author_xchan']) {
-				if ($d[0]['hubloc_network'] === 'activitypub') {
-					$addr = $d[0]['hubloc_hash'];
-				} else {
-					$addr = $d[0]['hubloc_id_url'];
-				}
-				$arr['encoded']['cc'][] = $addr;
-			}
-		}
+		return;
 	}
 
-	// remove any duplicates from 'cc' that are present in 'to'
-	// as this may indicate that mentions changed the audience from secondary to primary
+	// private activity
+	$field = $top_level ? 'to' : 'cc';
+	$item = $top_level ? $arr['item'] : $parent[0];
 
-	$cc = [];
-	if ($arr['encoded']['cc'] && is_array($arr['encoded']['cc'])) {
-		foreach ($arr['encoded']['cc'] as $e) {
-			if (!is_array($arr['encoded']['to'])) {
-				$cc[] = $e;
-			} elseif (!in_array($e, $arr['encoded']['to'])) {
-				$cc[] = $e;
-			}
-		}
-	}
-	$arr['encoded']['cc'] = $cc;
-
-	return [
-		'to' => $arr['encoded']['to'],
-		'cc' => $arr['encoded']['cc']
-	];
-
+	$arr['encoded'][$field] = Activity::map_acl($item);
 }
