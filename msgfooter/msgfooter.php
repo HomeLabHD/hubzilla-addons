@@ -66,6 +66,7 @@ function msgfooter_post_hook(&$item) {
 	 *
 	 */
 
+
 	logger('msgfooter invoked');
 
 	if(! local_channel())   /* non-zero if this is a logged in user of this system */
@@ -79,6 +80,14 @@ function msgfooter_post_hook(&$item) {
 
 	if($item['parent'])   /* If the item has a parent, this is a comment or something else, not a status post. */
 		return;
+
+	if ($item['verb'] !== 'Create') {
+		return;
+	}
+
+	if (isset($item['edit'])) {
+		return;
+	}
 
 	/* Retrieve our config setting */
 
