@@ -324,7 +324,7 @@ function pubcrawl_channel_links(&$b) {
 	if ($c && Apps::addon_app_installed($c['channel_id'], 'pubcrawl')) {
 		$b['channel_links'][] = [
 			'rel'  => 'alternate',
-			'type' => 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"',
+			'type' => 'application/ld+json; profile=\"https://www.w3.org/ns/activitystreams\"',
 			'url'  => z_root() . '/channel/' . $c['channel_address']
 		];
 		$b['channel_links'][] = [
