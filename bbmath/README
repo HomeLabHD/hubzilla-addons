@@ -1,3 +1,14 @@
-Adds a new tag, [tex] that can be used in bbcode. Note that you still also have to use $...$ to get equations correct, i.e. [tex] doesn't eneter math-mode by default.
+Adds a new tag, [tex] that can be used in bbcode. 
+
+Note that you still also have to use `$...$` to get inline math correct, i.e. [tex] doesn't eneter math-mode by default.
+
+Use `\\[ \\]` for complete equations on a new line.
 
 Requires images and tmp directory in your Red root directory (e.g. /var/www/red). Must be writable by server (e.g chown -R www-data tmp images). Also requires latex and imagemagick to be installed.
+
+Edit your `/etc/ImageMagick-7/policy.xml` or similar file in your system to have:
+
+```
+  <policy domain="coder" rights="read/write" pattern="EPS" />
+  <policy domain="coder" rights="read/write" pattern="PDF" />
+````
