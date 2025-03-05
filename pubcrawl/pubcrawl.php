@@ -696,22 +696,20 @@ function pubcrawl_notifier_process(&$arr) {
 		$raw_msg = json_decode($raw_msg, true);
 	}
 
-
-
 	// Add anyone from the 'to' field which will include mentions
-
 	if (isset($raw_msg['to'])) {
 		foreach ($raw_msg['to'] as $to) {
 			if ($to === ACTIVITY_PUBLIC_INBOX) {
 				continue;
 			}
 
-			$arr['env_recips'][] = $to;
-			$arr['recipients'][] = '\'' . $to . '\'';
+			$hublocs = Activity::get_actor_hublocs($to);
+			$recip = Libzot::zot_record_preferred($hublocs);
+
+			$arr['env_recips'][] = $recip['hubloc_hash'];
+			$arr['recipients'][] = '\'' . $recip['hubloc_hash'] . '\'';
 		}
 	}
-
-
 
 	// deliver to local subscribers directly
 	$sys = get_sys_channel();

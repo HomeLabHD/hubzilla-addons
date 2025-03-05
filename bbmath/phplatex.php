@@ -50,7 +50,7 @@ $imgfmt="png"; #literally used in extensions, and in parameters to convert. Shou
 
   # Figure out TeX, either to get the right cache entry or to, you know, compile
   # Semi-common (ams) symbol packages are included.
-  $totex = "\\documentclass[14pt,landscape]{extarticle}\n".
+  $totex = "\\documentclass[14pt]{extarticle}\n".
            "\\usepackage{color}\n".
            "\\usepackage{amsmath}\n\\usepackage{amsfonts}\n\\usepackage{amssymb}\n".
            $extraprelude."\n".
