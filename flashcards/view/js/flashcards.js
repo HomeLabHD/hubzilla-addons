@@ -591,20 +591,20 @@ class Box {
     }
     getCardsArrayFiltered(filterArray) {
         var filtered = [];
-        if(this.search !== "") {
+        if (this.search !== "") {
             logger.log('Using convenient search with search string = ' + this.search + '...');
             this.searchResultColumns = [false, true, true, false, false, false, false, false, false, false, false];
             var parts = this.search.split(" ");
             var partsFound = new Array(parts.length);
             for (i = 0; i < this.content.cards.length; i++) {
-                for(var z = 0; z < parts.length; z++) {
+                for (var z = 0; z < parts.length; z++) {
                     partsFound[z] = false;
                 }
                 var card = this.content.cards[i];
                 var j;
-                for(j = 1; j < 5; j++) {
+                for (j = 1; j < 5; j++) {
                     var text = card.content[j];
-                    if(text.length < 1) {
+                    if (text.length < 1) {
                         continue;
                     }
                     // String search: make a search with AND for every word in a search string
@@ -621,12 +621,12 @@ class Box {
                     }
                 }
                 var notFound = false;
-                for(var z = 0; z < parts.length; z++) {
-                    if(! partsFound[z]) {
+                for (var z = 0; z < parts.length; z++) {
+                    if (!partsFound[z]) {
                         notFound = true;
                     }
                 }
-                if(! notFound) {
+                if (!notFound) {
                     filtered.push(card);
                 }
             }
@@ -994,7 +994,7 @@ function setShareButton() {
 }
 
 function loadStartPage() {
-    if(is_allowed_to_create_box || !box.isEmpty()) {
+    if (is_allowed_to_create_box || !box.isEmpty()) {
         fillInputsSettings();
         conductGUIelements('start');
     } else {
@@ -1026,13 +1026,11 @@ function conductGUIelements(action) {
         $("#flashcards_import").prop("disabled", false);
         $("#panel_cloud_boxes_1").hide();
         $("#panel_search_cloud_boxes").hide();
-        $('#panel_flashcards_permissions').collapse("hide");
         if (box.isEmpty()) {
             $("#button_flashcards_save_box").show();
             $("#button_flashcards_learn_play").hide();
             $("#button_share_box").hide();
             $('#panel_box_attributes').collapse("show");
-            showACLbutton();
             $("#panel_flashcards_cards_actions").hide();
             $("#panel_flashcards_cards").hide();
             $("#button_flashcards_new_card").css({'color': 'green'});
@@ -1055,8 +1053,6 @@ function conductGUIelements(action) {
         $("#panel_flashcards_card").hide();
         $("#panel_flashcards_cards_actions").hide();
         $("#panel_flashcards_cards").hide();
-        $('#panel_flashcards_permissions').collapse("hide");
-        showACLbutton();
     }
     if (action === 'save-box') {
         $("#panel_flashbox_settings").collapse("hide");
@@ -1142,13 +1138,12 @@ function conductGUIelements(action) {
         $("#button_flashcards_learn_play").hide();
         $("#button_share_box").hide();
         $('#panel_box_attributes').collapse("hide");
-        $('#panel_flashcards_permissions').collapse("hide");
         $("#panel_flashcards_cards_actions").hide();
         $("#panel_flashcards_cards").hide();
         $("#panel_flashcards_help").hide();
         $("#panel_box_navigation").show();
         $("#panel_cloud_boxes_1").show();
-        if(!is_local_channel) {
+        if (!is_local_channel) {
             $("#panel_cloud_boxes_header").hide();
         }
         $("#flashcards_edit_box").hide();
@@ -1169,7 +1164,6 @@ function conductGUIelements(action) {
         $("#button_flashcards_learn_play").hide();
         $("#button_share_box").hide();
         $('#panel_box_attributes').collapse("hide");
-        $('#panel_flashcards_permissions').collapse("hide");
         $("#panel_flashcards_cards_actions").hide();
         $("#panel_flashcards_cards").hide();
         $("#panel_cloud_boxes_1").hide();
@@ -1185,14 +1179,13 @@ function conductGUIelements(action) {
         $("#button_flashcards_save_box").hide();
         $("#button_flashcards_learn_play").hide();
         $('#panel_box_attributes').collapse("hide");
-        $('#panel_flashcards_permissions').collapse("hide");
         $("#panel_flashcards_cards_actions").hide();
         $("#panel_flashcards_cards").hide();
         $("#panel_flashcards_help").hide();
         $("#panel_cloud_boxes_1").hide();
         $("#panel_search_cloud_boxes").html('loading...');
         $("#panel_search_cloud_boxes").show();
-        if(is_allowed_to_create_box) {
+        if (is_allowed_to_create_box) {
             $("#button_flashcards_close").show();
         } else {
             $("#button_flashcards_close").hide();
@@ -1203,7 +1196,7 @@ function conductGUIelements(action) {
         $("#panel_search_cloud_boxes").hide();
     }
     fixTitleLength();
-    if(hasUploads === 1 && box.content.private_autosave) {
+    if (hasUploads === 1 && box.content.private_autosave) {
         uploadBox();
     }
 }
@@ -1214,6 +1207,9 @@ function fillInputsBox() {
         $("#flashcards_box_title").val('');
         $("#flashcards_box_description").val('');
         $('#flashcards-block-changes').prop('checked', false);
+        $(".lockview").each(function () {
+            $(this).css("display", "none");
+        });
     } else {
         logger.log('Displaying FlashCards titled: ' + box.content.title + '...');
         $("#flashcards_navbar_brand").html(box.content.title);
@@ -1265,7 +1261,7 @@ function createTable(reload) {
         logger.log('creating table head...');
         html += '<table class="table" id="flashcards_table">';
         html += getColumnElements();
-        if(box.content.private_search_convenient) {
+        if (box.content.private_search_convenient) {
             html += '<tr  style="display: none;">';
         } else {
             html += '<tr>';
@@ -1280,7 +1276,7 @@ function createTable(reload) {
             }
         }
         html += '</tr>';
-        if(box.content.private_show_card_sort) {
+        if (box.content.private_show_card_sort) {
             html += '<tr>';
             var i;
             for (i = 0; i < 11; i++) {
@@ -1376,36 +1372,36 @@ function getColumnElements() {
     return html;
 }
 function mark(text, search) {
-    if(search.trim() === "") {
+    if (search.trim() === "") {
         return text;
     }
     var searchParts = new Array();
     var parts = search.split(/\s+/);
     for (var el of parts) {
-        if(el.trim() !== "") {
+        if (el.trim() !== "") {
             searchParts.push(el);
         }
     }
     var remaining = text;
     var result = "";
     var next = true;
-    while(next) {
+    while (next) {
         var start = -1;
         var part;
         for (var el of searchParts) {
             var testStart = remaining.toLowerCase().indexOf(el.toLowerCase());
-            if(testStart < 0) {
+            if (testStart < 0) {
                 continue;
             }
-            if(start === -1) {
+            if (start === -1) {
                 start = testStart;
                 part = el;
-            } else if(start !== -1 && testStart < start) {
+            } else if (start !== -1 && testStart < start) {
                 start = testStart;
                 part = el;
             }
         }
-        if(start > -1) {
+        if (start > -1) {
             result += remaining.substring(0, start) + '<mark>' + remaining.substring(start, start + part.length) + '</mark>';
             remaining = remaining.substring(start + part.length, text.length);
         } else {
@@ -1430,8 +1426,8 @@ function setCardsStatus() {
         html += filteredCards.length + ' out of ' + l;
     }
     $('#span_flashcards_cards_actions_status').html(html);
-    if(l > 0) {
-        if(box.content.private_search_convenient) {
+    if (l > 0) {
+        if (box.content.private_search_convenient) {
             $('#button_flashcards_search_cards').show();
         } else {
             $('#button_flashcards_search_cards').hide();
@@ -1618,7 +1614,7 @@ function saveBoxSettings() {
         box.content.private_switch_learn_direction = $('#flashcards-switch-learn-directions').prop('checked');
         box.content.private_switch_learn_all = $('#flashcards-switch-learn-all').prop('checked');
         box.content.private_autosave = $('#flashcards-autosave').prop('checked');
-        box.content.private_show_card_sort= $('#flashcards-card-sort').prop('checked');
+        box.content.private_show_card_sort = $('#flashcards-card-sort').prop('checked');
         box.content.private_sort_default = $('#flashcards-default-sort').prop('checked');
         box.content.private_search_convenient = $('#flashcards-convenient-search').prop('checked');
         box.content.cardsDecks = $('#flashcards-learn-system-decks').val();
@@ -1642,7 +1638,7 @@ $(document).on("input", "#flashcards_box_description", function () {
 });
 
 $(document).on("click", "#button_flashcards_learn_play", function () {
-    if(box.content.private_sort_default) {
+    if (box.content.private_sort_default) {
         var tmpIndex = box.content.private_sortColumn;
         var tempRevers = box.content.private_sortReverse;
         box.sortBy(0, false);
@@ -1778,7 +1774,7 @@ $(document).on("click", "#button_delete_box", function () {
         }
         return false;
     },
-        'json');
+            'json');
 });
 
 function animate_on() {
@@ -1841,7 +1837,7 @@ function uploadBox() {
             logger.log("Error uploading box: " + data['errormsg']);
         }
     },
-        'json');
+            'json');
 }
 
 function redirectToAppRoot() {
@@ -1897,7 +1893,7 @@ function downLoadBoxForURL() {
             loadCloudBoxes(); // TODO: Show list of boxes of "New box"
         }
     },
-        'json');
+            'json');
     return true;
 }
 
@@ -2011,7 +2007,7 @@ $(document).on("input", "#input_flashcards_search_cards", function () {
         box.search = searchStr;
         showCards(false);
     } else {
-        if(box.search.length > 0 && l === 0) {
+        if (box.search.length > 0 && l === 0) {
             // User deleted the search string
             box.search = "";
             showCards(true);
@@ -2039,7 +2035,7 @@ $(document).on("click", ".flashcards-table-row", function () {
 
 $(document).on("click", "#flashcards_navbar_brand", function () {
     logger.log('Clicked on title in navbar');
-    if(blockEditBox) {
+    if (blockEditBox) {
         return;
     }
     if ($('#button_flashcards_save_box').is(':visible')) {
@@ -2050,7 +2046,7 @@ $(document).on("click", "#flashcards_navbar_brand", function () {
 });
 $(document).on("click", "#flashcards_edit_box", function () {
     logger.log('Clicked on flashcards_edit_box');
-    if(blockEditBox) {
+    if (blockEditBox) {
         return;
     }
     conductGUIelements('edit-box');
@@ -2103,7 +2099,7 @@ function loadCloudBoxes() {
             } else {
                 logger.log("No boxes received");
             }
-            if(is_allowed_to_create_box) {
+            if (is_allowed_to_create_box) {
                 box = new Box();
                 box.store();
                 loadStartPage();
@@ -2120,7 +2116,7 @@ function loadCloudBoxes() {
             $("#panel_flashcards_cards").show();
         }
     },
-        'json');
+            'json');
 }
 
 function createBoxList() {
@@ -2130,10 +2126,10 @@ function createBoxList() {
 
 function createBoxListHeader() {
     var html = '';
-    html += '<div id="flashcards_boxes_list_header" class="clearfix form-group checkbox">';
-        html += '<label for="id_XY">All Flashcards on this server or just your own?</label>';
-        html += '<div class="float-right"><input type="checkbox" name="flashcards_own_boxes" id="id_flashcards_own_boxes" value="1" checked="checked" /><label class="switchlabel" for="id_flashcards_own_boxes"> <span class="onoffswitch-inner" data-on="All" data-off="Own"></span><span class="onoffswitch-switch"></span></label></div>';
-        html += '<small class="form-text text-muted">To search flashcards on other servers use menu -> "Search".</small>';
+    html += '<div id="flashcards_boxes_list_header" class="clearfix onoffswitch checkbox mb-3">';
+    html += '<label for="flashcards_own_boxes">All Flashcards on this server or just your own?</label>';
+    html += '<div class="float-end"><input type="checkbox" name="flashcards_own_boxes" id="id_flashcards_own_boxes" value="1" checked="checked" /><label class="switchlabel" for="id_flashcards_own_boxes"> <span class="onoffswitch-inner" data-on="All" data-off="Own"></span><span class="onoffswitch-switch"></span></label></div>';
+    html += '<small class="form-text text-muted"> To search flashcards on other servers use menu -> "Search".</small>';
     html += '</div>';
     $("#panel_cloud_boxes_header").html(html);
 }
@@ -2147,9 +2143,9 @@ function createBoxListContent(showAllBoxes) {
             logger.log('Received a box that is NULL (seems to be a bug).');
             continue;  // This happened in dev (alpha)
         }
-            var currentOwner = cloudBox["current_owner"];
-        if(!showAllBoxes) {
-            if(flashcards_editor !== currentOwner) {
+        var currentOwner = cloudBox["current_owner"];
+        if (!showAllBoxes) {
+            if (flashcards_editor !== currentOwner) {
                 continue;
             }
         }
@@ -2168,9 +2164,9 @@ function createBoxListContent(showAllBoxes) {
         html += '   ' + description + '';
         html += '   <br><b>Owner: </b>' + cloudBox["current_owner"] + '';
         html += '   <br><b>Size: </b>' + cloudBox["size"] + '';
-        if(flashcards_editor === '') {
+        if (flashcards_editor === '') {
             html += '   <br>Unknow observer. Please login to view this box';
-        }else if (cloudBox["boxID"] !== box.content.boxID) {
+        } else if (cloudBox["boxID"] !== box.content.boxID) {
             if (flashcards_editor === currentOwner) {
                 html += '       &nbsp;<b>Delete box: </b>&nbsp;';
             } else {
@@ -2213,13 +2209,13 @@ function searchCloudBoxes() {
             $("#panel_search_cloud_boxes").html(data['errormsg']);
         }
         $("#button_share_box").hide();
-        if(is_allowed_to_create_box) {
+        if (is_allowed_to_create_box) {
             $("#button_flashcards_close").show();
         } else {
             $("#button_flashcards_close").hide();
         }
     },
-        'json');
+            'json');
 }
 
 $(document).on("click", "#flashcards_search_boxes", function () {
@@ -2241,7 +2237,7 @@ function createListFoundBoxes(boxes) {
         }
         html += '<div class="row">';
         html += '   <div class="col-sm-12">';
-        html += '       <br><h3><a href="' + cloudBox + '" name="load_box">' + cloudBox  + '</a></h3>';
+        html += '       <br><h3><a href="' + cloudBox + '" name="load_box">' + cloudBox + '</a></h3>';
         html += '   </div>';
         html += '</div>';
     }
@@ -2265,62 +2261,25 @@ $(window).on('resize', function () {
 function fixTitleLength() {
     if ($("#panel_box_navigation").css('display') !== 'none') {
         logger.log('Title is visible when rezising');
-        if ($("#button_share_box").css('display') !== 'none') {
-            var s = $("#flashcards_navbar_brand").html();;
-            $("#flashcards_navbar_brand").html(s);
-            var i = s.length - 1;
-            for (i; i > 0; i--) {
-                var posMenu = $("#panel_box_navigation").position();
-                var topMenu = posMenu.top;
-                var posButton = $("#button_share_box").position();
-                var topButton = posButton.top;
-                if (topMenu < topButton) {
-                    s = s.substr(0, i);
-                    $("#flashcards_navbar_brand").html(s);
-                } else {
-                    break;
-                }
-            }
-        }
-    }
-}
-
-$(document).on("click", "#flashcards_perms", function () {
-    var url = postUrl + '/acl';
-    logger.log('Sending request to get ACL for box ' + box.content.boxID + ' ... (' + url + ")");
-    $.post(url, {boxID: box.content.boxID}, function (data) {
-        if (data['status']) {
-            logger.log("Donwnload of boxes successfull. Status: " + data['status']);
-            var acl_modal = data['acl_modal'];
-            var permissions_panel = data['permissions_panel'];
-            if (acl_modal && permissions_panel) {
+        var s = $("#flashcards_navbar_brand").html();
+        ;
+        $("#flashcards_navbar_brand").html(s);
+        var i = s.length - 1;
+        for (i; i > 0; i--) {
+            let hOuter = $("#panel_box_navigation").height();
+            let hTextElemet = $("#button_flashcards_learn_play").height();
+            if (hTextElemet * 2.5 < hOuter) {
+                s = s.substr(0, i);
+                $("#flashcards_navbar_brand").html(s);
             } else {
-                logger.log("Response not complete. Either empty ACL modal or permissions panel.");
-                return;
+                break;
             }
-            $('#acl_modal_flashcards_cards').html(acl_modal);
-            $('#panel_flashcards_permissions').html(permissions_panel);
-            $('#panel_flashcards_permissions').collapse("show");
-            $("#button_flashcards_save_box").hide();
-            $("#panel_flashbox_settings").collapse("hide");
-            $('#panel_box_attributes').collapse("hide");
-            $("#button_flashcards_close").show();
-        } else {
-            logger.log("Failed to load ACL. Error message is: " + data['errormsg']);
         }
-    });
-})
-
-function showACLbutton() {
-    if (is_allowed_to_create_box == 1 && box.content.boxID !== "") {
-        $("#flashcards_perms").show();
-    } else {
-        $("#flashcards_perms").hide();
     }
 }
 
 $(document).on("click", "#button_flashcards_search_cards", function () {
-    if($("#input_flashcards_search_cards").is(":visible")) {
+    if ($("#input_flashcards_search_cards").is(":visible")) {
         $('#input_flashcards_search_cards').hide();
         box.search = "";
         $('#input_flashcards_search_cards').val("");
@@ -2571,7 +2530,7 @@ function test_box_validate() {
     testBox.content.private_visibleColumns = ["", 0, 1, "hallo", "false", false, false, false, false, false, false];
     testBox.validate();
     if (testBox.content.private_visibleColumns[0] !== false || testBox.content.private_visibleColumns[1] !== true
-        || testBox.content.private_visibleColumns[2] !== true || testBox.content.private_visibleColumns[3] !== false) {
+            || testBox.content.private_visibleColumns[2] !== true || testBox.content.private_visibleColumns[3] !== false) {
         return false;
     }
     return true;
@@ -3231,12 +3190,12 @@ function test_box_merge() {
         return false;
     }
     if (localTestCard_1.getContent()[1] !== "cc 11"
-        || localTestCard_1.getContent()[2] !== "aa 11" || localTestCard_1.getContent()[3] !== "bb 11"
-        || localTestCard_1.getContent()[4] !== "Dd 11") {
+            || localTestCard_1.getContent()[2] !== "aa 11" || localTestCard_1.getContent()[3] !== "bb 11"
+            || localTestCard_1.getContent()[4] !== "Dd 11") {
         return false;
     }
     if (localTestCard_1.getContent()[6] !== 4 || localTestCard_1.getContent()[7] !== 2
-        || localTestCard_1.getContent()[8] !== 6) {
+            || localTestCard_1.getContent()[8] !== 6) {
         return false;
     }
     // local card has changed progress
@@ -3253,12 +3212,12 @@ function test_box_merge() {
         return false; // marker "changed" should not be overwritten (
     }
     if (localTestCard_1.getContent()[1] !== "cc cc"
-        || localTestCard_1.getContent()[2] !== "aa aa" || localTestCard_1.getContent()[3] !== "bb bb"
-        || localTestCard_1.getContent()[4] !== "Dd cc") {
+            || localTestCard_1.getContent()[2] !== "aa aa" || localTestCard_1.getContent()[3] !== "bb bb"
+            || localTestCard_1.getContent()[4] !== "Dd cc") {
         return false;
     }
     if (localTestCard_1.getContent()[6] !== 5 || localTestCard_1.getContent()[7] !== 1
-        || localTestCard_1.getContent()[8] !== 33) {
+            || localTestCard_1.getContent()[8] !== 33) {
         return false;
     }
     // This is not the own box (!= boxID)
@@ -3273,12 +3232,12 @@ function test_box_merge() {
         return false; // marker "changed" should not be overwritten (
     }
     if (localTestCard_1.getContent()[1] !== "cc xx"
-        || localTestCard_1.getContent()[2] !== "aa xx" || localTestCard_1.getContent()[3] !== "bb xx"
-        || localTestCard_1.getContent()[4] !== "Dd xx") {
+            || localTestCard_1.getContent()[2] !== "aa xx" || localTestCard_1.getContent()[3] !== "bb xx"
+            || localTestCard_1.getContent()[4] !== "Dd xx") {
         return false;
     }
     if (localTestCard_1.getContent()[6] !== 5 || localTestCard_1.getContent()[7] !== 1
-        || localTestCard_1.getContent()[8] !== 33) {
+            || localTestCard_1.getContent()[8] !== 33) {
         return false;
     }
     // Box not owned but has new card. Do not get the learn progress
@@ -3296,12 +3255,12 @@ function test_box_merge() {
         return false; // nothing changed because imported
     }
     if (localTestCard_2.getContent()[1] !== "11"
-        || localTestCard_2.getContent()[2] !== "22" || localTestCard_2.getContent()[3] !== "33"
-        || localTestCard_2.getContent()[4] !== "44") {
+            || localTestCard_2.getContent()[2] !== "22" || localTestCard_2.getContent()[3] !== "33"
+            || localTestCard_2.getContent()[4] !== "44") {
         return false;
     }
     if (localTestCard_2.getContent()[6] !== 0 || localTestCard_2.getContent()[7] !== 0
-        || localTestCard_2.getContent()[8] !== 0 || localTestCard_2.getContent()[9] !== 0) {
+            || localTestCard_2.getContent()[8] !== 0 || localTestCard_2.getContent()[9] !== 0) {
         return false;
     }
     return true;
