@@ -55,7 +55,7 @@
 				</div>
 				{{/if}}
 			</div>
-			<div id="preview-pane" class="tab-pane active">
+			<div id="preview-pane" class="tab-pane mt-4 active">
 				<div id="wiki-preview">
 					{{$renderedContent}}
 				</div>

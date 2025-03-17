@@ -1,7 +1,7 @@
-version: 4
+version: 5
 url: $baseurl/diaspora
 requires: local_channel
 name: Diaspora Protocol
 photo: $baseurl/addon/diaspora/diaspora.png
-categories: Networking
+categories: Federation
 desc: This app enables your channel to communicate with the Diaspora network.

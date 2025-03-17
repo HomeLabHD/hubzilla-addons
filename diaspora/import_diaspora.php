@@ -3,6 +3,7 @@
 use Zotlabs\Lib\Apps;
 use Zotlabs\Lib\Connect;
 use Zotlabs\Lib\AccessList;
+use Zotlabs\Daemon\Master;
 
 require_once('include/markdown.php');
 require_once('include/photo/photo_driver.php');
@@ -10,19 +11,30 @@ require_once('include/photo/photo_driver.php');
 function import_diaspora_account($data) {
 
 	$account = App::get_account();
-	if(! $account)
-		return false;
 
-	$address = escape_tags($data['user']['username']);
-	if(! $address) {
+	if (!$account) {
+		notice( t('No account to import to.') . EOL);
+		return false;
+	}
+
+	if ($data['version'] !== '2.0') {
+		notice( t('Incompatible data version - aborting') . EOL);
+		return false;
+	}
+
+
+	if (empty($data['user']['username'])) {
 		notice( t('No username found in import file.') . EOL);
 		return false;
 	}
 
+	$address = escape_tags($data['user']['username']);
+
 	$r = q("select * from channel where channel_address = '%s' limit 1",
 		dbesc($address)
 	);
-	if($r) {
+
+	if ($r) {
 		// try at most ten times to generate a unique address.
 		$x = 0;
 		$found_unique = false;
@@ -38,7 +50,8 @@ function import_diaspora_account($data) {
 			}
 			$x ++;
 		} while ($x < 10);
-		if(! $found_unique) {
+
+		if (!$found_unique) {
 			logger('import_diaspora: duplicate channel address. randomisation failed.');
 			notice( t('Unable to create a unique channel address. Import failed.') . EOL);
 			return;
@@ -51,49 +64,58 @@ function import_diaspora_account($data) {
 		'name' => escape_tags($pr['first_name'] . (($pr['last_name']) ? ' ' . $pr['last_name'] : '')),
 		'nickname' => $address,
 		'account_id' => $account['account_id'],
-		'permissions_role' => 'social'
+		'permissions_role' => 'public'
 	));
 
-	if(! $c['success'])
+	if (!$c['success']) {
 		return;
+	}
 
 	$channel_id = $c['channel']['channel_id'];
 
-	if(! Apps::addon_app_installed($channel_id, 'diaspora')) {
+	if (!Apps::addon_app_installed($channel_id, 'diaspora')) {
 		Apps::app_install($channel_id, 'Diaspora Protocol');
+	}
+
+	if (!Apps::system_app_installed($channel_id, 'Privacy Groups')) {
+		Apps::app_install($channel_id, 'Privacy Groups');
 	}
 
 	// todo - add auto follow settings, (and strip exif in hubzilla)
 
-	$location = escape_tags($pr['location']);
-	if(! $location)
-		$location = '';
+	if (!empty($pr['location'])) {
+		$location = escape_tags($pr['location']);
 
-
-	q("update channel set channel_location = '%s' where channel_id = %d",
-		dbesc($location),
-		intval($channel_id)
-	);
-
-	if($pr['nsfw']) {
-		q("update channel set channel_pageflags = (channel_pageflags | %d) where channel_id = %d",
-				intval(PAGE_ADULT),
-				intval($channel_id)
+		q("update channel set channel_location = '%s' where channel_id = %d",
+			dbesc($location),
+			intval($channel_id)
 		);
 	}
 
-	if($pr['image_url']) {
-		$type = import_channel_photo_from_url($pr['image_url']);
-
+	if (!empty($pr['nsfw'])) {
+		q("update channel set channel_pageflags = (channel_pageflags | %d) where channel_id = %d",
+			intval(PAGE_ADULT),
+			intval($channel_id)
+		);
 	}
 
-	$gender = escape_tags($pr['gender']);
+	if (!empty($pr['image_url'])) {
+		import_channel_photo_from_url($pr['image_url'], $account['account_id'], $channel_id);
+	}
+
+	$gender = '';
+	if (!empty($pr['gender'])) {
+		$gender = escape_tags($pr['gender']);
+	}
+
 	$about = markdown_to_bb($pr['bio'], false, [ 'diaspora' => true ]);
+
 	$publish = intval($pr['searchable']);
-	if($pr['birthday'])
-		$dob = datetime_convert('UTC','UTC',$pr['birthday'],'Y-m-d');
-	else
-		$dob = '0000-00-00';
+
+	$dob = NULL_DATE;
+	if (!empty($pr['birthday'])) {
+		$dob = datetime_convert('UTC', 'UTC', $pr['birthday'], 'Y-m-d');
+	}
 
 	// we're relying on the fact that this channel was just created and will only
 	// have the default profile currently
@@ -108,11 +130,14 @@ function import_diaspora_account($data) {
 
 	if($data['user']['contact_groups']) {
 		foreach($data['user']['contact_groups'] as $aspect) {
-			AccessList::add($channel_id,escape_tags($aspect['name']),intval($aspect['contacts_visible']));
+			AccessList::add($channel_id, escape_tags($aspect['name']), intval($aspect['contacts_visible']));
 		}
 	}
 
 	// now add connections and send friend requests
+
+	// There is a possibility that the import will timeout if there are many contacts to import.
+	// Move to backgound job?
 
 	if($data['user']['contacts']) {
 		foreach($data['user']['contacts'] as $contact) {
@@ -120,27 +145,32 @@ function import_diaspora_account($data) {
 			if($result['success']) {
 				if($contact['contact_groups_membership']) {
 					foreach($contact['contact_groups_membership'] as $aspect) {
-						AccessList::member_add($channel_id,$aspect['name'],$result['abook']['xchan_hash']);
+						AccessList::member_add($channel_id, $aspect, $result['abook']['xchan_hash']);
 					}
 				}
 			}
 		}
 	}
 
+	// TODO: add items:
 
-	// Then add items - note this can't be done until Diaspora adds guids to exported
-	// items and comments
+	// There is a possibility that the import will timeout if there are many posts to import.
+	// Move to backgound job?
 
+	// Another challenge is to map the acl for non pulic items.
+	// The exported items only contain the subscribed contacts info (webbies) but nothing about the privacy group.
+	// Should we map them to ourself only?
+
+	// Also how do we deal with photos? They are provided in a separate export file.
 
 
 	// This will indirectly perform a refresh_all *and* update the directory
+	Master::Summon(['Directory', $channel_id]);
 
-	proc_run('php', 'include/directory.php', $channel_id);
-
-	notice( t('Import completed.') . EOL);
+	notice(t('Import completed.') . EOL);
 
 	change_channel($channel_id);
 
-	goaway(z_root() . '/network' );
+	goaway(z_root() . '/hq');
 
 }
