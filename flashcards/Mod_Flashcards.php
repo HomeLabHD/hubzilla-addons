@@ -8,45 +8,44 @@ use Zotlabs\Web\Controller;
 use Zotlabs\Storage\Directory;
 use Zotlabs\Storage\File;
 use Zotlabs\Storage\BasicAuth;
+use Zotlabs\Access\AccessList;
 
 class Flashcards extends Controller {
 
-    private $version = "25.03.15";
+    private $version = "2.09";
+
     private $boxesDir;
     private $is_owner;
     private $owner;
     private $observer;
     private $canWrite;
     private $auth;
-    private $authObserver;
-    private $lengthBoxId = 15;
+	private $authObserver;
 
     function init() {
 
         $this->observer = App::get_observer();
 
-        logger('This is the observer...', LOGGER_DEBUG);
-        logger(print_r($this->observer, true), LOGGER_DEBUG);
+		logger('This is the observer...', LOGGER_DEBUG);
+		logger(print_r($this->observer, true), LOGGER_DEBUG);
 
         $this->checkOwner();
-
-        $this->getAddonDir();
 
 //        $this->flashcards_merge_test();
     }
 
     function get() {
 
-        if (!$this->owner) {
-            if (local_channel()) { // if no channel name was provided, assume the current logged in channel
-                $channel = App::get_channel();
-                logger('No nick but local channel - channel = ' . $channel);
-                if ($channel && $channel['channel_address']) {
-                    $nick = $channel['channel_address'];
-                    goaway(z_root() . '/flashcards/' . $nick);
-                }
-            }
-        }
+		if(!$this->owner) {
+			if (local_channel()) { // if no channel name was provided, assume the current logged in channel
+				$channel = App::get_channel();
+				logger('No nick but local channel - channel = ' . $channel);
+				if ($channel && $channel['channel_address']) {
+					$nick = $channel['channel_address'];
+					goaway(z_root() . '/flashcards/' . $nick);
+				}
+			}
+		}
 
         if (!$this->owner) {
             logger('No nick and no local channel');
@@ -54,35 +53,33 @@ class Flashcards extends Controller {
             goaway(z_root());
         }
 
-        if (!Apps::addon_app_installed($this->owner['channel_id'], 'flashcards')) {
-            //Do not display any associated widgets at this point
-            App::$pdl = '';
-            $papp = Apps::get_papp('Flashcards');
-            return Apps::app_render($papp, 'module');
-        }
+		if(! Apps::addon_app_installed($this->owner['channel_id'], 'flashcards')) {
+			//Do not display any associated widgets at this point
+			App::$pdl = '';
+			$papp = Apps::get_papp('Flashcards');
+			return Apps::app_render($papp, 'module');
+		}
 
         $status = $this->permChecks();
 
-        if (!$status['status']) {
+        if(! $status['status']) {
             logger('observer prohibited');
             notice($status['errormsg'] . EOL);
             goaway(z_root());
         }
 
-        $attach_id = $this->getAttachIdFomURL();
 
         head_add_css('/addon/flashcards/view/css/flashcards.css');
 
-        $o = replace_macros(get_markup_template('flashcards.tpl', 'addon/flashcards'), array(
-            '$post_url' => 'flashcards/' . $this->owner['channel_address'],
-            '$nick' => $this->owner['channel_address'],
-            '$is_owner' => $this->is_owner,
-            '$flashcards_editor' => $this->observer['xchan_addr'],
-            '$flashcards_owner' => $this->owner['xchan_addr'],
-            '$is_local_channel' => ((local_channel() && $this->observer) ? true : false),
-            '$is_allowed_to_create_box' => ($this->isObserverAllowedToCreateFlashcards() ? true : false),
-            '$attach_id' => $attach_id,
-            '$flashcards_version' => $this->version
+        $o = replace_macros(get_markup_template('flashcards.tpl','addon/flashcards'),array(
+                '$post_url' => 'flashcards/' . $this->owner['channel_address'],
+                '$nick' => $this->owner['channel_address'],
+                '$is_owner' => $this->is_owner,
+                '$flashcards_editor' => $this->observer['xchan_addr'],
+                '$flashcards_owner' => $this->owner['xchan_addr'],
+                '$is_local_channel' => ((local_channel() && $this->observer) ? true : false),
+                '$is_allowed_to_create_box' => ($this->isObserverAllowedToCreateFlashcards() ? true : false),
+                '$flashcards_version' => $this->version
         ));
 
         return $o;
@@ -90,30 +87,30 @@ class Flashcards extends Controller {
 
     function post() {
 
-        if (argc() > 1) {
-            if (strcasecmp(argv(1), 'search') === 0) {
-                // API: /flashcards/search
-                // get all boxes of flashcards the observer is allowed to see
-                logger('Another instance/server requests all boxes of flashcards', LOGGER_DEBUG);
-                if (!$this->observer) {
-                    $msg = "Failed to sent all boxes of flashcards. Reason: No observer found.";
-                    logger($msg, LOGGER_DEBUG);
-                    json_return_and_die(array('status' => false, 'errormsg' => $msg . EOL));
-                } else {
-                    $msg = "Failed to sent all boxes of flashcards. Reason: Not implemented.";
-                    logger($msg, LOGGER_DEBUG);
-                    json_return_and_die(array('status' => false, 'errormsg' => $msg . EOL));
-                }
-            }
-        }
+		if(argc() > 1) {
+			if(strcasecmp ( argv(1) , 'search') === 0) {
+				// API: /flashcards/search
+				// get all boxes of flashcards the observer is allowed to see
+				logger('Another instance/server requests all boxes of flashcards', LOGGER_DEBUG);
+				if(!$this->observer) {
+					$msg = "Failed to sent all boxes of flashcards. Reason: No observer found.";
+					logger($msg, LOGGER_DEBUG);
+					json_return_and_die(array('status' => false, 'errormsg' => $msg . EOL));
+				} else {
+					$msg = "Failed to sent all boxes of flashcards. Reason: Not implemented.";
+					logger($msg, LOGGER_DEBUG);
+					json_return_and_die(array('status' => false, 'errormsg' => $msg . EOL));
+				}
+			}
+		}
 
-        if (!Apps::addon_app_installed($this->owner['channel_id'], 'flashcards')) {
-            return;
-        }
+		if(! Apps::addon_app_installed($this->owner['channel_id'], 'flashcards')) {
+			return;
+		}
 
         $status = $this->permChecks();
 
-        if (!$status['status']) {
+        if(! $status['status']) {
             notice($status['errormsg'] . EOL);
             json_return_and_die(array('status' => false, 'errormsg' => $status['errormsg'] . EOL));
         }
@@ -129,6 +126,8 @@ class Flashcards extends Controller {
         // - deny the permissions for the observer
         // - delete the flashcards of the observer
 
+        $this->getAddonDir();
+
         if (argc() > 2) {
             switch (argv(2)) {
                 case 'upload':
@@ -143,6 +142,14 @@ class Flashcards extends Controller {
                     // API: /flashcards/nick/list
                     // List all boxes owned by the channel
                     $this->listBoxes();
+                case 'permissions':
+                    // API: /flashcards/nick/permissions/
+                    // List all boxes owned by the channel
+                    $this->setPermissions();
+                case 'acl':
+                    // API: /flashcards/nick/acl/
+                    // List all boxes owned by the channel
+                    $this->getACL();
                 case 'delete':
                     // API: /flashcards/nick/delete
                     // Deletes a box specified by param "box_id"
@@ -155,32 +162,33 @@ class Flashcards extends Controller {
                     break;
             }
         }
+
     }
 
     private function permChecks() {
 
         $owner_uid = $this->owner['channel_id'];
 
-        //logger('DELETE ME: This is the owner...', LOGGER_DEBUG);
-        //logger(print_r($this->owner, true), LOGGER_DEBUG);
+		//logger('DELETE ME: This is the owner...', LOGGER_DEBUG);
+		//logger(print_r($this->owner, true), LOGGER_DEBUG);
 
         if (!$owner_uid) {  // This IF should be checked before and could be deleted
-            logger('Stop: No owner profil', LOGGER_DEBUG);
+			logger('Stop: No owner profil', LOGGER_DEBUG);
             return array('status' => false, 'errormsg' => 'No owner profil');
         }
 
         if (observer_prohibited(true)) {
-            logger('Stop: observer prohibited', LOGGER_DEBUG);
+			logger('Stop: observer prohibited', LOGGER_DEBUG);
             return array('status' => false, 'errormsg' => 'observer prohibited');
         }
 
         if (!perm_is_allowed($owner_uid, get_observer_hash(), 'view_storage')) {
-            logger('Stop: Permission view storage denied', LOGGER_DEBUG);
+			logger('Stop: Permission view storage denied', LOGGER_DEBUG);
             return array('status' => false, 'errormsg' => 'Permission view storage denied');
         }
 
         if (perm_is_allowed($owner_uid, get_observer_hash(), 'write_storage')) {
-            logger('write_storage is allowed', LOGGER_DEBUG);
+			logger('write_storage is allowed', LOGGER_DEBUG);
             $this->canWrite = true;
         }
 
@@ -188,7 +196,7 @@ class Flashcards extends Controller {
         logger('observer = ' . $this->observer['xchan_addr'] . ', owner = ' . $this->owner['xchan_addr'], LOGGER_DEBUG);
 
         $this->is_owner = ($this->observer['xchan_hash'] && $this->observer['xchan_hash'] == $this->owner['xchan_hash']);
-        if ($this->is_owner) {
+        if($this->is_owner) {
             logger('observer = owner', LOGGER_DEBUG);
         } else {
             logger('observer != owner', LOGGER_DEBUG);
@@ -206,67 +214,139 @@ class Flashcards extends Controller {
         logger('nick = ' . $nick, LOGGER_DEBUG);
 
         $this->owner = channelx_by_nick($nick);
-    }
+	}
 
-    private function getAttachIdFomURL() {
-        logger('+++ read attach_id from url ... +++', LOGGER_DEBUG);
-        if (argc() < 2) {
-            logger('no box id found in url ', LOGGER_DEBUG);
-            return 0;
+    private function getACL() {
+
+        logger('+++ get permissions (ACL) of box ... +++', LOGGER_DEBUG);
+
+        // API: /flashcards/nick/fileid/permissions
+        if(! $this->isObserverAllowedToCreateFlashcards()) {
+            notice(t('Not allowed.') . EOL);
+            json_return_and_die(array('status' => false, 'errormsg' => 'No permission to change ACLs ' . $box_id));
+            return;
         }
-        $box_id = argv(2);
-        if (strlen($box_id) != $this->lengthBoxId) {
-            logger('no valid box id found in url, length of "' . $box_id . '" is not ' . $this->lengthBoxId, LOGGER_DEBUG);
-            return 0;
+        require_once('include/acl_selectors.php');
+        $box_id = isset($_POST['boxID']) ? $_POST['boxID'] : '';
+        if(strlen($box_id) < 1) {
+            json_return_and_die(array('status' => false, 'errormsg' => 'Missing post param boxID in request'));
+            return;
         }
-        if (!$this->isObserverAllowedToCreateFlashcards()) {
-            logger('No permission to change ACLs for box id ' . $box_id, LOGGER_DEBUG);
-            return 0;
-        }
+
+        logger('user requested ACL for box id = ' . $box_id, LOGGER_DEBUG);
+
         $filename = $box_id . '.json';
         $r = q("select id, uid, folder, filename, revision, flags, is_dir, os_storage, hash, allow_cid, allow_gid, deny_cid, deny_gid from attach where filename = '%s' and uid = %d limit 1",
                 dbesc($filename),
                 intval($this->owner['channel_id'])
         );
+
         $f = $r[0];
-        if (!$f) {
-            logger('no file found: ' . $filename, LOGGER_DEBUG);
-            return 0;
+        if(!$f) {
+            json_return_and_die(array('status' => false, 'errormsg' => 'box ID ' . $file . ' not found.'));
+            return;
         }
-        logger('found attach_id "' . $f["id"] . '" for ' . $filename, LOGGER_DEBUG);
-        return $f["id"];
+        $channel = App::get_channel();
+
+        $aclselect_e = populate_acl($f, false, \Zotlabs\Lib\PermissionDescription::fromGlobalPermission('view_storage'));
+
+        $lockstate = (($f['allow_cid'] || $f['allow_gid'] || $f['deny_cid'] || $f['deny_gid']) ? 'lock' : 'unlock');
+
+        //$o = replace_macros(get_markup_template('attach_edit.tpl'), array(
+        $o = replace_macros(get_markup_template('flashcards_attach_edit.tpl','addon/flashcards'),array(
+                '$boxid' => $box_id,
+                '$file' => $f,
+                '$uid' => $channel['channel_id'],
+                '$channelnick' => $channel['channel_address'],
+                '$permissions' => t('Permissions'),
+                '$aclselect' => $aclselect_e,
+                '$allow_cid' => acl2json($f['allow_cid']),
+                '$allow_gid' => acl2json($f['allow_gid']),
+                '$deny_cid' => acl2json($f['deny_cid']),
+                '$deny_gid' => acl2json($f['deny_gid']),
+                '$lockstate' => $lockstate,
+                '$permset' => t('Set/edit permissions'),
+                '$submit' => t('Submit'),
+        ));
+
+
+        logger('sending post response: ACL for box id = ' . $box_id . ' ...');
+
+        json_return_and_die(array('status' => true, 'acl_modal' => $aclselect_e, 'permissions_panel' => $o));
+    }
+
+    private function setPermissions() {
+
+        logger('+++ set permissions of box ... +++', LOGGER_DEBUG);
+
+        $channel_id = ((x($_POST, 'uid')) ? intval($_POST['uid']) : 0);
+
+        $recurse = ((x($_POST, 'recurse')) ? intval($_POST['recurse']) : 0); # not sent
+        $resource = ((x($_POST, 'filehash')) ? notags($_POST['filehash']) : '');
+        $notify = ((x($_POST, 'notify_edit')) ? intval($_POST['notify_edit']) : 0); # not sent
+
+        $block_changes = ((x($_POST, 'flashcards-block-changes')) ? notags($_POST['flashcards-block-changes']) : '');
+
+        if(! $resource) {
+            notice(t('Item not found.') . EOL);
+            json_return_and_die(array('status' => false, 'errormsg' => t('Item not found.') . EOL));
+            return;
+        }
+
+        $channel = App::get_channel();
+
+        $acl = new AccessList($channel); // Hubzilla: $acl = new AccessList($channel);
+        $acl->set_from_array($_POST);
+        $x = $acl->get();
+
+        $url = get_cloud_url($channel['channel_id'], $channel['channel_address'], $resource);
+
+        //get the object before permissions change so we can catch eventual former allowed members
+        $object = get_file_activity_object($channel_id, $resource, $url);
+
+        attach_change_permissions($channel_id, $resource, $x['allow_cid'], $x['allow_gid'], $x['deny_cid'], $x['deny_gid'], $recurse, true);
+
+        file_activity($channel_id, $object, $x['allow_cid'], $x['allow_gid'], $x['deny_cid'], $x['deny_gid'], 'post', $notify);
+
+        logger('sending post response for setting box permissons...');
+
+        $box_id = ((x($_POST, 'boxid')) ? notags($_POST['boxid']) : '');
+        $go_away_url = z_root() . '/flashcards/' . $channel['channel_address'] . '/' . $box_id;
+
+        goaway($go_away_url);
     }
 
     private function isObserverAllowedToViewFlashcards() {
 
-        $this->getAuthObserver();
+		$this->getAuthObserver();
 
-        $nick = argv(1);
+		$nick = argv(1);
 
-        if (!$nick) {
-            return false;
-        }
+		if(! $nick) {
+			return false;
+		}
 
-        $dirFlashcards = new Directory($nick . '/flashcards/', [], $this->authObserver);
-        try {
-            $boxFiles = $dirFlashcards->getChildren();
-        } catch (\Exception $e) {
-            logger('permission denied for path ' . $nick_fc . '/flashcards/', LOGGER_DEBUG);
-            return false;
-        }
+		$dirFlashcards = new Directory($nick . '/flashcards/', [], $this->authObserver);
+		try {
+			$boxFiles = $dirFlashcards->getChildren();
+		} catch (\Exception $e) {
+			logger('permission denied for path ' . $nick_fc . '/flashcards/', LOGGER_DEBUG);
+			return false;
+		}
 
-        return true;
-    }
+		return true;
+	}
 
     private function isObserverAllowedToCreateFlashcards() {
 
-        if ($this->isObserverAllowedToViewFlashcards() && $this->canWrite) {
-            // can view the folder "flashcards" AND has write permissions to cloud files
-            return true;
-        } else {
-            return false;
-        }
-    }
+		if($this->isObserverAllowedToViewFlashcards() && $this->canWrite) {
+			// can view the folder "flashcards" AND has write permissions to cloud files
+			return true;
+		} else {
+			return false;
+		}
+
+	}
 
     private function listBoxes() {
 
@@ -274,46 +354,42 @@ class Flashcards extends Controller {
 
         $this->recoverBoxes();
 
-        $nicks = $this->getFlashcardsUsers();
+		$nicks = $this->getFlashcardsUsers();
 
-        $this->getAuthObserver();
+		$this->getAuthObserver();
 
-        $baseURL = App::get_baseurl();
+		$baseURL = App::get_baseurl();
 
         $boxes = [];
 
-        foreach ($nicks as $nick_fc) {
-            $dirFlashcards = new Directory($nick_fc . '/flashcards/', [], $this->authObserver);
-            $boxFiles;
-            try {
-                $boxFiles = $dirFlashcards->getChildren();
-            } catch (\Exception $e) {
-                logger('permission denied for path ' . $nick_fc . '/flashcards/', LOGGER_DEBUG);
-                continue;
-            }
-            foreach ($boxFiles as $child) {
-                if ($child instanceof File) {
-                    if ($child->getContentType() === strtolower('application/json')) {
-                        $fname = $child->getName();
-                        logger('found json file = ' . $fname, LOGGER_DEBUG);
-                        $box = $this->readBox($dirFlashcards, $child->getName());
-                        if ($box) {
-                            if ($box['cards']) {
-                                $box['size'] = count($box['cards']);
-                            } else {
-                                $box['size'] = 0;
-                            }
-                            unset($box['cards']);
-                            $current_owner = channelx_by_nick($nick_fc);
-                            $box['current_owner'] = $current_owner['xchan_addr'];
-                            $fn = substr($fname, 0, strpos($fname, '.'));
-                            $box['current_url'] = $baseURL . '/flashcards/' . $nick_fc . '/' . $fn;
-                            array_push($boxes, $box);
-                        }
-                    }
-                }
-            }
-        }
+		foreach ($nicks as $nick_fc) {
+			$dirFlashcards = new Directory($nick_fc . '/flashcards/', [], $this->authObserver);
+			$boxFiles;
+			try {
+				$boxFiles = $dirFlashcards->getChildren();
+			} catch (\Exception $e) {
+				logger('permission denied for path ' . $nick_fc . '/flashcards/', LOGGER_DEBUG);
+				continue;
+			}
+			foreach($boxFiles as $child) {
+				if ($child instanceof File) {
+					if($child->getContentType() === strtolower('application/json')) {
+						$fname = $child->getName();
+						logger('found json file = '. $fname, LOGGER_DEBUG);
+						$box = $this->readBox($dirFlashcards, $child->getName());
+						if($box) {
+							$box['size'] = count($box['cards']);
+							unset($box['cards']);
+							$current_owner = channelx_by_nick($nick_fc);
+							$box['current_owner'] = $current_owner['xchan_addr'];
+							$fn = substr($fname,0,strpos($fname, '.'));
+							$box['current_url'] = $baseURL . '/flashcards/' . $nick_fc . '/' . $fn;
+							array_push($boxes, $box);
+						}
+					}
+				}
+			}
+		}
         if (empty($boxes)) {
             logger('no boxes found', LOGGER_DEBUG);
         }
@@ -327,47 +403,47 @@ class Flashcards extends Controller {
 
         logger('+++ search boxes ... +++', LOGGER_DEBUG);
 
-        json_return_and_die(array('status' => false, 'errormsg' => 'Search on other servers is not implemented yet' . EOL));
+        json_return_and_die(array('status' => false, 'errormsg' => 'Not implemented' . EOL));
     }
 
     private function getFlashcardsUsers() {
-        $r = q("select app_url from app where app_plugin = 'flashcards' and app_deleted = 0");
+		$r = q("select app_url from app where app_plugin = 'flashcards' and app_deleted = 0");
 
         $nicks = [];
-        if ($r) {
-            foreach ($r as $fc_url) {
-                $a_url = $fc_url['app_url'];
-                if (strpos($a_url, '/$nick')) {
-                    continue;
-                }
-                $nick = substr($a_url, strripos($a_url, '/') + 1);
-                array_push($nicks, $nick);
-            }
-        }
+		if($r) {
+			foreach ($r as $fc_url) {
+				$a_url = $fc_url['app_url'];
+				if (strpos($a_url, '/$nick')) {
+					continue;
+				}
+				$nick = substr($a_url, strripos($a_url, '/') + 1);
+				array_push($nicks, $nick);
+			}
+		}
 
-        return $nicks;
-    }
+		return $nicks;
+	}
 
     private function recoverBoxes() {
 
-        if (!$this->is_owner) {
+        if(! $this->is_owner) {
             return;
         }
 
         $recoverDir = $this->getRecoverDir();
 
         $children = $recoverDir->getChildren();
-        foreach ($children as $child) {
+        foreach($children as $child) {
             if ($child instanceof File) {
-                if ($child->getContentType() === strtolower('application/json')) {
+                if($child->getContentType() === strtolower('application/json')) {
                     $fname = $child->getName();
                     logger('found recover file = ' . $fname);
-                    if ($this->boxesDir->childExists($fname)) {
+                    if($this->boxesDir->childExists($fname)) {
                         logger('file exists already');
                         notice('Recovery failed. File "' . $fname . '" exist.');
                     } else {
                         $box = $this->readBox($recoverDir, $fname);
-                        $hash = random_string($this->lengthBoxId);
+                        $hash = random_string(15);
                         $box["boxID"] = $hash;
                         $box["boxPublicID"] = $hash;
                         $this->boxesDir->createFile($hash . '.json', json_encode($box));
@@ -379,41 +455,39 @@ class Flashcards extends Controller {
                 }
             }
         }
+
+
     }
 
     private function sendBox() {
 
         logger('+++ send box ... +++', LOGGER_DEBUG);
 
-        if (!$this->observer) {
-            json_return_and_die(array('status' => false, 'errormsg' => 'Unknown observer. Please login to view box ' . $box_id));
-        }
+		if(! $this->observer) {
+			json_return_and_die(array('status' => false, 'errormsg' => 'Unknown observer. Please login to view box ' . $box_id));
+		}
 
         $box_id = isset($_POST['boxID']) ? $_POST['boxID'] : '';
-        if (strlen($box_id) > 0) {
+        if(strlen($box_id) > 0) {
 
             logger('user requested box id = ' . $box_id, LOGGER_DEBUG);
 
             $box = $this->readBox($this->boxesDir, $box_id . '.json');
 
-            if (!$box) {
+            if(! $box) {
 
                 logger('box not found or no permission, box id = ' . $box_id, LOGGER_DEBUG);
 
                 json_return_and_die(array('status' => false, 'errormsg' => 'No box found or no permissions for ' . $box_id));
             }
 
-            if ($this->is_owner) {
+            if($this->is_owner) {
 
                 logger('owner requested box id = ' . $box_id, LOGGER_DEBUG);
 
                 $box = $this->importSharedBoxes($box);
 
-                if ($box['cards']) {
-                    $box['size'] = count($box['cards']);
-                } else {
-                    $box['size'] = 0;
-                }
+				$box['size'] = count($box['cards']);
 
                 json_return_and_die(
                         array(
@@ -438,17 +512,17 @@ class Flashcards extends Controller {
 
         $filename = $box_name . '.json';
 
-        if (!$boxDirObserver->childExists($filename)) {
+        if(! $boxDirObserver->childExists($filename)) {
             $cards = $box['cards'];
-            if ($cards) {
+            if($cards) {
                 foreach ($cards as &$card) {
-                    for ($x = 6; $x < 11; $x++) {
+                    for($x = 6; $x < 11; $x++) {
                         $card['content'][$x] = '';
                     }
                 }
                 $box['cards'] = $cards;
             }
-            $hash = random_string($this->lengthBoxId);
+            $hash = random_string(15);
             $box["boxID"] = $hash;
             $boxDirObserver->createFile($filename, json_encode($box));
             //info('Box was copied box for you');
@@ -467,37 +541,40 @@ class Flashcards extends Controller {
                     'box' => $boxObserver,
                     'resource_public_id' => $boxObserver["boxPublicID"],
                     'resource_id' => $boxObserver["boxID"]));
+
     }
 
     private function createDirBoxObserver($box_id) {
 
         logger('create dir for observer, box id = ' . $box_id, LOGGER_DEBUG);
 
-        if (!$this->boxesDir->childExists($box_id)) {
+        if(! $this->boxesDir->childExists($box_id)) {
             $this->boxesDir->createDirectory($box_id);
         }
 
-        $boxDirObserver = new Directory('/' . $this->owner['channel_address'] . '/flashcards/' . $box_id, [], $this->getAuth());
-        if (!$boxDirObserver) {
+        $boxDirObserver = new Directory('/'. $this->owner['channel_address'] . '/flashcards/' . $box_id, [], $this->getAuth());
+        if(! $boxDirObserver) {
             json_return_and_die(array('message' => 'Directory for observer box can not be created.', 'success' => false));
         }
 
         return $boxDirObserver;
+
     }
 
     private function writeBox() {
 
         logger('+++ write box ... +++', LOGGER_DEBUG);
 
-        if (!$this->observer) {
+		if(! $this->observer) {
 
-            logger('Stop: no observer. Can not write the box.');
+			logger('Stop: no observer. Can not write the box.');
 
-            json_return_and_die(array('status' => false, 'errormsg' => 'No box was sent. No observer.'));
-        }
+			json_return_and_die(array('status' => false, 'errormsg' => 'No box was sent. No observer.'));
+
+		}
 
         $boxRemote = $_POST['box'];
-        if (!$boxRemote) {
+        if(!$boxRemote) {
 
             logger('no remote box given');
 
@@ -507,18 +584,18 @@ class Flashcards extends Controller {
 
         $cards = $boxRemote['cards'];
         $cardIDsReceived = array();
-        if (isset($cards)) {
+        if(isset($cards)) {
             foreach ($cards as &$card) {
                 array_push($cardIDsReceived, $card['content'][0]);
             }
         }
 
-        if ($this->is_owner) {
+        if($this->is_owner) {
 
-            if (strlen($box_id) > 0) {
+            if(strlen($box_id) > 0) {
 
                 $filename = $box_id . '.json';
-                if (!$this->boxesDir->childExists($filename)) {
+                if(! $this->boxesDir->childExists($filename)) {
 
                     logger('box has to be created for owner, box id = ' . $box_id);
 
@@ -528,15 +605,18 @@ class Flashcards extends Controller {
                     unset($boxRemote['cards']);
 
                     json_return_and_die(array('status' => true, 'box' => $boxRemote, 'resource_id' => $box_id, 'cardIDsReceived' => $cardIDsReceived));
+
                 } else {
 
                     logger('local box has to be merged with remote box for owner, box id = ' . $box_id);
 
                     $this->mergeBox($box_id, $boxRemote, $cardIDsReceived);
+
                 }
+
             } else {
 
-                $hash = random_string($this->lengthBoxId);
+                $hash = random_string(15);
                 $boxRemote["boxID"] = $hash;
                 $boxRemote["boxPublicID"] = $hash;
                 $boxRemote["creator"] = $this->observer['xchan_addr'];
@@ -549,11 +629,15 @@ class Flashcards extends Controller {
                 unset($boxRemote['cards']);
 
                 json_return_and_die(array('status' => true, 'box' => $boxRemote, 'resource_id' => $hash, 'resource_public_id' => $hash, 'cardIDsReceived' => $cardIDsReceived));
+
             }
+
         } else {
 
             $this->writeBoxObserver($boxRemote, $cardIDsReceived);
+
         }
+
     }
 
     private function writeBoxObserver($boxRemote, $cardIDsReceived) {
@@ -561,7 +645,7 @@ class Flashcards extends Controller {
         $box_id = $boxRemote["boxID"];
         $box_public_id = $boxRemote["boxPublicID"];
 
-        if (!$this->boxesDir->childExists($box_public_id)) {
+        if(! $this->boxesDir->childExists($box_public_id)) {
 
             logger('no box dir found. Might be deleted by owner, public box id = ' . $box_public_id);
 
@@ -573,7 +657,7 @@ class Flashcards extends Controller {
 
         $boxDirObserver = $this->createDirBoxObserver($box_public_id);
 
-        if (!$boxDirObserver->childExists($filename)) {
+        if(! $boxDirObserver->childExists($filename)) {
 
             logger('no box dir found. Might be deleted by owner, public box id = ' . $filename);
 
@@ -602,6 +686,7 @@ class Flashcards extends Controller {
         $this->shareObserverBoxLocally($boxToWrite);
 
         json_return_and_die(array('status' => true, 'box' => $boxToSend, 'resource_id' => $box_id, 'cardIDsReceived' => $cardIDsReceived));
+
     }
 
     private function mergeOwnerBoxIntoObserverBox($boxObserver) {
@@ -610,7 +695,7 @@ class Flashcards extends Controller {
         $filename = $box_public_id . '.json';
 
         $boxOwner = $this->readBox($this->boxesDir, $filename);
-        if (!$boxOwner) {
+        if(! $boxOwner) {
             notice('Box of owner not found on server'); // This should never happen. Anyway.
             return $boxObserver;
         }
@@ -624,7 +709,7 @@ class Flashcards extends Controller {
 
         $cards = $boxObserver['cards'];
         $cardPublic = array();
-        if (isset($cards)) {
+        if(isset($cards)) {
             foreach ($cards as &$card) {
                 for ($i = 6; $i < 10; $i++) {
                     $card['content'][$i] = 0;
@@ -639,7 +724,7 @@ class Flashcards extends Controller {
 
         $filename = $this->getShareFileName($boxObserver);
 
-        if ($shareDir->childExists($filename)) {
+        if($shareDir->childExists($filename)) {
             $shareDir->getChild($filename)->put(json_encode($boxObserver));
         } else {
             $shareDir->createFile($filename, json_encode($boxObserver));
@@ -648,7 +733,7 @@ class Flashcards extends Controller {
 
     private function importSharedBoxes($box) {
 
-        if ($box['private_block'] == "true") {
+        if($box['private_block'] == "true") {
             return $box;
         }
 
@@ -659,9 +744,9 @@ class Flashcards extends Controller {
         $boxes = [];
 
         $children = $shareDir->getChildren();
-        foreach ($children as $child) {
+        foreach($children as $child) {
             if ($child instanceof File) {
-                if ($child->getContentType() === strtolower('application/json')) {
+                if($child->getContentType() === strtolower('application/json')) {
                     $sharedFileName = $child->getName();
 
                     logger('import shared file = ' . $sharedFileName);
@@ -670,21 +755,22 @@ class Flashcards extends Controller {
                         $sharedBox = $this->readBox($shareDir, $sharedFileName);
                         $boxes = $this->flashcards_merge($box, $sharedBox, false);
                         $box = $boxes['boxLocal'];
-                        $this->boxesDir->getChild($boxId . '.json')->put(json_encode($box));
-                        try {
-                            // Remove the try-catch if everythings works fine on Hubzilla and ZAP.
-                            // Zotlabs\Storage\BasicAuth was not used correctly (or changed).
-                            $shareDir->getChild($sharedFileName)->delete();
-                        } catch (\Exception $e) {
-                            logger('Please report to the devs. This could be a bug with the usages of Zotlabs\Storage\BasicAuth. This caused a permission denied to delete a file in owned directory ', LOGGER_DEBUG);
-                            continue;
-                        }
+						$this->boxesDir->getChild($boxId . '.json')->put(json_encode($box));
+						try {
+							// Remove the try-catch if everythings works fine on Hubzilla and ZAP.
+							// Zotlabs\Storage\BasicAuth was not used correctly (or changed).
+							$shareDir->getChild($sharedFileName)->delete();
+						} catch (\Exception $e) {
+							logger('Please report to the devs. This could be a bug with the usages of Zotlabs\Storage\BasicAuth. This caused a permission denied to delete a file in owned directory ', LOGGER_DEBUG);
+							continue;
+						}
                     }
                 }
             }
         }
 
         return $box;
+
     }
 
     private function getShareFileName($boxObserver) {
@@ -694,18 +780,18 @@ class Flashcards extends Controller {
 
     private function getBoxNameObserver() {
         $ob_hash = $this->observer['xchan_hash'];
-        $box_name = substr($ob_hash, 0, $this->lengthBoxId);
+        $box_name = substr($ob_hash, 0, 15);
         return $box_name;
     }
 
     private function readBox($dir, $filename) {
         $boxFileExists = $dir->childExists($filename);
-        if (!$boxFileExists) {
-            logger('file does not exist in boxes dir, file = ' . $filename, LOGGER_DEBUG);
+        if(! $boxFileExists) {
+            logger('file does not exist in boxes dir, file = '. $filename, LOGGER_DEBUG);
             return false;
         }
 
-        logger('read box and convert from file = ' . $filename, LOGGER_DEBUG);
+        logger('read box and convert from file = '. $filename, LOGGER_DEBUG);
 
         $JSONstream = $dir->getChild($filename)->get();
         $contents = stream_get_contents($JSONstream);
@@ -713,12 +799,13 @@ class Flashcards extends Controller {
         fclose($JSONstream);
 
         return $box;
+
     }
 
     private function mergeBox($box_id, $boxRemote, $cardIDsReceived) {
 
         $boxLocal = $this->readBox($this->boxesDir, $box_id . '.json');
-        if (!$boxLocal) {
+        if(! $boxLocal) {
             json_return_and_die(array('status' => false, 'resource_id' => $box_id, 'errormsg' => 'Box not found on server'));
         }
 
@@ -740,6 +827,7 @@ class Flashcards extends Controller {
 
         $this->boxesDir->getChild($box_id . '.json')->put(json_encode($boxToWrite));
         json_return_and_die(array('status' => true, 'box' => $boxToSend, 'resource_id' => $box_id, 'cardIDsReceived' => $cardIDsReceived));
+
     }
 
     private function deleteBox() {
@@ -747,31 +835,31 @@ class Flashcards extends Controller {
         logger('+++ delete box ... +++', LOGGER_DEBUG);
 
         $boxID = $_POST['boxID'];
-        if (!$boxID) {
+        if(! $boxID) {
             return;
         }
 
-        if (!$this->is_owner) {
+        if(!$this->is_owner) {
             $this->deleteBoxObserver($boxID);
         }
 
         $filename = $boxID . '.json';
 
-        if ($this->boxesDir->childExists($filename)) {
+        if($this->boxesDir->childExists($filename)) {
 
             // delete box itself
             $this->boxesDir->getChild($filename)->delete();
             // delete directory of box for the observers and their boxes too
-            if ($this->boxesDir->childExists($boxID)) {
+            if($this->boxesDir->childExists($boxID)) {
                 $this->boxesDir->getChild($boxID)->delete();
             }
 
             // delete boxes in "share" directory
             $shareDir = $this->getShareDir();
             $children = $shareDir->getChildren();
-            foreach ($children as $child) {
+            foreach($children as $child) {
                 if ($child instanceof File) {
-                    if ($child->getContentType() === strtolower('application/json')) {
+                    if($child->getContentType() === strtolower('application/json')) {
                         $sharedFileName = $child->getName();
                         if (strpos($sharedFileName, $boxID) === 0) {
                             $shareDir->getChild($sharedFileName)->delete();
@@ -784,19 +872,22 @@ class Flashcards extends Controller {
         } else {
 
             json_return_and_die(array('status' => false, 'errormsg' => 'Box not found on server'));
+
         }
+
     }
 
     private function deleteBoxObserver($box_id) {
 
-        if (!$this->observer) {
+		if(! $this->observer) {
 
-            logger('Stop: no observer. Can not delete the box.');
+			logger('Stop: no observer. Can not delete the box.');
 
-            json_return_and_die(array('status' => false, 'errormsg' => 'Unable to delete the box. No observer.'));
-        }
+			json_return_and_die(array('status' => false, 'errormsg' => 'Unable to delete the box. No observer.'));
 
-        if (!$this->boxesDir->childExists($box_id)) {
+		}
+
+        if(! $this->boxesDir->childExists($box_id)) {
             notice('No box dir found. Might be delete by owner.');
             json_return_and_die(array('status' => true));
         }
@@ -805,12 +896,13 @@ class Flashcards extends Controller {
 
         $boxDirObserver = $this->createDirBoxObserver($box_id);
 
-        if ($boxDirObserver->childExists($filename)) {
+        if($boxDirObserver->childExists($filename)) {
             $boxDirObserver->getChild($filename)->delete();
             json_return_and_die(array('status' => true));
         }
 
         json_return_and_die(array('status' => false, 'errormsg' => 'No observer box found. Might be delete by owner.'));
+
     }
 
     private function getAuth() {
@@ -831,30 +923,32 @@ class Flashcards extends Controller {
         return $this->auth;
     }
 
-    private function getAuthObserver() {
+	private function getAuthObserver() {
 
-        if (!$this->authObserver) {
+		if(! $this->authObserver) {
 
-            $this->authObserver = new BasicAuth();
+			$this->authObserver = new BasicAuth();
 
-            $this->authObserver->setCurrentUser($this->observer['xchan_addr']);
-            $this->authObserver->channel_id = $this->observer['xchan_guid'];
-            $this->authObserver->channel_hash = $this->observer['xchan_hash'];
-            $this->authObserver->observer = $this->observer['xchan_hash'];
-        }
-    }
+			$this->authObserver->setCurrentUser($this->observer['xchan_addr']);
+			$this->authObserver->channel_id = $this->observer['xchan_guid'];
+			$this->authObserver->channel_hash = $this->observer['xchan_hash'];
+			$this->authObserver->observer = $this->observer['xchan_hash'];
+
+		}
+
+	}
 
     private function getShareDir() {
 
-        if (!$this->boxesDir->childExists('share')) {
+        if(! $this->boxesDir->childExists('share')) {
             $this->boxesDir->createDirectory('share');
         }
 
         $channelAddress = $this->owner['channel_address'];
 
-        $shareDir = new Directory('/' . $channelAddress . '/flashcards/share', [], $this->getAuth());
+        $shareDir = new Directory('/'. $channelAddress . '/flashcards/share', [], $this->getAuth());
 
-        if (!$shareDir) {
+        if(! $shareDir) {
             json_return_and_die(array('message' => 'Directory share is missing.', 'success' => false));
         }
 
@@ -863,15 +957,15 @@ class Flashcards extends Controller {
 
     private function getRecoverDir() {
 
-        if (!$this->boxesDir->childExists('recover')) {
+        if(! $this->boxesDir->childExists('recover')) {
             $this->boxesDir->createDirectory('recover');
         }
 
         $channelAddress = $this->owner['channel_address'];
 
-        $recoverDir = new Directory('/' . $channelAddress . '/flashcards/recover', [], $this->getAuth());
+        $recoverDir = new Directory('/'. $channelAddress . '/flashcards/recover', [], $this->getAuth());
 
-        if (!$recoverDir) {
+        if(! $recoverDir) {
             json_return_and_die(array('message' => 'Directory recover is missing.', 'success' => false));
         }
 
@@ -886,14 +980,15 @@ class Flashcards extends Controller {
 
         $channelDir = new Directory('/' . $channelAddress, [], $this->getAuth());
 
-        if (!$channelDir->childExists('flashcards')) {
+        if(! $channelDir->childExists('flashcards')) {
             $channelDir->createDirectory('flashcards');
         }
 
-        $this->boxesDir = new Directory('/' . $channelAddress . '/flashcards', [], $this->getAuth());
-        if (!$this->boxesDir) {
+        $this->boxesDir = new Directory('/'. $channelAddress . '/flashcards', [], $this->getAuth());
+        if(! $this->boxesDir) {
             json_return_and_die(array('message' => 'Directory flashcards is missing.', 'success' => false));
         }
+
     }
 
     private function getRootDir() {
@@ -902,11 +997,12 @@ class Flashcards extends Controller {
 
         $channelAddress = $this->owner['channel_address'];
 
-        if (!$rootDirectory->childExists($channelAddress)) {
+        if(! $rootDirectory->childExists($channelAddress)) {
             json_return_and_die(array('message' => 'No cloud directory.', 'success' => false));
         }
 
         return $rootDirectory;
+
     }
 
     /*
@@ -961,26 +1057,26 @@ class Flashcards extends Controller {
      * @param $boxLocal array from local DB
      * @param $boxRemote array received to merge with box in DB
      */
-
     function flashcards_merge($boxLocal, $boxRemote, $is_private = true) {
 
         logger('merge boxes local id = ' . $boxLocal['boxID'] . ', remote id = ' . $boxRemote['boxID']);
 
-        if ($is_private) {
-            if ($boxLocal['boxID'] != $boxRemote['boxID']) {
+        if($is_private) {
+            if($boxLocal['boxID'] != $boxRemote['boxID']) {
                 unset($boxRemote['cards']);
                 return array('boxLocal' => $boxLocal, 'boxRemote' => $boxRemote);
             }
-        } else {
-            if ($boxLocal['boxPublicID'] != $boxRemote['boxPublicID']) {
+        }
+        else {
+            if($boxLocal['boxPublicID'] != $boxRemote['boxPublicID']) {
                 unset($boxRemote['cards']);
                 return array('boxLocal' => $boxLocal, 'boxRemote' => $boxRemote);
             }
         }
         $keysPublic = array('title', 'description', 'lastEditor', 'lastChangedPublicMetaData', 'lastShared');
         $keysPrivate = array('cardsDecks', 'cardsDeckWaitExponent', 'cardsRepetitionsPerDeck', 'private_block', 'private_sortColumn', 'private_sortReverse', 'private_filter', 'private_visibleColumns', 'private_switch_learn_direction', 'private_switch_learn_all', 'private_autosave', 'private_show_card_sort', 'private_sort_default', 'private_search_convenient', 'lastChangedPrivateMetaData');
-        if ($boxLocal['lastChangedPublicMetaData'] != $boxRemote['lastChangedPublicMetaData']) {
-            if ($boxLocal['lastChangedPublicMetaData'] > $boxRemote['lastChangedPublicMetaData']) {
+        if($boxLocal['lastChangedPublicMetaData'] != $boxRemote['lastChangedPublicMetaData']) {
+            if($boxLocal['lastChangedPublicMetaData'] > $boxRemote['lastChangedPublicMetaData']) {
                 foreach ($keysPublic as &$key) {
                     $boxRemote[$key] = $boxLocal[$key];
                 }
@@ -990,9 +1086,9 @@ class Flashcards extends Controller {
                 }
             }
         }
-        if ($is_private) {
-            if ($boxLocal['lastChangedPrivateMetaData'] != $boxRemote['lastChangedPrivateMetaData']) {
-                if ($boxLocal['lastChangedPrivateMetaData'] > $boxRemote['lastChangedPrivateMetaData']) {
+        if($is_private) {
+            if($boxLocal['lastChangedPrivateMetaData'] != $boxRemote['lastChangedPrivateMetaData']) {
+                if($boxLocal['lastChangedPrivateMetaData'] > $boxRemote['lastChangedPrivateMetaData']) {
                     foreach ($keysPrivate as &$key) {
                         $boxRemote[$key] = $boxLocal[$key];
                     }
@@ -1004,11 +1100,11 @@ class Flashcards extends Controller {
             }
         }
         $cardsDB = $boxLocal['cards'];
-        if (!$cardsDB) {
+        if(! $cardsDB) {
             $cardsDB = [];
         }
         $cardsRemote = $boxRemote['cards'];
-        if (!$cardsRemote) {
+        if(! $cardsRemote) {
             $cardsRemote = [];
         }
         $cardsDBadded = array();
@@ -1016,11 +1112,11 @@ class Flashcards extends Controller {
         foreach ($cardsRemote as &$cardRemote) {
             $isInDB = false;
             foreach ($cardsDB as &$cardDB) {
-                if ($cardRemote['content'][0] == $cardDB['content'][0]) {
+                if($cardRemote['content'][0] == $cardDB['content'][0]) {
                     $isInDB = true;
                     $isRemoteChanged = false;
-                    if ($cardDB['content'][5] != $cardRemote['content'][5]) {
-                        if ($cardDB['content'][5] > $cardRemote['content'][5]) {
+                    if($cardDB['content'][5] != $cardRemote['content'][5]) {
+                        if($cardDB['content'][5] > $cardRemote['content'][5]) {
                             for ($i = 1; $i < 6; $i++) {
                                 $cardRemote['content'][$i] = $cardDB['content'][$i];
                                 $isRemoteChanged = true;
@@ -1031,9 +1127,9 @@ class Flashcards extends Controller {
                             }
                         }
                     }
-                    if ($is_private) {
-                        if ($cardDB['content'][9] != $cardRemote['content'][9]) {
-                            if ($cardDB['content'][9] > $cardRemote['content'][9]) {
+                    if($is_private) {
+                        if($cardDB['content'][9] != $cardRemote['content'][9]) {
+                            if($cardDB['content'][9] > $cardRemote['content'][9]) {
                                 for ($i = 6; $i < 10; $i++) {
                                     $cardRemote['content'][$i] = $cardDB['content'][$i];
                                     $isRemoteChanged = true;
@@ -1045,14 +1141,14 @@ class Flashcards extends Controller {
                             }
                         }
                     }
-                    if ($isRemoteChanged === true) {
+                    if($isRemoteChanged === true) {
                         array_push($cardsRemoteToUpload, $cardDB);
                     }
                     break;
                 }
             }
-            if (!$isInDB) {
-                if (!$is_private) {
+            if(!$isInDB) {
+                if(!$is_private) {
                     for ($i = 6; $i < 10; $i++) {
                         $cardRemote['content'][$i] = 0;
                     }
@@ -1066,15 +1162,15 @@ class Flashcards extends Controller {
         foreach ($cardsDB as &$cardDB) {
             $isInRemote = false;
             foreach ($cardsRemote as &$cardRemote) {
-                if ($cardRemote[0] == $cardDB[0]) {
+                if($cardRemote[0] == $cardDB[0]) {
                     $isInRemote = true;
                     break;
                 }
             }
-            if (!$isInRemote) {
-                if ($lastShared < $cardDB['content'][5]) {
+            if(!$isInRemote) {
+                if($lastShared < $cardDB['content'][5]) {
                     array_push($cardsRemoteToUpload, $cardDB);
-                } else if ($lastShared < $cardDB['content'][9]) {
+                } else if($lastShared < $cardDB['content'][9]) {
                     array_push($cardsRemoteToUpload, $cardDB);
                 }
             }
@@ -1101,10 +1197,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2, false);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if ($boxOut1 !== $boxIn1) {
+        if($boxOut1 !== $boxIn1) {
             return false;
         }
-        if ($boxOut2 !== $boxCompare2) {
+        if($boxOut2 !== $boxCompare2) {
             return false;
         }
         // Nothing changed
@@ -1113,10 +1209,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if ($boxOut1 !== $boxIn1) {
+        if($boxOut1 !== $boxIn1) {
             return false;
         }
-        if ($boxOut2 !== $boxCompare2) {
+        if($boxOut2 !== $boxCompare2) {
             return false;
         }
         // Public and private meta data
@@ -1129,10 +1225,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if ($boxOut1 !== $boxCompare1) {
+        if($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if ($boxOut2 !== $boxCompare2) {
+        if($boxOut2 !== $boxCompare2) {
             return false;
         }
         // Public and private meta data the other way around
@@ -1145,10 +1241,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if ($boxOut1 !== $boxCompare1) {
+        if($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if ($boxOut2 !== $boxCompare2) {
+        if($boxOut2 !== $boxCompare2) {
             return false;
         }
         // Add remote card to empty local cards
@@ -1161,10 +1257,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if ($boxOut1 !== $boxCompare1) {
+        if($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if ($boxOut2 !== $boxCompare2) {
+        if($boxOut2 !== $boxCompare2) {
             return false;
         }
         // Add local cards to empty remote cards
@@ -1177,10 +1273,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if ($boxOut1 !== $boxCompare1) {
+        if($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if ($boxOut2 !== $boxCompare2) {
+        if($boxOut2 !== $boxCompare2) {
             return false;
         }
         // change card values
@@ -1193,10 +1289,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if ($boxOut1 !== $boxCompare1) {
+        if($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if ($boxOut2 !== $boxCompare2) {
+        if($boxOut2 !== $boxCompare2) {
             return false;
         }
         // change card values the other way around
@@ -1209,10 +1305,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if ($boxOut1 !== $boxCompare1) {
+        if($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if ($boxOut2 !== $boxCompare2) {
+        if($boxOut2 !== $boxCompare2) {
             return false;
         }
         // add public card to box 1 (local)
@@ -1225,10 +1321,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2, false);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if ($boxOut1 !== $boxCompare1) {
+        if($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if ($boxOut2 !== $boxCompare2) {
+        if($boxOut2 !== $boxCompare2) {
             return false;
         }
 
@@ -1242,10 +1338,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if ($boxOut1 !== $boxCompare1) {
+        if($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if ($boxOut2 !== $boxCompare2) {
+        if($boxOut2 !== $boxCompare2) {
             return false;
         }
 
@@ -1259,10 +1355,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if ($boxOut1 !== $boxCompare1) {
+        if($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if ($boxOut2 !== $boxCompare2) {
+        if($boxOut2 !== $boxCompare2) {
             return false;
         }
 
@@ -1276,10 +1372,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if ($boxOut1 !== $boxCompare1) {
+        if($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if ($boxOut2 !== $boxCompare2) {
+        if($boxOut2 !== $boxCompare2) {
             return false;
         }
 
@@ -1293,10 +1389,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if ($boxOut1 !== $boxCompare1) {
+        if($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if ($boxOut2 !== $boxCompare2) {
+        if($boxOut2 !== $boxCompare2) {
             return false;
         }
 
@@ -1310,14 +1406,15 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if ($boxOut1 !== $boxCompare1) {
+        if($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if ($boxOut2 !== $boxCompare2) {
+        if($boxOut2 !== $boxCompare2) {
             return false;
         }
 
         logger('tests all passed');
         return true;
     }
+
 }

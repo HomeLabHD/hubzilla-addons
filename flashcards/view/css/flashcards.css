@@ -1,26 +1,26 @@
 #button_flashcards_learn_passed {
-    color:green;
+	color:green;
 }
 
 #button_flashcards_learn_failed {
-    color:red;
+	color:red;
 }
 
 #flashcards_panel_learn_buttons {
-    display:none;
+	display:none;
 }
 #button_flashcards_learn_stopp {
-    display:none;
+	display:none;
 }
 #button_flashcards_learn_next {
-    display:none;
+	display:none;
 }
 #button_flashcards_learn_passed {
-    display:none;
+	display:none;
 }
 #button_flashcards_learn_failed {
-    display:none;
+	display:none;
 }
 #button_flashcards_learn_failed {
-    display:none;
+	display:none;
 }
