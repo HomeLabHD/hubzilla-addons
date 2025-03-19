@@ -26,14 +26,10 @@
 		let gallery = {};
 		let album_id = '';
 		let album = '{{$album}}';
-
-		// items array
-		{{if ! $aj}}
 		let items = [];
-		{{/if}}
 
 		{{if $json}}
-		let items = {{$json}};
+		items = {{$json}};
 		{{/if}}
 
 		if(items.length) {
