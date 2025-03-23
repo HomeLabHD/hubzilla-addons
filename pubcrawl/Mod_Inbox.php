@@ -455,11 +455,11 @@ class Inbox extends Controller {
 				case 'Update':
 					if (ActivityStreams::is_an_actor($AS->objprop('type'))) {
 						Activity::actor_store($AS->obj, true /* force cache refresh */);
-						break 2;
+						break 2; // this will also break out of the foreach loop.
 					}
 					if ($AS->objprop('type') === 'OrderedCollection') {
 						// gup.pe sends updates for followers list but we do not handle those
-						break;
+						break 2; // this will also break out of the foreach loop.
 					}
 				case 'Accept':
 					if (ActivityStreams::is_an_actor($AS->objprop('type')) || $AS->objprop('type') === 'Member') {
@@ -494,22 +494,27 @@ class Inbox extends Controller {
 						http_status_exit(400, 'Empty object');
 					}
 
-					if (is_array($AS->obj)) {
-						$item = Activity::decode_note($AS);
-					} else {
+					if (!is_array($AS->obj)) {
 						// The initial object fetch failed using the sys channel credentials.
 						// Try again using the delivery channel credentials.
 
 						$o = Activity::fetch($AS->obj, $channel);
 
-						if ($o) {
-							$AS->obj = $o;
-							$item = Activity::decode_note($AS);
-						}
-						else {
+						if (!$o) {
 							logger('unresolved object: ' . print_r($AS->obj, true));
+							break;
 						}
+
+						$AS->obj = $o;
 					}
+
+					if ($AS->objprop('type') === 'Tombstone') {
+						// nodebb sends Update(Tombstone) activities
+						Activity::drop($channel, $observer_hash, $AS);
+						break;
+					}
+
+					$item = Activity::decode_note($AS);
 					break;
 				case 'Undo':
 					if ($AS->objprop('type') === 'Follow') {
