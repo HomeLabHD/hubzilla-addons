@@ -3,6 +3,7 @@ namespace Zotlabs\Module;
 
 use Zotlabs\Web\HTTPSig;
 use Zotlabs\Lib\ActivityStreams;
+use Zotlabs\Lib\Activity;
 
 require_once('library/jsonld/jsonld.php');
 
@@ -10,7 +11,7 @@ class Ap_probe extends \Zotlabs\Web\Controller {
 
 	function get() {
 
-		if (!is_site_admin()) {
+		if (!local_channel()) {
 			return;
 		}
 
@@ -55,6 +56,12 @@ class Ap_probe extends \Zotlabs\Web\Controller {
 
 				$o .= 'verify returns: ' . str_replace("\n",EOL,print_r(HTTPSig::verify($x),true)) . EOL;
 				$text = $x['body'];
+
+				$arr = json_decode($x['body'], true);
+
+				if (is_site_admin() && isset($arr['type']) && ActivityStreams::is_an_actor($arr['type'])) {
+					Activity::actor_store($arr, true);
+				}
 			}
 			else {
 				$text = $_REQUEST['text'];
