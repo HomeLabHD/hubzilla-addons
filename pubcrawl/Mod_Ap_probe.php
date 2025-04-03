@@ -47,15 +47,13 @@ class Ap_probe extends \Zotlabs\Web\Controller {
 			$redirects = 0;
 		    $x = z_fetch_url($addr, true, $redirects, [ 'headers' => $headers ]);
 
-	    	if($x['success'])
-
+			if($x['success']) {
 				$o .= '<pre>' . htmlspecialchars($x['header']) . '</pre>' . EOL;
-
-
 				$o .= '<pre>' . htmlspecialchars($x['body']) . '</pre>' . EOL;
-
 				$o .= 'verify returns: ' . str_replace("\n",EOL,print_r(HTTPSig::verify($x),true)) . EOL;
+
 				$text = $x['body'];
+				$raw = '<code>' . $text . '</code>';
 
 				$arr = json_decode($x['body'], true);
 
@@ -63,24 +61,39 @@ class Ap_probe extends \Zotlabs\Web\Controller {
 					Activity::actor_store($arr, true);
 				}
 			}
-			else {
-				$text = $_REQUEST['text'];
-			}
+		}
+		else {
+			$text = $_REQUEST['text'];
+		}
 
-			if($text) {
+		if ($text) {
 
 //				if($text && json_decode($text)) {
 //					$normalized1 = jsonld_normalize(json_decode($text),[ 'algorithm' => 'URDNA2015', 'format' => 'application/nquads' ]);
 //					$o .= str_replace("\n",EOL,htmlentities(var_export($normalized1,true)));
 
-	//				$o .= '<pre>' . json_encode($normalized1, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '</pre>';
+//				$o .= '<pre>' . json_encode($normalized1, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '</pre>';
 //				}
 
-				$o .= '<pre>' . str_replace(['\\n','\\'],["\n",''],htmlspecialchars(jindent($text))) . '</pre>';
+			$AP = new \Zotlabs\Lib\ActivityStreams($text);
 
-				$AP = new \Zotlabs\Lib\ActivityStreams($text);
-				$o .= '<pre>' . htmlspecialchars($AP->debug()) . '</pre>';
+			if (in_array($AP->objprop('type'), ['Note', 'Article'])) {
+				$decoded = Activity::decode_note($AP);
+
+				if ($decoded) {
+					$item = [$decoded];
+					xchan_query($item);
+					$o .= conversation($item, 'search', false, 'preview');
+				}
+			}
+
+			$o .= $raw ?? '';
+			$o .= '<pre>' . str_replace(['\\n','\\'],["\n",''],htmlspecialchars(jindent($text))) . '</pre>';
+			$o .= '<pre>' . htmlspecialchars($AP->debug()) . '</pre>';
 		}
+
+		//		logger('preview: ' . $o, LOGGER_DEBUG);
+		//echo json_encode(['preview' => $o]);
 
 		return $o;
 	}
