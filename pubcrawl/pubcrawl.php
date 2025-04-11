@@ -1489,6 +1489,14 @@ function pubcrawl_encode_addressing(&$arr) {
 	if ($public) {
 		$arr['encoded']['to'] = [ACTIVITY_PUBLIC_INBOX];
 
+		if ($top_level) {
+			// if the parent is not contained we allow to add mentions
+			$mentions = Activity::map_mentions($arr['item']);
+			if ($mentions) {
+				$arr['encoded']['to'] = array_values(array_unique(array_merge($arr['encoded']['to'], $mentions)));
+			}
+		}
+
 		if ($arr['item']['item_origin']) {
 			$arr['encoded']['cc'] = [z_root() . '/followers/' . substr($arr['item']['author']['xchan_addr'], 0, strpos($arr['item']['author']['xchan_addr'], '@'))];
 		}
