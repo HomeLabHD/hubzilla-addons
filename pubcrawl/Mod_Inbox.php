@@ -485,8 +485,6 @@ class Inbox extends Controller {
 				case 'Read':
 				case 'Travel':
 				case 'View':
-				case 'emojiReaction':
-				case 'EmojiReaction':
 				case 'EmojiReact':
 					// These require a resolvable object structure
 					if (empty($AS->obj)) {
