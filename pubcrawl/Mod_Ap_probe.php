@@ -53,7 +53,6 @@ class Ap_probe extends \Zotlabs\Web\Controller {
 				$o .= 'verify returns: ' . str_replace("\n",EOL,print_r(HTTPSig::verify($x),true)) . EOL;
 
 				$text = $x['body'];
-				$raw = '<code>' . $text . '</code>';
 
 				$arr = json_decode($x['body'], true);
 
@@ -77,16 +76,19 @@ class Ap_probe extends \Zotlabs\Web\Controller {
 
 			$AP = new \Zotlabs\Lib\ActivityStreams($text);
 
-			if (in_array($AP->objprop('type'), ['Note', 'Article'])) {
+			if (in_array($AP->objprop('type'), ['Note', 'Article', 'Video'])) {
 				$decoded = Activity::decode_note($AP);
+
 
 				if ($decoded) {
 					$item = [$decoded];
 					xchan_query($item);
-					$o .= conversation($item, 'search', false, 'preview');
+
+					if (isset($item[0]['author'], $item[0]['owner'])) {
+						$o .= conversation($item, 'search', false, 'preview');
+					}
 				}
 			}
-
 			$o .= $raw ?? '';
 			$o .= '<pre>' . str_replace(['\\n','\\'],["\n",''],htmlspecialchars(jindent($text))) . '</pre>';
 			$o .= '<pre>' . htmlspecialchars($AP->debug()) . '</pre>';
