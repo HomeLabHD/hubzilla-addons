@@ -79,12 +79,17 @@ class Ap_probe extends \Zotlabs\Web\Controller {
 			if (in_array($AP->objprop('type'), ['Note', 'Article', 'Video'])) {
 				$decoded = Activity::decode_note($AP);
 
-
 				if ($decoded) {
 					$item = [$decoded];
 					xchan_query($item);
 
+					// we will not have those here yet if we fetch from a zot6 channel
 					if (isset($item[0]['author'], $item[0]['owner'])) {
+						// prepare some fields for conversation()
+						if (!empty($item[0]['attach'])) {
+							$item[0]['attach'] = json_encode($item[0]['attach']);
+						}
+
 						$o .= conversation($item, 'search', false, 'preview');
 					}
 				}

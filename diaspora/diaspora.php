@@ -1607,7 +1607,7 @@ function diaspora_queue_deliver(&$b) {
 		}
 		elseif ($result['return_code'] >= 400 && $result['return_code'] < 500) {
 			q("update dreport set dreport_result = '%s', dreport_time = '%s' where dreport_queue = '%s'",
-				dbesc('delivery rejected:' . ' ' . $result['return_code'] . ' ' . (($result['error']) ? substr($result['error'], 0, 160) : substr(escape_tags($result['body']), 0, 160))),
+				dbesc('delivery rejected:' . ' ' . $result['return_code'] . ' ' . (($result['error']) ? substr($result['error'], 0, 160) : substr(strip_tags($result['body']), 0, 160))),
 				dbesc(datetime_convert()),
 				dbesc($outq['outq_hash'])
 			);
