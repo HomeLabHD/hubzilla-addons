@@ -76,7 +76,7 @@ class Ap_probe extends \Zotlabs\Web\Controller {
 
 			$AP = new \Zotlabs\Lib\ActivityStreams($text);
 
-			if (in_array($AP->objprop('type'), ['Note', 'Article', 'Video'])) {
+			if (in_array($AP->objprop('type'), ['Note', 'Article', 'Video', 'Page'])) {
 				$decoded = Activity::decode_note($AP);
 
 				if ($decoded) {
