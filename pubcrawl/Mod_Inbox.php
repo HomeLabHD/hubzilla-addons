@@ -319,7 +319,7 @@ class Inbox extends Controller {
 			else {
 				$collections = Activity::get_actor_collections($observer_hash);
 
-				if (in_array($collections['followers'], $AS->recips)
+				if (isset($collections['followers']) && in_array($collections['followers'], $AS->recips)
 					|| in_array(ACTIVITY_PUBLIC_INBOX, $AS->recips)
 					|| in_array('Public', $AS->recips)
 					|| in_array('as:Public', $AS->recips)) {
