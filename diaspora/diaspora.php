@@ -128,7 +128,7 @@ function diaspora_get_actor_provider(&$arr) {
 
 	$diaspora_rawmsg = [];
 
-	$attachment = is_array($arr['activity']['attachment']) ?: json_decode($arr['activity']['attachment'], true);
+	$attachment = ((is_array($arr['activity']['attachment'])) ? $arr['activity']['attachment'] : json_decode($arr['activity']['attachment'], true));
 
 	foreach($attachment as $a) {
 		if (
