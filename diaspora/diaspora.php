@@ -128,7 +128,9 @@ function diaspora_get_actor_provider(&$arr) {
 
 	$diaspora_rawmsg = [];
 
-	foreach($arr['activity']['attachment'] as $a) {
+	$attachment = is_array($arr['activity']['attachment']) ?: json_decode($arr['activity']['attachment'], true);
+
+	foreach($attachment as $a) {
 		if (
 			isset($a['type']) && $a['type'] === 'PropertyValue' &&
 			isset($a['name']) && $a['name'] === 'zot.diaspora.fields' &&
