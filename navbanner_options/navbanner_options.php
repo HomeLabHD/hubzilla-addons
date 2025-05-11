@@ -29,7 +29,7 @@ function navbanner_options_main(&$banner) {
     $sitename = \App::$config['system']['sitename'] ?? '';
     $channelname = \App::$channel['channel_name'] ?? '';
     $channeladdr = \App::$channel['channel_address'] ?? '';
-    $fullname = \App::$observer['xchan_name'] ?? '';
+    $fullname = get_observer_name();
     $accountemail = \App::$account['account_email'] ?? '';
     $serviceclass = \App::$account['account_service_class'] ?? '';
     $accountlevel = \App::$account['account_level'] ?? '';
