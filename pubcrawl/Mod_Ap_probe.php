@@ -90,6 +90,10 @@ class Ap_probe extends \Zotlabs\Web\Controller {
 							$item[0]['attach'] = json_encode($item[0]['attach']);
 						}
 
+						if (!empty($item[0]['obj'])) {
+							$item[0]['obj'] = json_encode($item[0]['obj']);
+						}
+
 						$o .= conversation($item, 'search', false, 'preview');
 					}
 				}
