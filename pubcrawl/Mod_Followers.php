@@ -11,7 +11,6 @@ use Zotlabs\Web\HTTPSig;
 
 class Followers extends Controller {
 
-
 	function init() {
 
 		if(observer_prohibited(true)) {
@@ -33,13 +32,26 @@ class Followers extends Controller {
 			http_status_exit(403, 'Forbidden');
 		}
 
+		if(! ActivityStreams::is_as_request()) {
+			http_status_exit(400, 'Bad request');
+		}
+
 		$r = q("select * from abconfig left join xchan on abconfig.xchan = xchan_hash where abconfig.chan = %d and abconfig.cat = 'their_perms' and abconfig.k = 'send_stream' and abconfig.v = '1'",
 			intval($channel['channel_id'])
 		);
 
-		if(ActivityStreams::is_as_request()) {
-			as_return_and_die(Activity::encode_follow_collection($r, App::$query_string, 'OrderedCollection'), $channel);
+		if (! is_array($r)) {
+			http_status_exit(500, 'Internal server error');
 		}
+
+		as_return_and_die(
+			Activity::encode_follow_collection(
+				$r,
+				App::$query_string,
+				'OrderedCollection'
+			),
+			$channel
+		);
 
 	}
 
