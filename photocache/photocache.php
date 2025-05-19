@@ -227,9 +227,6 @@ function photocache_url(&$cache = []) {
 			intval(PHOTO_CACHE)
 		);
 		if($k) {
-			logger(print_r('photocache create copy for uid: ' . $cache['item']['uid'], true), LOGGER_DEBUG);
-
-
 			// If photo already was cached for other user just duplicate it
 			if(($k[0]['height'] >= $minres || $k[0]['width'] >= $minres) && $k[0]['filesize'] > 0) {
 				$cache['item']['os_syspath'] = dbunescbin($k[0]['content']);
@@ -251,6 +248,7 @@ function photocache_url(&$cache = []) {
 	}
 
 	$exp = strtotime($cache['item']['expires']) + date('Z');
+
 	// fetch the image if the cache has expired or we need to cache and it has not yet been done
 	$url = (($cache['item']['height'] == 0) || ((($cache['item']['height'] >= $minres || $cache['item']['width'] >= $minres) && ($exp - 60 < time() || $cache['item']['filesize'] == 0))) ? html_entity_decode($cache['item']['display_path'], ENT_QUOTES) : '');
 
@@ -418,7 +416,7 @@ function photocache_prefetch($item) {
 
 				$result = z_fetch_url($image, true);
 
-				if(!$result['success']) {
+				if (!$result['success']) {
 					continue;
 				}
 
@@ -537,11 +535,11 @@ function photocache_parse_header_info($header) {
 		$cc = $hdrs['cache-control'];
 	}
 
-	if (strpos($cc, 'no-store')) {
+	if (str_contains($cc, 'no-store')) {
 		$ret['cancel'] = true;
 	}
 
-	if (strpos($cc, 'no-cache')) {
+	if (str_contains($cc, 'no-cache')) {
 		$expires = time() + 60;
 	}
 
