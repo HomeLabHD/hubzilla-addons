@@ -9,6 +9,7 @@
  */
 
 use Zotlabs\Lib\Apps;
+use Zotlabs\Lib\Config;
 use Zotlabs\Extend\Hook;
 use Zotlabs\Extend\Route;
 
@@ -219,7 +220,6 @@ function photocache_url(&$cache = []) {
 
 	logger('info: processing ' . $cache['item']['resource_id'] . ' (' . $cache['item']['display_path'] .') for ' . $cache['item']['uid']  . ' (min. ' . $minres . ' px)', LOGGER_DEBUG);
 
-
 	if($cache['item']['height'] == 0) {
 		// If new resource id
 		$k = q("SELECT * FROM photo WHERE xchan = '%s' AND photo_usage = %d AND height > 0 ORDER BY filesize DESC LIMIT 1",
@@ -269,8 +269,9 @@ function photocache_url(&$cache = []) {
 
 		$parsed_header = photocache_parse_header_info($i['header']);
 
-		if ($parsed_header['no-store']) {
-			return logger('caching prohibited by remote host directive', LOGGER_DEBUG);
+		if ($parsed_header['cancel']) {
+			logger('caching prohibited by remote host directive', LOGGER_DEBUG);
+			return;
 		}
 
 		$cache['item']['expires'] = gmdate('Y-m-d H:i:s', $parsed_header['expires']);
@@ -329,7 +330,7 @@ function photocache_url(&$cache = []) {
 				}
 
 				if($k) {
-					logger(print_r('not in cache',true), LOGGER_DEBUG);
+					logger(print_r('not in cache: ' . $cache['item']['display_path'],true), LOGGER_DEBUG);
 
 					// if this is first seen image
 					if(! $ph->save($cache['item'], true))
@@ -424,14 +425,14 @@ function photocache_prefetch($item) {
 				$type = guess_image_type($image, $result);
 
 				if (!$type || !str_contains($type, 'image')) {
-					logger('prefetch wrong image type detected ' . $type, LOGGER_DEBUG);
+					logger('wrong image type detected: ' . $type, LOGGER_DEBUG);
 					continue;
 				}
 
 				$parsed_header = photocache_parse_header_info($result['header']);
 
-				if ($parsed_header['no-store']) {
-					logger('prefetch not allowed by remote server directive', LOGGER_DEBUG);
+				if ($parsed_header['cancel']) {
+					logger('caching prohibited by remote server directive', LOGGER_DEBUG);
 					continue;
 				}
 
@@ -506,7 +507,7 @@ function photocache_parse_header_info($header) {
 		'expires' => null,
 		'last-modified' => null,
 		'etag' => null,
-		'no-store' => null
+		'cancel' => false
 	];
 
 	$cache_mode = [];
@@ -527,7 +528,7 @@ function photocache_parse_header_info($header) {
 	if(array_key_exists('expires', $hdrs)) {
 		$expires = strtotime($hdrs['expires']);
 		if($expires - 60 < time()) {
-			return logger('fetched item expired ' . $hdrs['expires'], LOGGER_DEBUG);
+			$ret['cancel'] = true;
 		}
 	}
 
@@ -537,7 +538,7 @@ function photocache_parse_header_info($header) {
 	}
 
 	if (strpos($cc, 'no-store')) {
-		$ret['no-store'] = true;
+		$ret['cancel'] = true;
 	}
 
 	if (strpos($cc, 'no-cache')) {
@@ -555,7 +556,7 @@ function photocache_parse_header_info($header) {
 		$expires = time() + $ttl;
 	}
 
-	$maxexp = time() + 86400 * get_config('system','default_expire_days', 30);
+	$maxexp = time() + 86400 * Config::Get('system', 'default_expire_days', 30);
 
 	if ($expires > $maxexp) {
 		$expires = $maxexp;
