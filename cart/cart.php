@@ -1542,8 +1542,7 @@ function cart_post() {
 		goaway(urldecode($_GET['returnurl']));
 	}
 
-	$base_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https' : 'http') . '://' . $_SERVER['HTTP_HOST'];
-	$url      = $base_url . $_SERVER["REQUEST_URI"];
+	$url = z_root() . '/' . App::$query_string;
 	goaway($url);
 }
 
