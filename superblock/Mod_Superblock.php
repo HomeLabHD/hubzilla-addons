@@ -224,10 +224,9 @@ class Superblock extends Controller {
 	 */
 	private function success(string $channel): void {
 		$msg = t("{$channel} was added to the sitewide block list.");
+		info($msg);
 		if ($this->is_json_request) {
 			json_return_and_die([ 'status' => 'success', 'message' => $msg ]);
-		} else {
-			info($msg);
 		}
 	}
 
