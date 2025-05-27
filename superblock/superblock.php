@@ -1,13 +1,13 @@
 <?php
-
-
 /**
  * Name: superblock
  * Description: block channels
- * Version: 2.0
+ * Version: 2.1
  * Author: Mike Macgirvin
+ * Author: Harald Eilertsen
  * Maintainer: Mike Macgirvin <mike@macgirvin.com>
- * MinVersion: 1.1.3
+ * Maintainer: Harald Eilertsen
+ * MinVErsion: 10.0
  */
 
 /**
