@@ -36,6 +36,10 @@ class Superblock extends Controller {
 
 		switch ($params['action']) {
 			case 'siteblock':
+				if (!is_site_admin()) {
+					$this->error(403, 'You do not have access to perform this operation');
+				}
+
 				$author = $params['author'];
 				if (!$author) {
 					$this->error(400, 'Invalid xchan');

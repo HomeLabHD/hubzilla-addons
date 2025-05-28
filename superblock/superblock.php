@@ -311,13 +311,18 @@ function superblock_conversation_start(&$b) {
 	if(! array_key_exists('htmlhead',App::$page))
 		App::$page['htmlhead'] = '';
 
-	App::$page['htmlhead'] .= <<< EOT
+	$script = <<< EOT
 		<script>
 		function superblockBlock(author,item) {
 			$.get('superblock?f=&item=' + item + '&block=' +author, function(data) {
 				location.reload(true);
 			});
 		}
+
+		EOT;
+
+	if (is_site_admin()) {
+		$script .= <<< JS
 		async function superblockSiteBlock(author) {
 			console.log("[+] Superblock siteblock: " + author);
 			let response = await fetch("superblock", {
@@ -334,8 +339,12 @@ function superblock_conversation_start(&$b) {
 			body = await response.text();
 			console.log("[+] Superblock siteblock: " + response.status + ", " + body);
 		}
-		</script>
-		EOT;
+		JS;
+	}
+
+	$script .= "</script>";
+
+	App::$page['htmlhead'] .= $script;
 
 }
 
