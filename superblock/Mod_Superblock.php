@@ -32,6 +32,7 @@ class Superblock extends Controller {
 	public function post(): void {
 		$this->validate_access();
 		$params = $this->validate_params();
+		$this->check_security_token($params['form_security_token']);
 
 		switch ($params['action']) {
 			case 'siteblock':
@@ -185,9 +186,33 @@ class Superblock extends Controller {
 				'author' => [
 					'filter' => FILTER_DEFAULT,
 				],
+				'form_security_token' => [
+					'filter' => FILTER_DEFAULT,
+				],
 			],
 			true
 		);
+	}
+
+	/**
+	 * Function to wrap check_form_security_token, so we can verify the token
+	 * regardless of where it originates.
+	 *
+	 * **Note:** This function will only return if the token is valid.
+	 *
+	 * @param string $token		The token to check.
+	 */
+	private function check_security_token(string $token): void {
+		//
+		// Since `check_form_security_token` is hardcoded to only check the
+		// `$_REQUEST` superglobal for the token (a really bad idea!), we have
+		// to stuff our token into the superglobal to satisfy the call
+		//
+		$_REQUEST['form_security_token'] = $token;
+
+		if (!check_form_security_token('superblock')) {
+			$this->error(403, "Invalid or missing security token");
+		}
 	}
 
 	/**

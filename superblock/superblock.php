@@ -306,6 +306,8 @@ function superblock_conversation_start(&$b) {
 		App::$data['superblock'] = explode(',',$words);
 	}
 
+	$security_token = get_form_security_token('superblock');
+
 	if(! array_key_exists('htmlhead',App::$page))
 		App::$page['htmlhead'] = '';
 
@@ -326,6 +328,7 @@ function superblock_conversation_start(&$b) {
 				body: JSON.stringify({
 					action: "siteblock",
 					author: author,
+					form_security_token: "{$security_token}",
 				}),
 			});
 			body = await response.text();
