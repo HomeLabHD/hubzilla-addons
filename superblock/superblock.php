@@ -324,7 +324,6 @@ function superblock_conversation_start(&$b) {
 	if (is_site_admin()) {
 		$script .= <<< JS
 		async function superblockSiteBlock(author) {
-			console.log("[+] Superblock siteblock: " + author);
 			let response = await fetch("superblock", {
 				method: "POST",
 				headers: {
@@ -337,7 +336,6 @@ function superblock_conversation_start(&$b) {
 				}),
 			});
 			body = await response.text();
-			console.log("[+] Superblock siteblock: " + response.status + ", " + body);
 		}
 		JS;
 	}

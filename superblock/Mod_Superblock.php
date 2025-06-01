@@ -178,7 +178,7 @@ class Superblock extends Controller {
 			$data = $_POST;
 		}
 
-		error_log("[*] Superblock POST: " . print_r($data, true));
+		logger("Superblock POST: " . print_r($data, true), LOGGER_DEBUG);
 
 		return filter_var_array(
 			$data,
