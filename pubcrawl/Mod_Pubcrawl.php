@@ -47,7 +47,13 @@ class Pubcrawl extends Controller {
 		$sc = '<div class="section-content-info-wrapper">' . $desc . '</div><br>';
 
 		$sc .= replace_macros(get_markup_template('field_checkbox.tpl'), [
-			'$field' => ['activitypub_force_note', t('Send activities of type note instead of article'), PConfig::Get(local_channel(), 'activitypub', 'force_note', true), t('Microblog services such as Mastodon do not properly support articles'), $yes_no],
+			'$field' => [
+				'activitypub_force_note',
+				t('Prefer compatibility with Mastodon'),
+				PConfig::Get(local_channel(), 'activitypub', 'force_note', true),
+				t('Mastodon does not always follow the ActivityPub spec. Enabling this option will ensure compatibility with Mastodon over strict adherence to the ActivityPub spec in these cases.'),
+				$yes_no
+			],
 		]);
 
 		$tpl = get_markup_template("settings_addon.tpl");
