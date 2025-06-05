@@ -4,10 +4,65 @@ namespace Zotlabs\Module;
 
 use App;
 use Zotlabs\Lib\Apps;
-use Zotlabs\Web\Controller;
+use Zotlabs\Lib\Config;
 use Zotlabs\Lib\Libsync;
+use Zotlabs\Web\Controller;
 
 class Superblock extends Controller {
+
+	/**
+	 * The local channel id, or false.
+	 */
+	private $localChannel = false;
+
+	/**
+	 * True if it's a json request.
+	 */
+	private $is_json_request = false;
+
+	/**
+	 * Initialize the state needed for further request handling.
+	 */
+	public function init(): void {
+		$this->localChannel = local_channel();
+		$this->is_json_request =
+			$_SERVER['HTTP_CONTENT_TYPE'] === 'application/json';
+	}
+
+	public function post(): void {
+		$this->validate_access();
+		$params = $this->validate_params();
+		$this->check_security_token($params['form_security_token']);
+
+		switch ($params['action']) {
+			case 'siteblock':
+				if (!is_site_admin()) {
+					$this->error(403, 'You do not have access to perform this operation');
+				}
+
+				$author = $params['author'];
+				if (!$author) {
+					$this->error(400, 'Invalid xchan');
+				}
+
+				$author_xchan = xchan_fetch(['hash' => $author]);
+				if (!$author_xchan) {
+					$this->error(400, 'Unknown author');
+				}
+
+				$blocked = Config::Get('system', 'blacklisted_channels', '');
+				if (!in_array($author_xchan['hash'], $blocked)) {
+					$blocked[] = $author_xchan['hash'];
+					sort($blocked);
+					Config::Set('system', 'blacklisted_channels', $blocked);
+				}
+				$this->success($author_xchan['hash']);
+				break;
+
+			default:
+				$this->error(400, 'No action given');
+		}
+	}
 
 	function get() {
 
@@ -92,6 +147,116 @@ class Superblock extends Controller {
 
 		return $o;
 
+	}
+
+	/**
+	 * Validates access to the module.
+	 *
+	 * If this function returns, access is granted. Otherwise it will send an
+	 * appropriate error status, or redirect if the addon is not installed for
+	 * the requesting channel.
+	 *
+	 * Requires that the $localChannel private attribute is set before this
+	 * function is called.
+	 *
+	 * **Note:** This function will not return if access is not granted.
+	 */
+	private function validate_access(): void {
+		if (!$this->localChannel) {
+			$this->error(403, 'Forbidden');
+		}
+
+		if (!Apps::addon_app_installed($this->localChannel, 'superblock')) {
+			goaway('/superblock');
+		}
+	}
+
+	private function validate_params(): array {
+		if ($this->is_json_request) {
+			$data = json_decode(file_get_contents('php://input'), true);
+		} else {
+			$data = $_POST;
+		}
+
+		logger("Superblock POST: " . print_r($data, true), LOGGER_DEBUG);
+
+		return filter_var_array(
+			$data,
+			[
+				'action' => [
+					'filter' => FILTER_VALIDATE_REGEXP,
+					'options' => ['regexp' => '/^siteblock$/']
+				],
+				'author' => [
+					'filter' => FILTER_DEFAULT,
+				],
+				'form_security_token' => [
+					'filter' => FILTER_DEFAULT,
+				],
+			],
+			true
+		);
+	}
+
+	/**
+	 * Function to wrap check_form_security_token, so we can verify the token
+	 * regardless of where it originates.
+	 *
+	 * **Note:** This function will only return if the token is valid.
+	 *
+	 * @param string $token		The token to check.
+	 */
+	private function check_security_token(string $token): void {
+		//
+		// Since `check_form_security_token` is hardcoded to only check the
+		// `$_REQUEST` superglobal for the token (a really bad idea!), we have
+		// to stuff our token into the superglobal to satisfy the call
+		//
+		$_REQUEST['form_security_token'] = $token;
+
+		if (!check_form_security_token('superblock')) {
+			$this->error(403, "Invalid or missing security token");
+		}
+	}
+
+	/**
+	 * Return an error status for the request.
+	 *
+	 * If the request is an ajax request, a json object with `$message` is
+	 * returned. In any case the HTTP status code is set to `$status`.
+	 *
+	 * **Note:** This function will not return.
+	 *
+	 * @param int $status		The HTTP status code to return.
+	 * @param string $message	The error message, only used for ajax requests.
+	 */
+	private function error(int $status, string $message): void {
+		if ($this->is_json_request) {
+			http_status($status);
+			json_return_and_die([ 'status' => 'error', 'message' => $message ]);
+		} else {
+			http_status_exit($status);
+		}
+	}
+
+	/**
+	 * Signal that the request was successful.
+	 *
+	 * If it's an ajax request, a json object is returned to the client,
+	 * otherwise we just prima a notice and let the request fall through
+	 * to the normal processing.
+	 *
+	 * **Note:** This function will not return if the request was a json
+	 * request.
+	 *
+	 * @param string $channel		The channel address that was blocked.
+	 */
+	private function success(string $channel): void {
+		$msg = t("{$channel} was added to the sitewide block list.");
+		info($msg);
+		if ($this->is_json_request) {
+			json_return_and_die([ 'status' => 'success', 'message' => $msg ]);
+		}
 	}
 
 }
