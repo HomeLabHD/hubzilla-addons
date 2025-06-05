@@ -2,45 +2,44 @@ var logger = function () {
 
     var oldConsoleLog = null;
     var pub = {};
-
     pub.enableLogger = function enableLogger() {
         if (oldConsoleLog == null)
             return;
         window['console']['log'] = oldConsoleLog;
     };
-
     pub.disableLogger = function disableLogger() {
         oldConsoleLog = console.log;
         window['console']['log'] = function () {
         };
     };
-
     pub.log = function log(message) {
         var now = new Date();
-        var now = new Date();
+        if (arguments.callee.caller) {
+            if (arguments.callee.caller.name !== "") {
+                message = arguments.callee.caller.name + "(..) - " + message;
+            }
+        }
         console.log(now.toISOString() + " - " + message);
     }
 
     return pub;
-
 }();
-
 class BoxLocalStore {
     check() {
-        logger.log("BoxLocalStore - check local storage...");
+        logger.log("BoxLocalStore.check() - check local storage...");
         try {
             var firstCheck = 'localStorage' in window;
             var secondCheck = window['localStorage'] !== null;
             localStorage.setItem("testkey", "value");
             this.isLocalStorageSupported = firstCheck && secondCheck;
-            logger.log("BoxLocalStore - local storage is available: " + this.isLocalStorageSupported);
+            logger.log("BoxLocalStore.check() - local storage is available: " + this.isLocalStorageSupported);
         } catch (e) {
             this.isLocalStorageSupported = false;
-            logger.log("BoxLocalStore - local storage is NOT available");
+            logger.log("BoxLocalStore.check() - local storage is NOT available");
         }
     }
     isAvailable() {
-        logger.log("BoxLocalStore - local storage available? " + this.isLocalStorageSupported);
+        logger.log("BoxLocalStore.isAvailable() - local storage available? " + this.isLocalStorageSupported);
         return this.isLocalStorageSupported
     }
     getItem(id) {
@@ -50,34 +49,37 @@ class BoxLocalStore {
                 value = localStorage.getItem(id);
             } catch (e) {
                 this.isLocalStorageSupported = false;
-                logger.log("BoxLocalStore - local storage is NOT available. It might be the user changed the browser settings after starting the app.");
+                logger.log("BoxLocalStore.getItem() - local storage is NOT available. It might be the user changed the browser settings after starting the app.");
             }
         }
         if (!value) {
             value = "";
         }
-        //logger.log("BoxLocalStore - returning item id = " + id + ", value = " + value);
+        //logger.log("BoxLocalStore.getItem() - returning item id = " + id + ", value = " + value);
         return value;
     }
     setItem(id, value) {
-        //logger.log("BoxLocalStore - storing item id = " + id + ", value = " + value);
+        //logger.log("BoxLocalStore.setItem() - storing item id = " + id + ", value = " + value);
         if (this.isLocalStorageSupported) {
             try {
                 localStorage.setItem(id, value);
             } catch (e) {
                 this.isLocalStorageSupported = false;
-                logger.log("BoxLocalStore - local storage is NOT available. It might be the user changed the browser settings after starting the app.");
+                logger.log("BoxLocalStore.setItem() - local storage is NOT available. It might be the user changed the browser settings after starting the app.");
             }
         }
     }
 }
 
 var postUrl = '';
-var is_owner = '';
 var flashcards_editor = '';
+let flashcards_owner = '';
+let owner_xchan_hash = '';
+let owner_xchan_addr = '';
+let param_zid = "";
 var is_local_channel = '';
-var is_allowed_to_create_box = '';
-
+var has_write_permission = '';
+var box_link = '';
 var boxLocalStore = new BoxLocalStore();
 var stringContentOldCard = '';
 /*
@@ -207,14 +209,14 @@ class Card {
         return false;
     }
     move(passed) { // learn progress
-        logger.log('Moving card ' + this.content[0] + ' with deck =  ' + this.content[6] + ' and progress in deck = ' + this.content[7]);
+        logger.log('Card.move() - Moving card ' + this.content[0] + ' with deck =  ' + this.content[6] + ' and progress in deck = ' + this.content[7]);
         this.content[8] = this.content[8] + 1; // learn count
         this.content[9] = new Date().getTime(); // milliseconds last learned
-        this.content[10] = true;  // please uploaded
+        this.content[10] = true; // please uploaded
         if (!passed) {
             this.content[6] = 0; // move into first deck
             this.content[7] = 0;
-            logger.log('Moved card ' + this.content[0] + ' back to deck 0');
+            logger.log('Card.move() - Moved card ' + this.content[0] + ' back to deck 0');
             return;
         }
         var deck = this.content[6];
@@ -222,12 +224,12 @@ class Card {
         if (deckProgress >= box.content.cardsRepetitionsPerDeck) {
             deckProgress = 0;
             if (deck < (box.content.cardsDecks - 1)) {
-                deck++;  // move into next deck
+                deck++; // move into next deck
             }
         }
         this.content[6] = deck;
         this.content[7] = deckProgress;
-        logger.log('Moved card ' + this.content[0] + ' to deck ' + this.content[6] + ' with progress in deck ' + this.content[7]);
+        logger.log('Card.move() - Moved card ' + this.content[0] + ' to deck ' + this.content[6] + ' with progress in deck ' + this.content[7]);
     }
     edit() {
         var i;
@@ -275,7 +277,7 @@ class Box {
         this.KEY_LOCALSTORAGE_ID = "flashcards.box";
         // content of a box
         this.content = {
-            "boxID": "", // = resource_id in Hubzilla DB
+            "boxID": "", // milliseconds created. Used in cloud file name
             "title": "",
             "description": "",
             "creator": "",
@@ -297,8 +299,9 @@ class Box {
             "private_visibleColumns": [false, true, true, false, false, false, false, false, false, false, false],
             "private_switch_learn_direction": false,
             "private_switch_learn_all": false,
-            "private_hasChanged": false,
+            "hasChanged": false,
             "private_block": false,
+            "license_public_domain": true,
             "private_autosave": true,
             "private_show_card_sort": false,
             "private_sort_default": true,
@@ -313,18 +316,18 @@ class Box {
      * load content from local storage
      */
     load() {
-        logger.log("Box - load...");
+        logger.log("Box.load() - load...");
         if (boxLocalStore.isAvailable()) {
             var contentString = boxLocalStore.getItem(this.KEY_LOCALSTORAGE_ID);
             if (contentString != "") {
                 this.content = JSON.parse(contentString)
             }
         } else {
-            logger.log("Box - can NOT load from local storage");
+            logger.log("Box.load() - can NOT load from local storage");
         }
     }
     loadFromString(s) {
-        logger.log("Box - load from string...");
+        logger.log("Box.loadFromString() - load from string...");
 //		var jsonString = s.replace(/\"/g, '"');
         this.content = JSON.parse(s);
     }
@@ -332,25 +335,33 @@ class Box {
      * store content to local storage
      */
     store() {
-        logger.log("Box - store...");
+        logger.log("Box.store() - store...");
         if (boxLocalStore.isAvailable()) {
             // public metadata
             // store as String to avoid errors with local storage that might
             // sometimes convert a stored object to a String
             boxLocalStore.setItem(this.KEY_LOCALSTORAGE_ID, JSON.stringify(this.content));
         } else {
-            logger.log("Box - can NOT store to local storage");
+            logger.log("Box.store() - can NOT store to local storage");
+        }
+    }
+    remove() {
+        logger.log("Box.remove() - remove from local storage...");
+        if (boxLocalStore.isAvailable()) {
+            boxLocalStore.setItem(this.KEY_LOCALSTORAGE_ID, "");
+        } else {
+            logger.log("Box.remove() - can NOT store to local storage");
         }
     }
     isEmpty() {
-        this.hasTitle = true;
+        let b = true;
         if (this.content.title) {
-            if (this.title != "") {
-                this.hasTitle = false;
+            if (this.content.title !== "") {
+                b = false;
             }
         }
-        logger.log("Box - is empty: " + this.hasTitle);
-        return this.hasTitle;
+        logger.log("Box.isEmpty() - is empty: " + b);
+        return b;
     }
     setTitle(s) {
         this.content.title = s;
@@ -358,8 +369,23 @@ class Box {
     setDescription(s) {
         this.content.description = s;
     }
-    setBoxId(s) {
+    setId(s) {
         this.content.boxID = s;
+    }
+    setPublicID(s) {
+        this.content.boxPublicID = s;
+    }
+    setCreator(s) {
+        this.content.creator = s;
+    }
+    getCreator() {
+        return this.content.creator;
+    }
+    setCreatorXchanHash(s) {
+        this.content.creator_xchan_hash = s;
+    }
+    getCreatorXchanHash() {
+        return this.content.creator_xchan_hash;
     }
     getContent() {
         return this.content;
@@ -409,6 +435,7 @@ class Box {
             this.content.cardsRepetitionsPerDeck = 10;
         }
         this.content.private_block = this.checkBoolean(this.content.private_block, false);
+        this.content.license_public_domain = this.checkBoolean(this.content.license_public_domain, true);
         this.content.private_sortColumn = this.checkInteger(this.content.private_sortColumn);
         if (this.content.private_sortColumn > 9) {
             this.content.private_sortColumn = 9;
@@ -482,12 +509,12 @@ class Box {
     getChangeString() {
         var s = this.content.title;
         s += this.content.description;
+        s += this.content.license_public_domain;
         // s += this.content.size;
         // "creator":"",
         // "lastShared":0,
         // "boxPublicID":0,
         // "lastEditor":"",
-        // "lastChangedPublicMetaData":0,
         // "maxLengthCardField":1000,
         // s += this.content.cardsDecks;
         // s += this.content.cardsDeckWaitExponent;
@@ -512,6 +539,7 @@ class Box {
         s += this.content.private_sort_default;
         s += this.content.private_search_convenient;
         s += this.content.private_block;
+        s += this.content.license_public_domain;
         return s;
     }
     edit() {
@@ -519,39 +547,39 @@ class Box {
         stringContentOldBoxPrivate = this.getChangeStringPrivate();
     }
     save(action) {
-        logger.log('box.save(): Save changes of box if any....');
+        logger.log('Box.save() - Save changes of box if any....');
         if (action == 'box') {
             var s = this.getChangeString();
             if (stringContentOldBox != s) {
                 this.content.lastChangedPublicMetaData = new Date().getTime();
-                this.content.private_hasChanged = true;
+                this.content.hasChanged = true;
                 this.content.lastEditor = flashcards_editor;
-                logger.log('box.save(): public metadata of box has changed');
+                logger.log('Box.save() - public metadata of box has changed');
             }
             s = this.getChangeStringPrivate();
             if (stringContentOldBoxPrivate != s) {
                 this.content.lastChangedPrivateMetaData = new Date().getTime();
-                this.content.private_hasChanged = true;
-                logger.log('box.save(): private metadata of box has changed');
+                this.content.hasChanged = true;
+                logger.log('Box.save() - private metadata of box has changed');
             }
         } else if (action == 'card') {
-            this.content.private_hasChanged = true;
+            this.content.hasChanged = true;
             if (this.content.size !== this.content.cards.length) {
                 this.content.lastChangedPublicMetaData = new Date().getTime();
                 this.content.size = this.content.cards.length;
             }
             this.content.lastEditor = flashcards_editor;
-            logger.log('box.save(): card content has changed');
+            logger.log('Box.save() - card content has changed');
         } else if (action == 'progress') {
-            logger.log('box.save(): card progress has changed');
+            logger.log('Box.save() - card progress has changed');
         } else {
-            logger.log('box.save(): You should never see this line.');
+            logger.log('Box.save() - You should never see this line.');
             return;
         }
         this.store();
     }
     hasChanges() {
-        return this.content.private_hasChanged;
+        return this.content.hasChanged;
     }
     comparator(a, b) {
         var aValue = a.content[sortByColumn];
@@ -575,7 +603,7 @@ class Box {
         }
     }
     sortBy(index, reverse) {
-        logger.log('Sorting cards by column = ' + index + ', reverse order = ' + reverse + '...');
+        logger.log('Box.sortBy() - Sorting cards by column = ' + index + ', reverse order = ' + reverse + '...');
         sortByColumn = index; // TODO Check if it is possible to use this.private_sortColumn inside comparator(a, b)
         sortReversOrder = reverse; // TODO Check if it is possible to use this.private_sortColumn inside comparator(a, b)
         this.content.private_sortColumn = index;
@@ -592,7 +620,7 @@ class Box {
     getCardsArrayFiltered(filterArray) {
         var filtered = [];
         if (this.search !== "") {
-            logger.log('Using convenient search with search string = ' + this.search + '...');
+            logger.log('Box.getCardsArrayFiltered() - Using convenient search with search string = ' + this.search + '...');
             this.searchResultColumns = [false, true, true, false, false, false, false, false, false, false, false];
             var parts = this.search.split(" ");
             var partsFound = new Array(parts.length);
@@ -636,7 +664,7 @@ class Box {
             } else {
                 filterArray = this.content.private_filter;
             }
-            logger.log('Filter cards array with filter array = ' + filterArray + '...');
+            logger.log('Box.getCardsArrayFiltered() - Filter cards array with filter array = ' + filterArray + '...');
             this.searchResultColumns = [false, false, false, false, false, false, false, false, false, false, false];
             // Is filter empty?
             var l;
@@ -709,19 +737,19 @@ class Box {
         return deepCopy;
     }
     getContentToUpload() {
-        logger.log("Create a copy a box for upload...");
+        logger.log("Box.getContentToUpload() - Create a copy a box for upload...");
         if (this.content.lastShared < 1) {
-            logger.log("This box was never uploaded > Return full copy.");
+            logger.log("Box.getContentToUpload() - This box was never uploaded > Return full copy.");
             var boxToUpload = this.getCopy();
             boxToUpload.setAllUploadMarkers();
             return boxToUpload;
         }
         var boxToUpload = this.getCopy();
         if (boxToUpload.content.boxID == "") {
-            logger.log('Box has no boxID. This means it does not exist in the DB. Return the whole box...')
+            logger.log('Box.getContentToUpload() - Box has no boxID. This means it does not exist in the DB. Return the whole box...')
             return boxToUpload;
         }
-        logger.log('Remove cards from copied box to upload only cards that have changed...');
+        logger.log('Box.getContentToUpload() - Remove cards from copied box to upload only cards that have changed...');
         var cardsToUpload = [];
         boxToUpload.content.cards = cardsToUpload;
         var i;
@@ -730,32 +758,35 @@ class Box {
                 cardsToUpload.push(this.content.cards[i]);
             }
         }
-        logger.log('The copied box contains ' + cardsToUpload.length + ' cards that have changed since the last upload (sync).');
+        logger.log('Box.getContentToUpload() - The copied box contains ' + cardsToUpload.length + ' cards that have changed since the last upload (sync).');
         return boxToUpload;
     }
     merge(boxRemote) {
-        logger.log('Start to merge with a remote box...');
+        logger.log('Box.merge() - Start to merge with a remote box...');
         boxRemote.validate();
         if (this.content.boxPublicID != boxRemote.content.boxPublicID) {
-            logger.log('Public IDs not equal. Local = ' + this.content.boxPublicID + ', remote' + boxRemote.content.boxPublicID + '. No merge.');
+            logger.log('Box.merge() - Public IDs not equal. Local = ' + this.content.boxPublicID + ', remote' + boxRemote.content.boxPublicID + '. No merge.');
             return;
         }
         var isOwnBox = false;
         if (this.content.boxID == boxRemote.content.boxID) {
             isOwnBox = true; // TODO Change this to take the owner or ... depending on implementation of how it is shared in Hubzill
         }
+        const msgPrefix = "Box.merge() - remote box " + boxRemote.content.boxID + " into local box " + this.content.boxID + " - ";
         var remotePublicMetaDataWins = false;
         var remotePrivateMetaDataWins = false;
-        var keysPublic = ['title', 'description', 'lastEditor', 'lastChangedPublicMetaData'];
+        var keysPublic = ['title', 'description', 'lastEditor', 'license_public_domain', 'lastChangedPublicMetaData'];
         if (this.content.lastChangedPublicMetaData !== boxRemote.content.lastChangedPublicMetaData) {
             var i;
             for (i = 0; i < keysPublic.length; i++) {
                 if (this.content.lastChangedPublicMetaData < boxRemote.content.lastChangedPublicMetaData) {
                     this.content[keysPublic[i]] = boxRemote.content[keysPublic[i]];
                     remotePublicMetaDataWins = true;
-                    logger.log('remote box overwrites box public data: key = ' + keysPublic[i]);
+                    logger.log(msgPrefix + 'remote box overwrites box public data: key = ' + keysPublic[i] + ", value = " + boxRemote.content[keysPublic[i]]);
                 }
             }
+        } else {
+            logger.log(msgPrefix + 'The meta data in both boxes have the same last modified time stamp. No meta data to merge.');
         }
         if (isOwnBox) {
             var keysPrivate = ['cardsDecks', 'cardsDeckWaitExponent', 'cardsRepetitionsPerDeck', 'private_block', 'private_sortColumn', 'private_sortReverse', 'private_filter', 'private_visibleColumns', 'private_switch_learn_direction', 'private_switch_learn_all', 'private_autosave', 'private_show_card_sort', 'private_sort_default', 'private_search_convenient', 'lastChangedPrivateMetaData'];
@@ -765,31 +796,35 @@ class Box {
                     if (this.content.lastChangedPrivateMetaData < boxRemote.content.lastChangedPrivateMetaData) {
                         this.content[keysPrivate[i]] = boxRemote.content[keysPrivate[i]];
                         remotePrivateMetaDataWins = true;
-                        logger.log('remote box overwrites box private data: key = ' + keysPrivate[i]);
+                        logger.log(msgPrefix + 'remote box overwrites box private data: key = ' + keysPrivate[i]);
                     }
                 }
             }
+        } else {
+            logger.log(msgPrefix + 'This is not the own box. No private data to merge.');
         }
-        if (remotePublicMetaDataWins && remotePrivateMetaDataWins) {
+        if (remotePublicMetaDataWins || remotePrivateMetaDataWins) {
             // this is for the "share" button and means box meta data to upload
-            this.content.private_hasChanged = false;
+            this.content.hasChanged = true;
         }
         var cardsLocal = this.content.cards;
         var cardsRemote = boxRemote.content.cards;
         if (!cardsLocal) {
-            logger.log('No local cards. Try to take remote cards if any.');
+            logger.log(msgPrefix + 'No local cards. Try to take remote cards if any.');
             if (!cardsRemote) {
-                logger.log('No remote cards.');
+                logger.log(msgPrefix + 'No remote cards.');
             } else {
-                logger.log('Take remote cards.');
+                logger.log(msgPrefix + 'Take remote cards.');
                 this.content.cards = boxRemote.content.cards;
+                this.content.hasChanged = true; // this will cause an upload of the box
             }
             return;
         }
         if (!cardsRemote) {
-            logger.log('No remote cards > no cards to merge');
+            logger.log(msgPrefix + 'No remote cards > no cards to merge');
             return;
         }
+        logger.log(msgPrefix + 'About to merge the cards...');
         var i;
         for (i = 0; i < cardsRemote.length; i++) {
             var remoteArray = cardsRemote[i].content;
@@ -804,7 +839,7 @@ class Box {
                         localArray[j] = remoteArray[j];
                     }
                     remoteContentWins = true;
-                    logger.log('The content of card "' + remoteArray[0] + '" was imported from the remote card that was changed at ' + new Date(remoteArray[5]).toLocaleString());
+                    logger.log(msgPrefix + 'The content of card "' + remoteArray[0] + '" was imported from the remote card that was changed at ' + new Date(remoteArray[5]).toLocaleString());
                 }
                 if (isOwnBox) {
                     if (localArray[9] < remoteArray[9]) { // last modified progress
@@ -813,11 +848,12 @@ class Box {
                             localArray[j] = remoteArray[j]
                         }
                         remoteProgressWins = true;
-                        logger.log('The learn progress of card "' + remoteArray[0] + '" was imported from the remote card that was changed at ' + new Date(remoteArray[5]).toLocaleString());
+                        logger.log(msgPrefix + 'The learn progress of card "' + remoteArray[0] + '" was imported from the remote card that was changed at ' + new Date(remoteArray[5]).toLocaleString());
                     }
                 }
-                if (remoteContentWins && remoteProgressWins) {
-                    localArray[10] = false;
+                if (remoteContentWins || remoteProgressWins) {
+                    this.content.hasChanged = true; // this will cause an upload of the box
+                    localArray[10] = true;
                 }
             } else {
                 if (!isOwnBox) {
@@ -825,11 +861,12 @@ class Box {
                     for (j = 6; j < 10; j++) {
                         remoteArray[j] = 0;
                     }
-                    remoteArray[10] = false;
-                    logger.log('The learn progress of card "' + remoteArray[0] + '" was removed from the remote card that was changed at ' + new Date(remoteArray[5]).toLocaleString());
+                    remoteArray[10] = true;
+                    logger.log(msgPrefix + 'The learn progress of card "' + remoteArray[0] + '" was removed from the remote card that was changed at ' + new Date(remoteArray[5]).toLocaleString());
                 }
                 cardsLocal.push(cardsRemote[i]); // new card
-                logger.log('Added the remote card "' + remoteArray[0] + '" changed at ' + new Date(remoteArray[5]).toLocaleString());
+                this.content.hasChanged = true; // this will cause an upload of the box
+                logger.log(msgPrefix + 'Added the remote card "' + remoteArray[0] + '" changed at ' + new Date(remoteArray[5]).toLocaleString());
             }
         }
     }
@@ -845,14 +882,14 @@ class Box {
         return rCard;
     }
     setAllUploadMarkers() {
-        this.content.private_hasChanged = true;
+        this.content.hasChanged = true;
         var i;
         for (i = 0; i < this.content.cards.length; i++) {
             this.content.cards[i].content[10] = true;
         }
     }
     removeAllUploadMarkers() {
-        this.content.private_hasChanged = false;
+        this.content.hasChanged = false;
         if (!this.content.cards) {
             return;
         }
@@ -862,13 +899,13 @@ class Box {
         }
     }
     checkUploadMarkers(cardIDsUploaded) {
-        logger.log("Checking upload markers...");
+        logger.log("Box.checkUploadMarkers() - Checking upload markers...");
         if (!cardIDsUploaded) {
-            logger.log("Upload markers are empty. Return...");
+            logger.log("Box.checkUploadMarkers() - Upload markers are empty. Return...");
             return;
         }
-        logger.log("Checking upload markers.... card id's uploaded = " + cardIDsUploaded)
-        box.content.private_hasChanged = false;
+        logger.log("Box.checkUploadMarkers() - Checking upload markers.... card id's uploaded = " + cardIDsUploaded)
+        box.content.hasChanged = false;
         // This function is used to check if all cards of a new box where uploaded.
         // Not all cards are uploaded by a post if there are many cards.
         // During tests the limit was 87 cards.
@@ -955,15 +992,14 @@ class Box {
         return [boxVisualized, table, calculation];
     }
 }
+
+let contacts_fc;
 var box = new Box();
 var nick = "";
-
 var sortByColumn = 0;
 var sortReversOrder = false;
 var timezoneOffsetMilliseconds = 0;
-
 var blockEditBox = false;
-
 function setShareButton() {
     var hasUploads = 0;
     $("#button_share_box").css({'color': ''});
@@ -971,6 +1007,21 @@ function setShareButton() {
         $("#button_share_box").css({'color': 'red'});
         hasUploads = 1;
     }
+    var counter = countChangedCards();
+    if (counter === 0) {
+        logger.log('no card has changes');
+        $("#button_share_box_counter").html("");
+    } else {
+        logger.log("Found " + counter + ' card with changes');
+        $("#button_share_box_counter").html('<sup>' + counter + '</sup>');
+        $("#button_share_box").css({'color': 'red'});
+        hasUploads = 1;
+    }
+    $("#button_share_box").show();
+    return hasUploads;
+}
+
+function countChangedCards() {
     var counter = 0;
     if (box.content.cards) {
         var i;
@@ -980,23 +1031,16 @@ function setShareButton() {
             }
         }
     }
-    if (counter == 0) {
-        logger.log('Share button: no card has changes');
-        $("#button_share_box_counter").html("");
-    } else {
-        logger.log('Share button: ' + counter + ' card with changes');
-        $("#button_share_box_counter").html('<sup>' + counter + '</sup>');
-        $("#button_share_box").css({'color': 'red'});
-        hasUploads = 1;
-    }
-    $("#button_share_box").show();
-    return hasUploads;
+    return counter;
 }
 
-function loadStartPage() {
-    if (is_allowed_to_create_box || !box.isEmpty()) {
+function loadStartPage(triggerSync) {
+    if (has_write_permission || !box.isEmpty()) {
         fillInputsSettings();
         conductGUIelements('start');
+        if (triggerSync) {
+            syncBox();
+        }
     } else {
         conductGUIelements('show-help');
     }
@@ -1011,7 +1055,7 @@ function conductGUIelements(action) {
         hasUploads = setShareButton();
     }
     $("#button_flashcards_close").hide();
-    if (box.isEmpty()) {
+    if (box.isEmpty() || !has_write_permission) {
         $("#flashcards_edit_box").hide();
     } else {
         $("#flashcards_edit_box").show();
@@ -1025,7 +1069,6 @@ function conductGUIelements(action) {
         $("#flashcards_panel_learn_buttons").hide();
         $("#flashcards_import").prop("disabled", false);
         $("#panel_cloud_boxes_1").hide();
-        $("#panel_search_cloud_boxes").hide();
         if (box.isEmpty()) {
             $("#button_flashcards_save_box").show();
             $("#button_flashcards_learn_play").hide();
@@ -1046,6 +1089,9 @@ function conductGUIelements(action) {
     if (action === 'edit-box') {
         var localTimeString = new Date(box.content.lastChangedPublicMetaData).toLocaleString();
         $("#flashcards_editor").html("last edit by " + box.content.lastEditor + " at " + localTimeString);
+        let splittees = window.location.pathname.split("/");
+        let link = "/cloud/" + splittees[2] + "/flashcards/" + splittees[3] + ".json";
+        $("#flashcards_link").html(" <a href='" + link + "'>source</a> ");
         $('#panel_box_attributes').collapse("show");
         $("#button_share_box").hide();
         $("#button_flashcards_learn_play").hide();
@@ -1078,7 +1124,7 @@ function conductGUIelements(action) {
         $("#flashcards_cardedit_cancel").hide();
     }
     if (action === 'save-card') {
-        //$("#flashcards_cardedit_save").hide();
+//$("#flashcards_cardedit_save").hide();
         $("#flashcards_cardedit_cancel").hide();
         $("#panel_flashcards_card").hide();
         // $("#panel_flashcards_card").collapse("hide");
@@ -1133,7 +1179,7 @@ function conductGUIelements(action) {
         showCards(false);
     }
     if (action === 'list-boxes') {
-        $("#flashcards_navbar_brand").html("Local Flashcards");
+        $("#flashcards_navbar_brand").html("List Boxes");
         $("#button_flashcards_save_box").hide();
         $("#button_flashcards_learn_play").hide();
         $("#button_share_box").hide();
@@ -1144,8 +1190,9 @@ function conductGUIelements(action) {
         $("#panel_box_navigation").show();
         $("#panel_cloud_boxes_1").show();
         if (!is_local_channel) {
-            $("#panel_cloud_boxes_header").hide();
+            $("#panel_list_boxes_header").hide();
         }
+        $("#panel_list_boxes").html("");
         $("#flashcards_edit_box").hide();
         $("#panel_flashcards_card").hide();
         blockEditBox = true;
@@ -1174,27 +1221,6 @@ function conductGUIelements(action) {
     if (action !== 'show-help') {
         $("#panel_flashcards_help").hide();
     }
-    if (action === 'search-boxes') {
-        $("#flashcards_navbar_brand").html("Search Cloud Boxes");
-        $("#button_flashcards_save_box").hide();
-        $("#button_flashcards_learn_play").hide();
-        $('#panel_box_attributes').collapse("hide");
-        $("#panel_flashcards_cards_actions").hide();
-        $("#panel_flashcards_cards").hide();
-        $("#panel_flashcards_help").hide();
-        $("#panel_cloud_boxes_1").hide();
-        $("#panel_search_cloud_boxes").html('loading...');
-        $("#panel_search_cloud_boxes").show();
-        if (is_allowed_to_create_box) {
-            $("#button_flashcards_close").show();
-        } else {
-            $("#button_flashcards_close").hide();
-        }
-        $("#panel_flashcards_card").hide();
-    }
-    if (action !== 'search-boxes') {
-        $("#panel_search_cloud_boxes").hide();
-    }
     fixTitleLength();
     if (hasUploads === 1 && box.content.private_autosave) {
         uploadBox();
@@ -1216,6 +1242,10 @@ function fillInputsBox() {
         $("#flashcards_box_title").val(box.content.title);
         $("#flashcards_box_description").val(box.content.description);
         $('#flashcards-block-changes').prop('checked', box.content.private_block);
+        $('#flashcards-is-public-domain').prop('checked', box.content.license_public_domain);
+        if (box.content.creator_xchan_hash && box.content.creator_xchan_hash !== owner_xchan_hash) {
+            $('#flashcards-is-public-domain').prop('disabled', true);
+        }
     }
 }
 
@@ -1237,6 +1267,7 @@ function fillInputsSettings() {
     var result = box.visualize();
     $("#flashcards-learn-system-visualisation").html(result[1]);
     $("#fc_leitner_calculation").html(result[2]);
+    $("#flashcards_creator").html(box.content.creator);
 }
 
 function showCards(reload) {
@@ -1314,7 +1345,7 @@ function createTable(reload) {
 function removeRows() {
     logger.log('removeRows() remove all rows first...');
     $('#flashcards_table').find('.flashcards-table-row').each(function (i, tr) {
-        //logger.log('remove row: ' + i);
+//logger.log('remove row: ' + i);
         tr.remove();
     })
 }
@@ -1333,7 +1364,7 @@ function createCardRows(cards) {
         return html;
     }
     for (i = 0; i < cards.length; i++) {
-        //logger.log('add row: ' + i);
+//logger.log('add row: ' + i);
         html += '<tr class="flashcards-table-row" cardid="' + cards[i].content[0] + '">';
         var j;
         for (j = 0; j < 11; j++) {
@@ -1361,7 +1392,6 @@ function getColumnElements() {
     for (j = 0; j < 11; j++) {
         if (box.content.private_visibleColumns[j] || box.searchResultColumns[j]) {
             counter++;
-
         }
     }
     for (j = 0; j < 11; j++) {
@@ -1531,19 +1561,15 @@ function showCard(id) {
 $(document).on("input", "#flashcards_language1", function () {
     validateUserInputCard();
 });
-
 $(document).on("input", "#flashcards_language2", function () {
     validateUserInputCard();
 });
-
 $(document).on("input", "#flashcards_description", function () {
     validateUserInputCard();
 });
-
 $(document).on("input", "#flashcards_tags", function () {
     validateUserInputCard();
 });
-
 function validateUserInputCard() {
     logger.log('validate user input for card...');
     var side1 = $('#flashcards_language1').val();
@@ -1583,13 +1609,13 @@ function saveCard() {
 
 function validateInputsBox() {
     var box_title = $('#flashcards_box_title').val();
-    if (box_title.length < 10 || box_title.length > 60) {
+    if (box_title.length < 3 || box_title.length > 60) {
         $("#button_flashcards_save_box").prop("disabled", true);
         // logger.log('box title to short or to long');
         return false;
     }
     var box_description = $('#flashcards_box_description').val();
-    if (box_description.length < 10 || box_description.length > 800) {
+    if (box_description.length > 800) {
         $("#button_flashcards_save_box").prop("disabled", true);
         // logger.log('box description to short or to long');
         return false;
@@ -1603,13 +1629,13 @@ $(document).on("click", "#button_flashcards_save_box", function () {
     logger.log('clicked button save box');
     saveBoxSettings();
 });
-
 function saveBoxSettings() {
     if (validateInputsBox()) {
         box.edit();
         box.setTitle($('#flashcards_box_title').val());
         box.setDescription($('#flashcards_box_description').val());
         box.content.private_block = $('#flashcards-block-changes').prop('checked');
+        box.content.license_public_domain = $('#flashcards-is-public-domain').prop('checked');
         // settings
         box.content.private_switch_learn_direction = $('#flashcards-switch-learn-directions').prop('checked');
         box.content.private_switch_learn_all = $('#flashcards-switch-learn-all').prop('checked');
@@ -1632,11 +1658,9 @@ function saveBoxSettings() {
 $(document).on("input", "#flashcards_box_title", function () {
     validateInputsBox();
 });
-
 $(document).on("input", "#flashcards_box_description", function () {
     validateInputsBox();
 });
-
 $(document).on("click", "#button_flashcards_learn_play", function () {
     if (box.content.private_sort_default) {
         var tmpIndex = box.content.private_sortColumn;
@@ -1648,7 +1672,6 @@ $(document).on("click", "#button_flashcards_learn_play", function () {
     }
     learnNext(true);
 });
-
 $(document).on("click", "#button_flashcards_learn_next", function () {
     $('#flashcards_language1').val(card.content[1]);
     $('#flashcards_language2').val(card.content[2]);
@@ -1656,19 +1679,15 @@ $(document).on("click", "#button_flashcards_learn_next", function () {
     $('#flashcards_tags').val(card.content[4]);
     conductGUIelements('learn-show-other-side');
 });
-
 $(document).on("click", "#button_flashcards_learn_stopp", function () {
     learnStopp();
 });
-
 $(document).on("click", "#button_flashcards_learn_passed", function () {
     progress(true);
 });
-
 $(document).on("click", "#button_flashcards_learn_failed", function () {
     progress(false);
 });
-
 var filteredCards = [];
 function learnNext(takeNext) {
     var idLast = 0;
@@ -1753,30 +1772,31 @@ $(document).on("click", "#link_delete_box", function () {
     $("#modal_body_delete_box").html("Do you really want to delete '" + title_box_delete + "'?");
     $('#delete_box_modal').modal('show');
 });
-
 /**
  * This deletes a box on the server
  */
 $(document).on("click", "#button_delete_box", function () {
-    var boxid_delete = $($(this)).attr("boxid");
+    const boxid_delete = $($(this)).attr("boxid");
     // $('a[href$="' + link_box_delete + '"]').hide();
     $('#delete_box_modal').modal('hide');
     animate_on();
-    logger.log('Sending request to delete box id: ' + boxid_delete + '...');
-    $.post(postUrl + "/delete", {boxID: boxid_delete}, function (data) {
+    const url = postUrl + "/delete/" + boxid_delete;
+    logger.log('Sending request to delete box,  ' + url + '...');
+    $.get(url, {}, function (data) {
         animate_off();
         if (data['status']) {
-            logger.log("Successfully deleted box " + boxid_delete + " on server. Status: " + data['status']);
-            loadCloudBoxes()
+            logger.log("async get(..) - Successfully deleted box " + boxid_delete + " on server. Status: " + data['status']);
         } else {
-            logger.log("Error saving box: " + data['errormsg']);
-            loadCloudBoxes();
+            logger.log("async get(..) - Error deleting box: " + data['errormsg']);
         }
-        return false;
+        contacts_fc = null;
+        box = new Box();
+        box.store();
+        logger.log('async get(..) - Redirecting to URL... ' + postUrl);
+        window.location.assign(postUrl);
     },
             'json');
 });
-
 function animate_on() {
     $('#button_share_box').find('.bi').addClass("bi-arrow-repeat");
     fixTitleLength();
@@ -1786,55 +1806,90 @@ function animate_off() {
     $('#button_share_box').find('.bi').removeClass("bi-arrow-repeat");
 }
 
+function animate_sync_on(s) {
+    const btn = document.getElementById("button_sync_box");
+    btn.style.display = "block";
+    const el = document.getElementById("button_sync_box_contact");
+    el.innerHTML = s;
+}
+
+function animate_sync_off() {
+    $('#button_share_box').find('.bi').removeClass("bi-arrow-repeat");
+    const btn = document.getElementById("button_sync_box");
+    btn.style.display = "none";
+    const el = document.getElementById("button_sync_box_contact");
+    el.innerHTML = "";
+}
+
 $(document).on("click", "#button_share_box", function () {
     logger.log('clicked button share box');
     uploadBox();
 });
-
 function uploadBox() {
+    if (!has_write_permission) {
+        logger.log('No permission to write the file on the server. Surpressing upload of box.');
+        return;
+    }
     if (box.isEmpty()) {
         return;
     }
-    var tempTitle = box.content.title;
-    if (tempTitle === "") {
-        return;
-    }
 
-    var boxUpload = box.getContentToUpload();
-    logger.log('Sending request to upload a box: ' + boxUpload.content.title + '...');
-
+    const boxUpload = box.getContentToUpload();
+    logger.log('Uploading box ' + boxUpload.content.title + '...');
     animate_on();
-
     $.post(postUrl + "/upload", {box: boxUpload.content}, function (data) {
         animate_off();
         if (data['status']) {
-            logger.log("Successfully uploaded box " + box.content.title + " on server. Status: " + data['status']);
-            var box_id = data['resource_id'];
-            var box_public_id = data['resource_public_id'];
-            box.content.lastShared = data['box']['lastShared'];
-            var cardIDsReveived = data['cardIDsReceived'];
-            logger.log('local boxID = "' + box.content.boxID + '", remote boxID = "' + box_id + '", cards received = "' + cardIDsReveived + '"');
-            if (box.content.boxID.length < 1 && box_id.length > 0) {
-                // reload the page
-                logger.log('Box was created in Hubzilla DB. The new box ID is "' + box_id + '". Reloading page...');
-                box.content.boxID = box_id;
-                box.content.boxPublicID = box_public_id;
+            const box_id = data['boxID'];
+            const action = data['action']
+            logger.log("async uploadBox(..) - Successfully " + action + " box, id " + box_id + ", title " + box.content.title);
+            if (action === "created" || action === "imported") {
+                //
+                // HOWTO test?
+                // 
+                // a) Create a box.
+                // b) Import a box from a contact.
+                //
+                box.remove(); // clear local storage to prevent loading a box from it again
+                var url = postUrl + '/' + box_id;
+                logger.log('async uploadBox(..) - Box was created. Redirecting to new URL ' + url + '...');
+                window.location.assign(url);
+            } else if (action === "merged") {
+                //
+                // HOWTO test?
+                // 
+                // a) Change the content of a box
+                //    - Change public and/or private metadata of the box.
+                //    - Add or change cards.
+                //    - Learn cards.
+                // b) Open/reload a box to trigger and updates from contacts.
+                //    See if changes the contacts did to the box appear in the own
+                //    box. The changes can be public metadata (title, description) or
+                //    new or changed cards.
+                //    Neither
+                //    - changed private metadata (sortation, learning method,...), nor
+                //    - the learn progress
+                //    of a contact should show up in your box.
+                //
+                const cardIDsReveived = data['cardIDsReceived'];
                 box.checkUploadMarkers(cardIDsReveived);
                 box.store();
-                var url = postUrl + '/' + box_id;
-                logger.log('Redirecting to new URL: ' + url + '...');
-                window.location.assign(url);
+                loadStartPage(false);
+            } else if (action === "restored") {
+                //
+                // HOWTO test?
+                // 
+                // Delete the *.json file on the server.
+                // The browser still has the box with all cards in memory or
+                // can read it from the local storage.
+                //
+                box.setAllUploadMarkers(); // this will upload all cards of a box
+                uploadBox();
             } else {
-                // Merge the remote changes.
-                // This is always a merge (not import) because the public ID is the same in local and remote.
-                box.checkUploadMarkers(cardIDsReveived);
-                var remoteBox = new Box();
-                remoteBox.setContent(data['box']);
-                importBox(remoteBox);
-                setShareButton();
+                logger.log('async uploadBox(..) - Unknow action "' + action + '" in server response after uploading box, id ' + box_id + ', title ' + box.content.title);
             }
         } else {
-            logger.log("Error uploading box: " + data['errormsg']);
+            logger.log("async uploadBox(..) - Error uploading box: " + data['errormsg']);
         }
     },
             'json');
@@ -1867,7 +1922,7 @@ function redirectToAppRoot() {
 }
 
 function downLoadBoxForURL() {
-    // get boxID from URL
+// get boxID from URL
     var path = window.location.pathname;
     logger.log("Try to download a box from a URL with path: " + path);
     var parts = path.split('/');
@@ -1876,21 +1931,25 @@ function downLoadBoxForURL() {
         logger.log("Do not download a box for the URL. Why? The URL path (" + path + ") was splitted by slashes. The fourth part does not exist. It should be the box ID.");
         return false;
     }
+    const u = postUrl + "/download/" + box_id;
     animate_on();
-    logger.log('Sending request to download a box: ' + box_id + '...');
-    $.post(postUrl + "/download/", {boxID: box_id}, function (data) {
+    logger.log('Sending request to download a box.. ' + u);
+    $.get(u, {}, function (data) {
         animate_off();
         if (data['status']) {
-            logger.log("Successfully downloaded box " + box_id + " on server. Status: " + data['status']);
+            logger.log("async downLoadBoxForURL(..) - Successfully downloaded box " + u + " Status: " + data['status']);
             // Merge the remote changes.
             // This is always a merge (not import) because the public ID is the same in local and remote.
-            var remoteBox = new Box();
-            remoteBox.setContent(data['box']);
-            remoteBox.removeAllUploadMarkers();
-            importBox(remoteBox);
+            box_link = data['link'];
+            box = new Box();
+            box.setContent(data['box']);
+            box.validate();
+            box.removeAllUploadMarkers();
+            box.store();
+            loadStartPage(true);
         } else {
-            logger.log("Error downloading box: " + data['errormsg']);
-            loadCloudBoxes(); // TODO: Show list of boxes of "New box"
+            logger.log("async downLoadBoxForURL(..) - Error downloading box: " + data['errormsg']);
+            listBoxes(); // TODO: Test! Remove box on server and see if we reach this point.
         }
     },
             'json');
@@ -1905,29 +1964,12 @@ function isStartedFromLocalFileSystem() {
     return false;
 }
 
-function importBox(importBox) {
-    logger.log('Importing box...')
-    importBox.validate();
-    logger.log('Public id of remote box "' + importBox.content.boxPublicID + '", public id of local box "' + box.content.boxPublicID + '"');
-    logger.log('Box id of remote box "' + importBox.content.boxID + '", box id of local box "' + box.content.boxID + '"');
-    if (importBox.content.boxID == box.content.boxID) {
-        logger.log('ID of local and remote box are the same > Merging...');
-        box.merge(importBox);
-    } else {
-        logger.log('ID of remote box is different from local one. Do not merge the boxes. Instead: Import the remote box and display it...');
-        box = importBox;
-    }
-    loadStartPage();
-    box.store();
-}
-
 /**
  * Creates a table to visualize the flashcards system.
  */
 $(document).on("input", ".flashcards-learn-params", function () {
     visualiseLearnSystem();
 });
-
 function visualiseLearnSystem() {
     var count = $('#flashcards-learn-system-decks').val();
     var repetitions = $('#flashcards-learn-system-deck-repetitions').val();
@@ -1956,21 +1998,18 @@ $(document).on("click", "#button_flashcards_settings_default", function () {
     });
     visualiseLearnSystem();
 });
-
 $(document).on("click", "i.bi-sort-down-alt", function () {
     box.content.private_sortColumn = parseInt($(this).attr("sortCol"));
     box.content.private_sortReverse = false;
     showCards(false);
     colorSortArrow();
 });
-
-$(document).on("click", "i.bi-sort-down-alt", function () {
+$(document).on("click", "i.bi-sort-down", function () {
     box.content.private_sortColumn = parseInt($(this).attr("sortCol"));
     box.content.private_sortReverse = true;
     showCards(false);
     colorSortArrow();
 });
-
 function colorSortArrow() {
     $('i.bi-sort-down').each(function (i, obj) {
         var col = $(this).attr("sortCol");
@@ -1996,19 +2035,18 @@ $(document).on("input", "input.cards-filter", function () {
     });
     showCards(false);
 });
-
 $(document).on("input", "#input_flashcards_search_cards", function () {
     logger.log('Some input in field for convenient search. Clear column filter');
     var searchStr = $('#input_flashcards_search_cards').val();
     var l = searchStr.length;
     var lastChar = searchStr.substring(searchStr.length - 1)
     if (l > 2 && lastChar !== " ") {
-        // box.content.private_filter = ["", "", "", "", "", "", "", "", "", "", ""];
+// box.content.private_filter = ["", "", "", "", "", "", "", "", "", "", ""];
         box.search = searchStr;
         showCards(false);
     } else {
         if (box.search.length > 0 && l === 0) {
-            // User deleted the search string
+// User deleted the search string
             box.search = "";
             showCards(true);
         }
@@ -2016,23 +2054,18 @@ $(document).on("input", "#input_flashcards_search_cards", function () {
         return;
     }
 });
-
 $(document).on("click", "#button_flashcards_new_card", function () {
     showCard(0);
 });
-
 $(document).on("click", "#flashcards_cardedit_save", function () {
     saveCard();
 });
-
 $(document).on("click", "#flashcards_cardedit_cancel", function () {
     conductGUIelements('save-card');
 });
-
 $(document).on("click", ".flashcards-table-row", function () {
     showCard($(this).attr('cardid'));
 });
-
 $(document).on("click", "#flashcards_navbar_brand", function () {
     logger.log('Clicked on title in navbar');
     if (blockEditBox) {
@@ -2051,67 +2084,77 @@ $(document).on("click", "#flashcards_edit_box", function () {
     }
     conductGUIelements('edit-box');
 });
-
 $(document).on("click", "#flashcards_new_box", function () {
     logger.log('Clicked on flashcards_new_box');
-    box = new Box();
-    box.store();
-    loadStartPage();
+    createBoxAndOpen();
 });
-
 $(document).on("click", "#flashcards_show_help", function () {
     logger.log('Clicked on flashcards_show_help');
     conductGUIelements('show-help');
 });
-
 $(document).on("click", "#button_flashcards_close", function () {
     logger.log('Clicked on button_flashcards_close');
     conductGUIelements('start');
 });
-
 $(document).on("click", "#flashcards_show_boxes", function () {
     logger.log('Clicked on flashcards_show_boxes');
-    loadCloudBoxes();
+    listBoxes();
 });
 
+function syncBox() {
+    if (!box.content.boxID || box.content.boxID.length < 1) {
+        return;
+    }
+    logger.log('Try to download changes of my contacts for this box...');
+    if (box.content.private_block === true) {
+        logger.log('This box does not want to pull changes from contacts...');
+        return;
+    }
 
-var localBoxes = [];
+    const u = postUrl + '/sync/' + box.content.boxID + "/" + affinity;
+    logger.log("Requesting sync with url " + u);
+    animate_sync_on("background synchronisation with contacts...");
+    $.get(u, {}, function (data) {
+        logger.log("async syncBox(..) - Received box synched with " + u);
+        animate_sync_off();
 
-function loadCloudBoxes() {
-    localBoxes = [];
-    animate_on();
-    logger.log('Sending request to download a list of cloud boxes...');
-    $.post(postUrl + '/list/', '', function (data) {
-        animate_off();
+        if (data.upload) {
+            logger.log("async syncBox(..) - This box does not exist on the server. Try to upload if from the local storage " + JSON.stringify(data));
+            uploadBox();
+            return;
+        }
+
+        if (!data.status) {
+            logger.log("async syncBox(..) - Sync failed. Received " + JSON.stringify(data));
+            return;
+        }
+        if (data.box) {
+            logger.log("async syncBox(..) - Box has changes after synch. Merging...");
+
+            const box_remote = new Box();
+            box_remote.setContent(data.box);
+            logger.log("async syncBoxOfContact(..) - Synchronized '" + u + "'. Now merging downloaded box '" + box_remote.content.boxID + "' into local box " + box.content.boxID + "...");
+            box.merge(box_remote);
+//            box.setCreator(box_remote.getCreator());
+//            box.setCreatorXchanHash(box_remote.getCreatorXchanHash());
+            box.removeAllUploadMarkers();
+            box.store();
+            loadStartPage(false);
+        }
+    }, 'json');
+
+}
+
+function requestContacts() {
+    logger.log('Sending request to get a list of approved contacts...');
+    $.get(postUrl + '/contacts/', '', function (data) {
+        isBoxRequestBlocked = false;
         if (data['status']) {
-            logger.log("Donwnload of boxes successfull. Status: " + data['status']);
-            $("#panel_flashcards_cards").hide();
-            var boxes = data['boxes'];
-            if (boxes) {
-                if (boxes.length > 0) {
-                    localBoxes = boxes;
-                    createBoxList();
-                    conductGUIelements('list-boxes');
-                    return;
-                } else {
-                    logger.log("The list of own cloud boxes is empty");
-                }
-            } else {
-                logger.log("No boxes received");
-            }
-            if (is_allowed_to_create_box) {
-                box = new Box();
-                box.store();
-                loadStartPage();
-            } else {
-                var html = 'No flashcards on this server or no permissions to view them';
-                $("#panel_cloud_boxes_header").html('');
-                $("#panel_cloud_boxes_content").html(html);
-                conductGUIelements('list-boxes');
-                return;
-            }
+            contacts_fc = data["contacts"];
+            logger.log("async requestContacts(..) - Received '" + contacts_fc.length + "' contacts.");
+            requestBoxes();
         } else {
-            logger.log("Error downloading list of boxes: " + data['errormsg']);
+            logger.log("async requestContacts(..) - Error downloading list of contacts: " + data['errormsg']);
             $("#panel_flashcards_cards").html(data['errormsg']);
             $("#panel_flashcards_cards").show();
         }
@@ -2119,130 +2162,502 @@ function loadCloudBoxes() {
             'json');
 }
 
-function createBoxList() {
-    createBoxListHeader();
-    createBoxListContent(true);
-}
+let isBoxRequestBlocked = false;
+let lastDownloadedContactXchanHash = "";
+function requestBoxes() {
+    if (isBoxRequestBlocked) {
+        return;
+    }
 
-function createBoxListHeader() {
-    var html = '';
-    html += '<div id="flashcards_boxes_list_header" class="clearfix onoffswitch checkbox mb-3">';
-    html += '<label for="flashcards_own_boxes">All Flashcards on this server or just your own?</label>';
-    html += '<div class="float-end"><input type="checkbox" name="flashcards_own_boxes" id="id_flashcards_own_boxes" value="1" checked="checked" /><label class="switchlabel" for="id_flashcards_own_boxes"> <span class="onoffswitch-inner" data-on="All" data-off="Own"></span><span class="onoffswitch-switch"></span></label></div>';
-    html += '<small class="form-text text-muted"> To search flashcards on other servers use menu -> "Search".</small>';
-    html += '</div>';
-    $("#panel_cloud_boxes_header").html(html);
-}
-
-function createBoxListContent(showAllBoxes) {
-    var html = '';
-    var i;
-    for (i = 0; i < localBoxes.length; i++) {
-        var cloudBox = localBoxes[i];
-        if (!cloudBox) {
-            logger.log('Received a box that is NULL (seems to be a bug).');
-            continue;  // This happened in dev (alpha)
-        }
-        var currentOwner = cloudBox["current_owner"];
-        if (!showAllBoxes) {
-            if (flashcards_editor !== currentOwner) {
-                continue;
-            }
-        }
-        var description = cloudBox["description"];
-        if (!description) {
+    if (!contacts_fc) {
+        isBoxRequestBlocked = true; // To prevent parallel requests triggered by the affinity slider
+        //
+        // ---------------------------------------------------------------------
+        // 1. Load all contacts ONCE and store
+        // 
+        requestContacts();
+        return;
+    }
+    let downloadCompleted = true;
+    for (let contact of contacts_fc) {
+        //
+        // ---------------------------------------------------------------------
+        // 2. Download the boxes from every contact
+        //    - that is close enought > affinity
+        //    - one by one (not all at once)
+        //    
+        //    Q: Why don't we download all boxes of the contacts in one go?
+        //    A: Short: Responsiveness.
+        //       In long: The server will fetch the boxes from the server of
+        //       your contact. In praxis some servers reponds slowly, sometimes
+        //       after a couple of seconds some may be not responding at all.
+        //       Effect: No box will show up in the list.
+        //       As long as the boxes are loaded, a sync message will show up
+        //       in the browser to inform the user what contact (boxes) are
+        //       loaded at the moment.
+        const a = contact["affinity"];
+        if (a > affinity) {
             continue;
         }
-        description = description.replace(/\n/g, '<br>');
-        html += '<div class="row">';
-        html += '   <div class="col-sm-12">';
-        html += '       <br><h3><a href="' + cloudBox["current_url"] + '" name="load_box">' + cloudBox["title"] + '</a></h3>';
-        html += '   </div>';
-        html += '</div>';
-        html += '<div class="col-sm-12">';
-        html += '   <b>Description:</b><br>';
-        html += '   ' + description + '';
-        html += '   <br><b>Owner: </b>' + cloudBox["current_owner"] + '';
-        html += '   <br><b>Size: </b>' + cloudBox["size"] + '';
-        if (flashcards_editor === '') {
-            html += '   <br>Unknow observer. Please login to view this box';
-        } else if (cloudBox["boxID"] !== box.content.boxID) {
-            if (flashcards_editor === currentOwner) {
-                html += '       &nbsp;<b>Delete box: </b>&nbsp;';
-            } else {
-                html += '       &nbsp;<b>Delete learn results: </b>&nbsp;';
-            }
-            html += '       <i class="bi bi-trash" id="link_delete_box" boxid="' + cloudBox["boxID"] + '" title_box_delete="' + cloudBox["title"] + '"></i>';
+        if (contact["downloaded"]) {
+            continue;
         }
-        html += '</div>';
+        downloadCompleted = false;
+        isBoxRequestBlocked = true;
+        let url_list_boxes = contact["url_list_boxes"];
+        lastDownloadedContactXchanHash = contact["xchan_hash"];
+        let isContact = owner_xchan_hash !== contact["xchan_hash"];
+        requestBoxListForContact(url_list_boxes, isContact, contact);
+        return;
     }
-    html += '</div>';
-    $("#panel_cloud_boxes_content").html(html);
+    if (downloadCompleted) {
+        //
+        // ---------------------------------------------------------------------
+        // 3. Show boxes again to incude shared boxes
+        //
+        // Trigger to remove the boxes and append create the list again.
+        // Why: The list of shared boxes is not complete. Now we are able
+        //      what contacts share a box with you, downlaoding and accepting
+        //      changes by you and so on. This is are the two sublists in the
+        //      a listed box. Please see the comments in function appendBoxToList(..)
+        conductGUIelements('list-boxes');
+        showBoxes();
+    }
 }
 
-$(document).on("click", "#id_flashcards_own_boxes", function () {
-    logger.log('Clicked on checkbox id_flashcards_own_boxes');
-    var showAllBoxes = $('#id_flashcards_own_boxes').prop('checked');
-    createBoxListContent(showAllBoxes);
-});
+function requestBoxListForContact(url_list_boxes, isContact, contact) {
 
-function searchCloudBoxes() {
-    animate_on();
-    logger.log('Sending request to search for boxes...');
-    $.post(postUrl + '/search/', '', function (data) {
-        animate_off();
-        if (data['status']) {
-            logger.log("Search for boxes successfull. Status: " + data['status']);
-            var boxes = data['boxes'];
-            if (boxes) {
-                if (boxes.length > 0) {
-                    createListFoundBoxes(boxes);
+    animate_sync_on(contact["xchan_addr"]);
+    logger.log('download box list for ' + contact["xchan_addr"]);
+    if (isContact) {
+        const u = postUrl + '/fetchboxes';
+        logger.log("async requestBoxListForContact(..) - Requesting boxes of contact " + url_list_boxes + " via  " + u);
+        $.post(u, {url: url_list_boxes}, function (data) {
+            logger.log("async requestBoxListForContact(..) - Received boxes of contact " + url_list_boxes + " via  " + u);
+            process_requestBoxListForContact(data);
+        }, 'json');
+    } else {
+        logger.log("async requestBoxListForContact(..) - Requesting own boxes from  " + url_list_boxes);
+        $.get(url_list_boxes, {}, function (data) {
+            logger.log("async requestBoxListForContact(..) - Received own boxes from  " + url_list_boxes);
+            process_requestBoxListForContact(data);
+        }, 'json');
+    }
+
+}
+function process_requestBoxListForContact(data) {
+    animate_sync_off();
+
+    if (!data.status) {
+        logger.log("async requestBoxListForContact(..) - Error downloading list of boxes. Received data:  " + JSON.stringify(data));
+        requestBoxListForContact_Fail();
+        return;
+    }
+
+    let body = data.body;
+    if (!body) {
+        logger.log("async requestBoxListForContact(..) - No field body in server response. Received:   " + JSON.stringify(data));
+        requestBoxListForContact_Fail();
+        return;
+    }
+
+    // This is async. Make sure the box belongs to the contact.
+    const contact_server = body["contact"];
+    if (contact_server) {
+        const contact_browser = getContact(contact_server["xchan_hash"]);
+        contact_browser["downloaded"] = true;
+        logger.log("async requestBoxListForContact(..) - Received list of boxes for user " + contact_browser["xchan_addr"]);
+        const boxes = body['boxes'];
+        contact_browser["boxes"] = boxes;
+        if (boxes) {
+            logger.log("async requestBoxListForContact(..) - Appending '" + boxes.length + "' boxes of user " + contact_browser["xchan_addr"] + " to list of boxes");
+            appendBoxesToList(boxes);
+        } else {
+            logger.log("async requestBoxListForContact(..) - No boxes received");
+        }
+        isBoxRequestBlocked = false;
+        requestBoxes();
+    } else {
+        logger.log("async requestBoxListForContact(..) - Error downloading list of boxes. Received data:  " + data);
+        requestBoxListForContact_Fail();
+    }
+}
+
+function requestBoxListForContact_Fail() {
+    logger.log("handle failed request...");
+    const c = getContact(lastDownloadedContactXchanHash);
+    c["downloaded"] = true;
+    isBoxRequestBlocked = false;
+    requestBoxes();
+}
+
+function getContact(xchan_hash) {
+    let c = false;
+    if (!contacts_fc) {
+        return false;
+    }
+    for (c of contacts_fc) {
+        if (c["xchan_hash"] === xchan_hash) {
+            return c;
+        }
+    }
+    return false;
+}
+
+function createBox() {
+    if (has_write_permission) {
+        box = new Box();
+        return true;
+    } else {
+        logger.log("No permission to create a box .");
+        return false;
+    }
+}
+
+function createBoxAndOpen() {
+    if (has_write_permission) {
+        createBox();
+        box.store();
+        loadStartPage(false);
+    } else {
+        var html = 'No flashcards on this server or no permissions to view them';
+        $("#panel_list_boxes_header").html('');
+        $("#panel_list_boxes").html(html);
+        listBoxes();
+        return;
+    }
+}
+
+function appendBoxesToList(boxes_received) {
+    let i;
+    for (i = 0; i < boxes_received.length; i++) {
+        let cloudBox = boxes_received[i];
+        appendBoxToList(cloudBox);
+    }
+}
+
+function appendBoxToList(cloudBox) {
+    if (!cloudBox) {
+        logger.log('Received a box that is NULL (seems to be a bug).');
+        return; // This happened in dev (alpha)
+    }
+
+    const box = new Box();
+    box.setContent(cloudBox);
+    box.validate();
+    cloudBox = box.content;
+    const creator = cloudBox["creator"];
+    const creator_xchan_hash = cloudBox["creator_xchan_hash"];
+    const boxPublicID = cloudBox["boxPublicID"];
+    const logBox = " < Box: '" + cloudBox["title"] + "', created by " + cloudBox["creator"] + ", owned by " + cloudBox["owner"];
+    let description = cloudBox["description"];
+//    if (!description) {
+//        return;
+//    }
+    description = description.replace(/\n/g, '<br>');
+    let box_list = document.getElementById("panel_list_boxes");
+    // Append header
+    let node = document.createElement("div");
+    node.classList.add("row");
+    let html = '';
+    html += '<div class="col-sm-12">';
+    if (owner_xchan_hash === cloudBox["owner_xchan_hash"]) {
+        // this box is stored in your own cloud files
+        html += '  <br><h3><a href="' + cloudBox["url"] + '" name="load_box">' + cloudBox["title"] + '</a></h3>';
+    } else {
+        if (getBox(boxPublicID, owner_xchan_hash)) {
+            // you imported this box from a contact already
+            logger.log('Ignore box. You imported it already: creator="' + cloudBox["creator"] + '", title=' + cloudBox["title"] + ', public box id=' + boxPublicID + logBox);
+            return;
+        }
+
+        //  
+        //  See also comments in function requestBoxes(..)
+        //  
+        //  Background
+        //  
+        //  Changes will be downlaoded from direct contacts only.
+        //  Example:
+        //   - Creator of a box is A,
+        //   - A is a contact of B,
+        //   - B is a contact of C,
+        //   - C is contact of D.
+        //  User D and the Creator A will see changes from each other only
+        //  if ALL contacts IN THE CHAIN pull an update from the direct contact.
+        //  
+        // Boxes that will be shown in the list:
+        // 
+        // - The creator is sharing a box with you directly, or
+        // - a box falls under public domain license if the creator is not your direct contact.
+        // - You must have read permission on the cloud file representing the box of your contact.
+        // - The contact is close enough (affinity slider).
+        // 
+        // Thought: Let the creator decide with whom to share boxes.
+        // 
+        //  but: Once you have a copy, your copy will by kept in sync with
+        //  the box of your direct contacts. There is no way of undoing this.
+        //  It is a bit like a cloned repository in git.
+        //  
+        //  Reasons why you might not reveive udates anymore?
+        //  
+        //  - Your contact is not an approved contact anymore (un-friend), or
+        //  - Your contact has withdrawn the permissions for you (permission attached to cloud file).
+        //  - You changed the closeness of this conctact (affinity) or moved the affinity slider.
+        //  - The creator is not your direct contact and has removed the license "public domain".
+        //  - One of the contacts in the chain does not accept changes from contacts.
+        //  - ...
+        // 
+        if (cloudBox["creator_xchan_hash"] === cloudBox["owner_xchan_hash"]) {
+            logger.log('The creator "' + cloudBox["creator"] + '" is also the owner of box "' + cloudBox["title"] + '" with public box id ' + boxPublicID + logBox);
+        } else if (cloudBox["license_public_domain"]) {
+            logger.log('The creator "' + cloudBox["creator"] + '" is not the owner of box "' + cloudBox["title"] + '" with public box id ' + boxPublicID + ' BUT the box is marked as ""public domain".' + logBox);
+        } else {
+            logger.log('Ignore this box. The creator "' + cloudBox["creator"] + '" is not the owner of box "' + cloudBox["title"] + '" with public box id ' + boxPublicID + ' AND the box is not marked as ""public domain".' + logBox);
+            return;
+        }
+        html += '  <br><h3><a href="javascript: importBox(\'' + boxPublicID + '\',\'' + cloudBox["owner_xchan_hash"] + '\')"  name="load_box">' + cloudBox["title"] + ' <i class="bi bi-cloud-download"></i></a></h3>';
+    }
+
+    html += '</div>';
+    node.innerHTML = html;
+    box_list.appendChild(node);
+    // Append details
+    node = document.createElement("div");
+    node.classList.add("row");
+    html = '<div class="col-sm-12">';
+    html += '  <b>Description:</b><br>';
+    html += '  ' + description + '';
+    html += '  <br><b>Owner: </b>' + cloudBox["owner"] + '';
+    html += '  <br><b>Creator: </b>' + cloudBox["creator"] + '<br>';
+    html += '  <b>Size: </b>' + cloudBox["size"] + '';
+    if (owner_xchan_hash === cloudBox["owner_xchan_hash"]) {
+        // See if this box is shared with direct contacts.
+        // - You might be the creator, or 
+        // - a contact might be the creator, or
+        // - a contact of a contact migh be the creator, or
+        // - ...
+        const boxes = getBoxesOfContacts(boxPublicID, false);
+        if (boxes.length > 0) {
+            html += '  <br><b>You are pulling changes from</b><ul>';
+            for (const b of boxes) {
+                if (cloudBox["private_block"] === true) {
+                    // You do not accept changes for this box made by a contact.
+                    html += '<li><span style="text-decoration:line-through;">' + b["owner"] + '</span> (not pulled by you)</li>';
                 } else {
-                    logger.log("No cloud boxes found");
-                    $("#panel_search_cloud_boxes").html('No cloud boxes found');
+                    html += '<li>' + b["owner"] + '</li>';
                 }
-            } else {
-                logger.log("But the list of cloud boxes was empty");
             }
+            html += '</ul>';
+            html += '  <b>Contacts pulling changes from you</b><ul>';
+            for (const b of boxes) {
+                if (b["private_block"] === true) {
+                    // The contact does not accept changes for this box.
+                    html += '<li><span style="text-decoration:line-through;">' + b["owner"] + '</span> (not pulled by contact)</li>';
+                } else {
+                    html += '<li>' + b["owner"] + '</li>';
+                }
+            }
+            html += '</ul>';
         } else {
-            logger.log("Error searching for boxes: " + data['errormsg']);
-            $("#panel_search_cloud_boxes").html(data['errormsg']);
+            html += '  <br>';
         }
-        $("#button_share_box").hide();
-        if (is_allowed_to_create_box) {
-            $("#button_flashcards_close").show();
-        } else {
-            $("#button_flashcards_close").hide();
+
+        html += '  &nbsp;<b>Delete box: </b>&nbsp;';
+        html += '  <i class="bi bi-trash" id="link_delete_box" boxid="' + cloudBox["boxID"] + '" title_box_delete="' + cloudBox["title"] + '"></i>';
+    }
+
+
+    html += '</div>';
+    node.innerHTML = html;
+    box_list.appendChild(node);
+}
+
+/**
+ * 1. Check if the was imported already (compare boxPublicID in own boxes)
+ *    a) If yes: open own box
+ *    b) If no: download box from the creator of the box.
+ *       Why from the creator? Because the creator should decide who has the
+ *       permission to copy (use) his box.
+ */
+function importBox(boxPublicID, contact_xchan_hash) {
+    logger.log('User clicked on box to import,  ' + boxPublicID);
+
+    // Check first if this box was already imported.
+    // If yes, then redirect.
+    let b = getBox(boxPublicID, owner_xchan_hash);
+    if (b) {
+        var url = postUrl + '/' + b["boxID"];
+        logger.log('Redirecting to new URL: ' + url + '...');
+        window.location.assign(url);
+    }
+
+    if (!createBox()) {
+        return;
+    }
+
+    // We need to indentify the cloud file (json) of the box...
+    // - server address of the contact
+    // - boxID for the file name (boxID.json)
+
+    b = getBox(boxPublicID, contact_xchan_hash);
+    const boxId = b["boxID"];
+
+    // Why we do import and download the box not from the creator directly?
+    // Yes, this would be reasonable, because the creator should decide what
+    // contacts (friends) he want to have. And only his contact should see his
+    // boxes and shall be able to import them. True.
+    // 
+    // BUT, this decison was already made when listing the boxes of contacts...
+    // 
+    // The user should only see boxes from contacts listed if he is
+    //   a) direct contact of the creator, or
+    //   b) the box is published under public domain.
+    //
+    const c = getContact(contact_xchan_hash);
+    const url_cloud_box = c["url_cloud_box"] + "/" + boxId + ".json";
+
+    const u = postUrl + "/import/";
+
+    animate_on();
+    logger.log('Requesting async POST request to import a box of contact "' + c['xchan_addr'] + '", url=' + url_cloud_box + '...');
+    $.post(u, {url: url_cloud_box}, function (data) {
+        animate_off();
+
+        logger.log("async importBox(..) - Received server response for import of '" + url_cloud_box);
+        if (data && data.redirect_url) {
+            logger.log('Import of box successful. Redirecting to new URL: ' + data.redirect_url + '...');
+            window.location.assign(data.redirect_url);
         }
+
+        const msg = data.errormsg ? data.errormsg : "";
+        logger.log("async importBox(..) - Error importing box '" + url_cloud_box + "'. Received message: " + msg);
+        listBoxes();
+        return;
     },
             'json');
 }
 
-$(document).on("click", "#flashcards_search_boxes", function () {
-    logger.log('Clicked on flashcards_search_boxes');
-    conductGUIelements('search-boxes');
-    searchCloudBoxes();
-});
+function requestSyncBoxOfContact(creator_xchan_hash, boxPublicID) {
+    const b = getBox(boxPublicID, creator_xchan_hash);
+    const boxId = b["boxID"];
+    const c = getContact(creator_xchan_hash);
+    const url_cloud_box = c["url_cloud_box"] + "/" + boxId + ".json";
+    animate_on();
+    logger.log('About to sync box with contact.... Sending async GET request to download box of contact "' + c['xchan_addr'] + '", url=' + url_cloud_box + '...');
+    $.get(url_cloud_box, '', function (data) {
+        animate_off();
 
-function createListFoundBoxes(boxes) {
-    var html = '';
-    html += '<div class="container-fluid">';
-    // list
-    var i;
-    for (i = 0; i < boxes.length; i++) {
-        var cloudBox = boxes[i];
-        if (!cloudBox) {
-            logger.log('Received a box URL that is NULL (seems to be a bug).');
-            continue;  // This happened in dev (alpha)
+        if (!data) {
+            logger.log("async requestSyncBoxOfContact(..) - Error downloading box '" + url_cloud_box + "'  of contact. Received nothing from server.");
+            return;
         }
-        html += '<div class="row">';
-        html += '   <div class="col-sm-12">';
-        html += '       <br><h3><a href="' + cloudBox + '" name="load_box">' + cloudBox + '</a></h3>';
-        html += '   </div>';
-        html += '</div>';
+        if (data["boxPublicID"] !== boxPublicID) {
+            logger.log("async requestSyncBoxOfContact(..) - Error downloading box '" + url_cloud_box + "'  of contact. Reason: Field 'boxPublicID' requested '" + boxPublicID + "' does not match received '" + data["boxPublicID"] + "'.");
+            return;
+        }
+        const box_remote = new Box();
+        box_remote.setContent(data);
+        box.merge(box_remote);
+        uploadBox();
+
+    },
+            'json');
+}
+
+function getBox(boxPublicID, contact_xchan_hash) {
+    const c = getContact(contact_xchan_hash);
+    // c (contact) is probably "me" using the addon inside own channel.
+    // If it is another user using the addon on my channel he must have write
+    // permisison on my cloud storage (later on). Otherwise the fresh imported
+    // box will not be saved on the server. (Learning progress is a different
+    // story.)
+    if (!c["boxes"]) {
+        logger.log('The user has no own boxes.');
+        return false;
+    } else {
+        const boxes = c["boxes"];
+        logger.log('Try to find out if one of the ' + boxes.length + ' boxes downloaded from user ' + c["xchan_addr"] + ' is one of the boxes I own already, identified by boxPublicID ' + boxPublicID);
+        let i;
+        for (i = 0; i < boxes.length; i++) {
+            let b = boxes[i];
+            if (b["boxPublicID"] === boxPublicID) {
+                const s = "Box '" + b["title"] + "', created by " + b["creator"] + ", owned by " + b["owner"];
+                logger.log('Found one. This box ' + b["boxID"] + ' was imported already (or I am the creator of the box). ' + s);
+                return b;
+            }
+        }
     }
-    html += '</div>';
-    $("#panel_search_cloud_boxes").html(html);
+    logger.log('No boxes downloaded from user ' + c["xchan_addr"] + ' is one the boxes I own already, identified by boxPublicID ' + boxPublicID);
+    return false;
+}
+
+function getBoxesOfContacts(boxPublicID, ignoreAffinity) {
+    let boxesContact = [];
+    if (!contacts_fc) {
+        return boxesContact;
+    }
+    let k;
+    for (k = 0; k < contacts_fc.length; k++) {
+        const c = contacts_fc[k];
+        if (owner_xchan_hash === c["xchan_hash"]) {
+            // exclude own boxes
+            continue;
+        }
+        logger.log('Try to find a box for user "' + c['xchan_addr'] + '" with the public box id ' + boxPublicID);
+        if (!c["boxes"]) {
+            logger.log(' - The user "' + c['xchan_addr'] + '" has no boxes. Public box id ' + boxPublicID);
+            continue;
+        }
+        const boxes = c["boxes"];
+        let i;
+        for (i = 0; i < boxes.length; i++) {
+            let b = boxes[i];
+            const logBox = " < Box: '" + b["title"] + "', created by " + b["creator"] + ", owned by " + b["owner"];
+            if (b["license_public_domain"] == true) {
+                logger.log('This box is under public domain. No need to check if the creator is in the list of approved contacts. Public box id ' + boxPublicID + logBox);
+            } else if (!getContact(b["creator_xchan_hash"])) {
+                logger.log('The creator "' + b["creator"] + '" of this box is not in your list of approved contacts. Public box id ' + boxPublicID + logBox);
+                continue;
+            }
+            if (!ignoreAffinity) {
+                const a = c["affinity"];
+                if (a > affinity) {
+                    logger.log('The user "' + c['xchan_addr'] + '" is not close enough. Affinitiy user= "' + c['affinity'] + '" > "' + affinity + '. Public box id ' + boxPublicID + logBox);
+                    continue;
+                }
+            }
+            if (b["boxPublicID"] === boxPublicID) {
+                logger.log('Found one. The user "' + c['xchan_addr'] + '" has a box with id ' + b["boxID"] + logBox);
+                boxesContact.push(b);
+            }
+        }
+    }
+    return boxesContact;
+}
+
+function storeAffinity() {
+    if (boxLocalStore.isAvailable()) {
+        boxLocalStore.setItem("flashcards_affinity", affinity.toString());
+    }
+}
+
+function restoreAffinity() {
+    if (boxLocalStore.isAvailable()) {
+        const value = boxLocalStore.getItem("flashcards_affinity");
+        if (value) {
+            affinity = Number(value);
+        }
+    }
+}
+
+let affinity = 0;
+function sliderChanged(value) {
+    if (!isNaN(value)) {
+        logger.log('affinity slider changed ' + value);
+        affinity = value;
+        storeAffinity();
+        listBoxes();
+    }
 }
 
 $(document).on("click", "#run_unit_tests", function () {
@@ -2250,14 +2665,12 @@ $(document).on("click", "#run_unit_tests", function () {
     test_run();
     showCards();
 });
-
 $(window).on('resize', function () {
     if ($("#button_flashcards_learn_stopp").css('display') !== 'none') {
         setLearnButtonsToFixedPosition();
     }
     fixTitleLength();
 });
-
 function fixTitleLength() {
     if ($("#panel_box_navigation").css('display') !== 'none') {
         logger.log('Title is visible when rezising');
@@ -2303,7 +2716,6 @@ test_card_01.validate();
 var test_card_02 = new Card();
 test_card_02.getContent(["1528468591486", "cc cc", "aa aa", "bb bb", "Dd cc", "1528468591486", "0", "0", "0", "1528468591486"]);
 test_card_02.validate();
-
 function test_run() {
     var oldBox = box;
     logger.log("Run all tests...");
@@ -2359,7 +2771,7 @@ function test_box_checkValues() {
     if (testBox.checkString(1, 10) !== "" || testBox.checkString([1, "2"], 10) !== "" || testBox.checkString("123", 2) !== "12") {
         return false;
     }
-    // elements containing text
+// elements containing text
     testBox.getContent().title = 1;
     testBox.getContent().description = "hallo";
     testBox.getContent().creator = ["1"];
@@ -2425,6 +2837,10 @@ function test_box_validate() {
         return false;
     }
 
+    if (testBox.content.license_public_domain !== true) {
+        return false;
+    }
+
     testBox.content.private_sortReverse = true;
     testBox.content.private_switch_learn_direction = false;
     testBox.content.private_switch_learn_all = true;
@@ -2433,6 +2849,7 @@ function test_box_validate() {
     testBox.content.private_sort_default = true;
     testBox.content.private_search_convenient = true;
     testBox.content.private_block = true;
+    testBox.content.license_public_domain = false;
     testBox.validate();
     if (testBox.content.private_sortReverse !== true) {
         return false;
@@ -2459,6 +2876,9 @@ function test_box_validate() {
         return false;
     }
     if (testBox.content.private_block !== true) {
+        return false;
+    }
+    if (testBox.content.license_public_domain !== false) {
         return false;
     }
     testBox.content.private_sortReverse = "true";
@@ -2469,6 +2889,7 @@ function test_box_validate() {
     testBox.content.private_sort_default = "true";
     testBox.content.private_search_convenient = "true";
     testBox.content.private_block = "true";
+    testBox.content.license_public_domain = "true";
     testBox.validate();
     if (testBox.content.private_sortReverse !== true) {
         return false;
@@ -2494,6 +2915,9 @@ function test_box_validate() {
     if (testBox.content.private_block !== true) {
         return false;
     }
+    if (testBox.content.license_public_domain !== true) {
+        return false;
+    }
     testBox.content.private_sortReverse = "";
     testBox.content.private_switch_learn_direction = 0;
     testBox.content.private_switch_learn_all = "hallo";
@@ -2502,6 +2926,7 @@ function test_box_validate() {
     testBox.content.private_sort_default = "hallo";
     testBox.content.private_search_convenient = "hallo";
     testBox.content.private_block = "nonsense";
+    testBox.content.license_public_domain = "nonsense";
     testBox.validate();
     if (testBox.content.private_sortReverse !== false) {
         return false;
@@ -2525,6 +2950,9 @@ function test_box_validate() {
         return false;
     }
     if (testBox.content.private_block !== false) {
+        return false;
+    }
+    if (testBox.content.license_public_domain !== true) {
         return false;
     }
     testBox.content.private_visibleColumns = ["", 0, 1, "hallo", "false", false, false, false, false, false, false];
@@ -2555,12 +2983,12 @@ function test_box_sortBy() {
     if (box.getContent().cards[0] != test_card_02 || box.getContent().cards[1] != test_card_00 || box.getContent().cards[2] != test_card_01) {
         return false;
     }
-    // reverse order
+// reverse order
     box.sortBy(0, true);
     if (box.getContent().cards[0] != test_card_02 || box.getContent().cards[1] != test_card_01 || box.getContent().cards[2] != test_card_00) {
         return false;
     }
-    // lower case
+// lower case
     box.sortBy(4, false);
     if (box.getContent().cards[0] != test_card_00 || box.getContent().cards[1] != test_card_01 || box.getContent().cards[2] != test_card_02) {
         return false;
@@ -2579,7 +3007,6 @@ function test_box_getCardsArrayFiltered() {
     box.getContent().cards.push(test_card_00);
     box.getContent().cards.push(test_card_01);
     box.getContent().cards.push(test_card_02);
-
     var filteredCards = box.getCardsArrayFiltered(["", "", "", " ", "", ""]);
     if (filteredCards.length != 3) {
         return false;
@@ -2589,28 +3016,28 @@ function test_box_getCardsArrayFiltered() {
     if (filteredCards.length != 3) {
         return false;
     }
-    // to use more columns AND search with operator AND
+// to use more columns AND search with operator AND
     filteredCards = box.getCardsArrayFiltered(["", "cc", "a a"]);
     if (filteredCards.length != 1 || filteredCards[0] != test_card_02) {
         return false;
     }
-    // to use to or more blanks and AND extra column that is ignored (to speed
-    // up) AND test case insensitiv search by DD
+// to use to or more blanks and AND extra column that is ignored (to speed
+// up) AND test case insensitiv search by DD
     filteredCards = box.getCardsArrayFiltered(["", "c", "a a", "", "DD"]);
     if (filteredCards.length != 1 || filteredCards[0] != test_card_02) {
         return false;
     }
-    // to use AND in a column to exclude a card
+// to use AND in a column to exclude a card
     filteredCards = box.getCardsArrayFiltered(["", "c", "a bb", "", "DD"]);
     if (filteredCards.length != 0) {
         return false;
     }
-    // filter longer than value in card
+// filter longer than value in card
     filteredCards = box.getCardsArrayFiltered(["", "c", "a aaa", "", "DD"]);
     if (filteredCards.length != 0) {
         return false;
     }
-    // -- convenient filter --
+// -- convenient filter --
     box.search = "y"
     var filteredCards = box.getCardsArrayFiltered(["", "", "", " ", "", ""]);
     if (filteredCards.length !== 0) {
@@ -2627,7 +3054,7 @@ function test_box_getCardsArrayFiltered() {
     if (JSON.stringify(box.searchResultColumns) !== JSON.stringify([false, true, true, false, true, false, false, false, false, false, false])) {
         return false;
     }
-    // to use more columns AND search with operator AND -> but this is overwritten by the convenient search
+// to use more columns AND search with operator AND -> but this is overwritten by the convenient search
     filteredCards = box.getCardsArrayFiltered(["", "cc", "a a"]);
     if (filteredCards.length !== 3) {
         return false;
@@ -2675,7 +3102,7 @@ function test_card_isDue() {
     if (!card.isDue(0)) {
         return false;
     }
-    // Debug some invalid values
+// Debug some invalid values
     card.getContent()[6] = "";
     card.getContent()[7] = "";
     card.getContent()[8] = "";
@@ -2820,31 +3247,31 @@ function test_card_isDue() {
     if (card.isDue(testNow.getTime())) {
         return false;
     }
-    // after begin of new local day (local day = 2h before GMT)
+// after begin of new local day (local day = 2h before GMT)
     testNow = new Date('2015-06-10T23:00:00.000Z');
     if (!card.isDue(testNow.getTime())) {
         return false;
     }
-    // 3 days wait time in deck 2
+// 3 days wait time in deck 2
     card.getContent()[6] = 2;
     card.getContent()[7] = 0;
     testNow = new Date('2015-06-12T21:00:00.000Z');
     if (card.isDue(testNow.getTime())) {
         return false;
     }
-    // no wait time for progress in deck = 1 and 2 (2.1, 2.2)
+// no wait time for progress in deck = 1 and 2 (2.1, 2.2)
     card.getContent()[7] = 1;
     testNow = new Date('2015-06-12T21:00:00.000Z');
     if (!card.isDue(testNow.getTime())) {
         return false;
     }
-    // after begin of local day
+// after begin of local day
     testNow = new Date('2015-06-12T23:00:00.000Z');
     card.getContent()[7] = 0;
     if (!card.isDue(testNow.getTime())) {
         return false;
     }
-    // deck 6
+// deck 6
     card.getContent()[6] = 6;
     card.getContent()[7] = 0;
     testNow = new Date('2015-06-10T21:00:00.000Z');
@@ -2856,46 +3283,46 @@ function test_card_isDue() {
     if (!card.isDue(testNow.getTime() + 243 * dayMillisec)) {
         return false;
     }
-    // 9 days wait time in deck 3
-    // 8 days after last learned
+// 9 days wait time in deck 3
+// 8 days after last learned
     card.getContent()[6] = 3;
     card.getContent()[7] = 0;
     testNow = new Date('2015-06-18T21:00:00.000Z');
     if (card.isDue(testNow.getTime())) {
         return false;
     }
-    // Same day and progress = 1
+// Same day and progress = 1
     card.getContent()[6] = 3;
     card.getContent()[7] = 1;
     testNow = new Date('2015-06-10T21:00:00.000Z');
     if (card.isDue(testNow.getTime())) {
         return false;
     }
-    // next day but progress = 1
+// next day but progress = 1
     testNow = new Date('2015-06-11T21:00:00.000Z');
     card.getContent()[7] = 1;
     if (card.isDue(testNow.getTime())) {
         return false;
     }
-    // next day and progress = 1
+// next day and progress = 1
     testNow = new Date('2015-06-19T21:00:00.000Z');
     card.getContent()[7] = 1;
     if (!card.isDue(testNow.getTime())) {
         return false;
     }
-    // progress = 2
+// progress = 2
     testNow = new Date('2015-06-11T21:00:00.000Z');
     card.getContent()[7] = 2;
     if (card.isDue(testNow.getTime())) {
         return false;
     }
-    // progress = 2
+// progress = 2
     testNow = new Date('2015-06-19T21:00:00.000Z');
     card.getContent()[7] = 2;
     if (!card.isDue(testNow.getTime())) {
         return false;
     }
-    // just in case progress = 3
+// just in case progress = 3
     testNow = new Date('2015-06-19T21:00:00.000Z');
     card.getContent()[7] = 3;
     if (!card.isDue(testNow.getTime())) {
@@ -2986,6 +3413,7 @@ function test_box_merge() {
     localTestBox.getContent().lastChangedPublicMetaData = 1528468538430;
     localTestBox.getContent().lastChangedPrivateMetaData = 1528468538430;
     localTestBox.getContent().private_block = false;
+    localTestBox.getContent().license_public_domain = false;
     var remoteTestBox = localTestBox.getCopy();
     remoteTestBox.getContent().lastChangedPublicMetaData = 0;
     remoteTestBox.getContent().lastChangedPrivateMetaData = 0;
@@ -2996,6 +3424,7 @@ function test_box_merge() {
     remoteTestBox.getContent().cardsDeckWaitExponent = 2;
     remoteTestBox.getContent().private_sortColumn = 2;
     remoteTestBox.getContent().private_block = true;
+    remoteTestBox.getContent().license_public_domain = true;
     // metadata local wins
     remoteTestBox.getContent().lastChangedPublicMetaData = "";
     localTestBox.merge(remoteTestBox);
@@ -3005,7 +3434,10 @@ function test_box_merge() {
     if (localTestBox.getContent().private_block !== false) {
         return false;
     }
-    // metadata local wins
+    if (localTestBox.getContent().license_public_domain !== false) {
+        return false;
+    }
+// metadata local wins
     remoteTestBox.getContent().lastChangedPublicMetaData = 1528468538430;
     localTestBox.merge(remoteTestBox);
     if (localTestBox.getContent().title != "local box" || localTestBox.getContent().creator != "Genius") {
@@ -3014,7 +3446,7 @@ function test_box_merge() {
     if (localTestBox.getContent().cardsDeckWaitExponent != 3 || localTestBox.getContent().private_sortColumn != 1) {
         return false;
     }
-    // inlude test for "changed" marker of box
+// inlude test for "changed" marker of box
     localTestBox.edit();
     localTestBox.getContent().title = "Changed title";
     localTestBox.getContent().description = "Changed description";
@@ -3031,57 +3463,62 @@ function test_box_merge() {
     if (localTestBox.getContent().title != "Changed title" || localTestBox.getContent().description != "Changed description") {
         return false;
     }
-    if (!localTestBox.content.private_hasChanged) {
+    if (!localTestBox.content.hasChanged) {
         return false; // check "changed" marker
     }
-    // local wins because different boxID
+// local wins because different boxID
     if (localTestBox.getContent().cardsDeckWaitExponent != 3) {
         return false;
     }
-    // Same boxID with
+// Same boxID with
     remoteTestBox.getContent().boxID = "1528468531111";
     localTestBox.merge(remoteTestBox);
     // local wins (not changed)
     if (localTestBox.getContent().title != "Changed title" || localTestBox.getContent().description != "Changed description") {
         return false;
     }
-    if (!localTestBox.content.private_hasChanged) {
+    if (!localTestBox.content.hasChanged) {
         return false; // check "changed" marker
     }
-    // remote wins because now same boxID
+// remote wins because now same boxID
     if (localTestBox.getContent().cardsDeckWaitExponent != 2) {
         return false;
     }
-    // inlude test for "changed" public marker of box
+// inlude test for "changed" public marker of box
     localTestBox.edit();
     localTestBox.getContent().title = "xy"; // public meta data
     localTestBox.getContent().cardsDeckWaitExponent = 4; // private meta data
     localTestBox.save('box'); // mark the box as "changed"
     localTestBox.getContent().lastChangedPublicMetaData = 1528468538430;
     localTestBox.getContent().private_block = false;
+    localTestBox.getContent().license_public_domain = false;
     //localTestBox.getContent().lastChangedPrivateMetaData = 1528468538430; // set back
     // metadata remote wins but not over public metadata
     remoteTestBox.getContent().lastChangedPublicMetaData = 1528468538431;
     remoteTestBox.getContent().lastChangedPrivateMetaData = 1528468538431;
     remoteTestBox.getContent().title = "ab";
     remoteTestBox.getContent().private_block = "true";
+    remoteTestBox.getContent().license_public_domain = "true";
     remoteTestBox.getContent().cardsDeckWaitExponent = 2; // private meta data
     localTestBox.merge(remoteTestBox);
     // remote wins public meta data
     if (localTestBox.getContent().title != "ab") {
         return false;
     }
-    // local wins private meta data
+// local wins private meta data
     if (localTestBox.getContent().cardsDeckWaitExponent != 4) {
         return false;
     }
-    if (!localTestBox.content.private_hasChanged) {
+    if (!localTestBox.content.hasChanged) {
         return false;
     }
     if (localTestBox.getContent().private_block !== false) {
         return false;
     }
-    // remote wins private and public metadata
+    if (localTestBox.getContent().license_public_domain !== true) {
+        return false;
+    }
+// remote wins private and public metadata
     localTestBox.edit();
     localTestBox.getContent().description = "ab"; // public meta data
     localTestBox.getContent().cardsDeckWaitExponent = 1; // private meta data
@@ -3098,18 +3535,21 @@ function test_box_merge() {
     if (localTestBox.getContent().title != "abc") {
         return false;
     }
-    // remote wins private meta data
+// remote wins private meta data
     if (localTestBox.getContent().cardsDeckWaitExponent != 2) {
         return false;
     }
     if (localTestBox.getContent().private_block !== true) {
         return false;
     }
-    if (localTestBox.content.private_hasChanged) {
+    if (localTestBox.getContent().license_public_domain !== true) {
+        return false;
+    }
+    if (!localTestBox.content.hasChanged) {
         return false;
     }
 
-    // public meta data remote wins AND is own box (overwrites "cards...", "private...")
+// public meta data remote wins AND is own box (overwrites "cards...", "private...")
     localTestBox.getContent().boxID = "1528468531111";
     localTestBox.getContent().title = "local box";
     localTestBox.getContent().cardsDeckWaitExponent = 3;
@@ -3127,14 +3567,14 @@ function test_box_merge() {
     if (localTestBox.getContent().boxPublicID != "1528468533333") {
         return false; // this is one of the values that should never be overwritten
     }
-    if (localTestBox.content.private_hasChanged) {
+    if (!localTestBox.content.hasChanged) {
         return false; // check "changed" marker
     }
-    // private metdata is not changed
+// private metdata is not changed
     if (localTestBox.getContent().cardsDeckWaitExponent != 3 || localTestBox.getContent().private_sortColumn != 1) {
         return false;
     }
-    // public meta data remote wins AND is own box (overwrites "cards...", "private...")
+// public meta data remote wins AND is own box (overwrites "cards...", "private...")
     localTestBox.getContent().boxID = "1528468531111";
     localTestBox.getContent().title = "local box";
     localTestBox.getContent().creator = "Genius";
@@ -3161,11 +3601,11 @@ function test_box_merge() {
     if (localTestBox.getContent().boxPublicID != "1528468533333") {
         return false; // this is one of the values that should never be overwritten
     }
-    // private metdata is not changed
+// private metdata is not changed
     if (localTestBox.getContent().cardsDeckWaitExponent != 1 || localTestBox.getContent().private_sortColumn != 5) {
         return false;
     }
-    // remote box has a new card
+// remote box has a new card
     var remoteTestCard_1 = new Card();
     remoteTestCard_1.setContent(["1528468591486", "cc cc", "aa aa", "bb bb", "Dd cc", "1528468591486", "0", "0", "0", "1528468590202"]);
     remoteTestCard_1.validate();
@@ -3174,7 +3614,7 @@ function test_box_merge() {
     if (localTestBox.getContent().cards.length != 1 || localTestBox.getContent().cards[0] != remoteTestCard_1) {
         return false;
     }
-    //
+//
     box.getContent().cardsRepetitionsPerDeck = 3;
     // local card has changed content
     var localTestCard_1 = new Card();
@@ -3198,7 +3638,7 @@ function test_box_merge() {
             || localTestCard_1.getContent()[8] !== 6) {
         return false;
     }
-    // local card has changed progress
+// local card has changed progress
     localTestCard_1.setContent(["1528468591486", "cc 11", "aa 11", "bb 11", "Dd 11", "1528468591487", "5", "1", "33", "1528468590204", true]);
     localTestCard_1.validate();
     // remote card has changed content
@@ -3220,8 +3660,8 @@ function test_box_merge() {
             || localTestCard_1.getContent()[8] !== 33) {
         return false;
     }
-    // This is not the own box (!= boxID)
-    // remote card wins content but learn progress is not overwritten
+// This is not the own box (!= boxID)
+// remote card wins content but learn progress is not overwritten
     remoteTestBox.getContent().boxID = "1528468532222";
     remoteTestCard_1.setContent(["1528468591486", "cc xx", "aa xx", "bb xx", "Dd xx", "1528468591489", "4", "2", "6", "1528468590205", false]);
     localTestBox.merge(remoteTestBox);
@@ -3240,8 +3680,8 @@ function test_box_merge() {
             || localTestCard_1.getContent()[8] !== 33) {
         return false;
     }
-    // Box not owned but has new card. Do not get the learn progress
-    // remote box has a new card
+// Box not owned but has new card. Do not get the learn progress
+// remote box has a new card
     var remoteTestCard_2 = new Card();
     remoteTestCard_2.setContent(["1528468591487", "11", "22", "33", "44", "1528468591480", "1", "2", "3", "1528468590202", true]);
     remoteTestCard_2.validate();
@@ -3251,8 +3691,8 @@ function test_box_merge() {
         return false;
     }
     var localTestCard_2 = localTestBox.getCard(1528468591487);
-    if (localTestCard_2.getContent()[10]) {
-        return false; // nothing changed because imported
+    if (!localTestCard_2.getContent()[10]) {
+        return false; // this card was imported
     }
     if (localTestCard_2.getContent()[1] !== "11"
             || localTestCard_2.getContent()[2] !== "22" || localTestCard_2.getContent()[3] !== "33"
@@ -3272,28 +3712,34 @@ function loadBox() {
     box.validate();
     postUrl = $("#flashcards_post_url").html();
     nick = $("#flashcards_nick").html();
-    is_owner = $("#flashcards_is_owner").html();
+    affinity = $("#slider_flashcards_affinity").val(); // default set by server
+    restoreAffinity(); // restore from local storage if the affinity slider was used
     is_local_channel = $("#flashcards_is_local_channel").html();
-    is_allowed_to_create_box = $("#flashcards_is_allowed_to_create_box").html();
-    if (!is_allowed_to_create_box) {
+    has_write_permission = $("#has_write_permission").html();
+    if (!has_write_permission) {
         $("#flashcards_new_box").hide();
+        $("#flashcards_edit_box").hide();
         $("#flashcards-block-changes-row").hide();
     }
     flashcards_editor = $("#flashcards_editor").html();
+    flashcards_owner = $("#flashcards_owner").html();
+    owner_xchan_hash = $("#owner_xchan_hash").html();
+    owner_xchan_addr = $("#owner_xchan_addr").html();
+    param_zid = "zid=" + owner_xchan_addr;
     if (box.isEmpty()) {
         logger.log('The box was not stored in local storage of browser. Try to load box from URL...');
         if (downLoadBoxForURL()) {
             return;
         }
     }
-    // Check if the boxID is different in URL
+// Check if the boxID is different in URL
     var pathname = window.location.pathname;
     var pathnameArr = pathname.split('/');
     var href = window.location.href;
     logger.log('href = ' + href);
     var hrefArr = href.split('/');
     if (pathnameArr.length == 4 && box.content.boxID !== "" && pathnameArr[3] !== "") {
-        logger.log('Both have a boxID: 1. local storage boxID = ' + box.content.boxID + ', 2. URL boxID = ' + hrefArr[6]);
+        logger.log('Both have a boxID: 1. local storage boxID = ' + box.content.boxID + ', 2. URL boxID = ' + pathnameArr[3]);
         if (box.content.boxID !== hrefArr[5]) {
             logger.log('BoxID from local storage is not the boxID in the URL. Loading box from URL...');
             if (downLoadBoxForURL()) {
@@ -3302,7 +3748,7 @@ function loadBox() {
         }
         if (box.content.boxID == pathnameArr[3]) {
             logger.log('BoxID from local storage is the same as in URL...');
-            loadStartPage();
+            loadStartPage(true);
             return;
         }
     }
@@ -3313,8 +3759,30 @@ function loadBox() {
         logger.log('Redirecting to URL... ' + url);
         window.location.assign(url);
     }
-    loadCloudBoxes();
+    listBoxes();
 //    redirectToAppRoot();
+}
+
+function listBoxes() {
+    conductGUIelements('list-boxes');
+    requestBoxes();
+}
+
+function showBoxes() {
+    if (!contacts_fc) {
+        return;
+    }
+
+    for (let contact of contacts_fc) {
+        const a = contact["affinity"];
+        if (a > affinity) {
+            continue;
+        }
+        const boxes = contact["boxes"];
+        if (boxes) {
+            appendBoxesToList(boxes);
+        }
+    }
 }
 
 /*
@@ -3326,8 +3794,8 @@ function loadBox() {
  * this is a stupid test
  */
 $(document).ready(function () {
-    // Logging on/off
-    // logger.disableLogger();
+// Logging on/off
+// logger.disableLogger();
     logger.enableLogger();
     logger.log('Loading FlashCards...');
     timezoneOffsetMilliseconds = new Date().getTimezoneOffset() * 1000 * 60;

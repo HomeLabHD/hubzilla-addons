@@ -5,7 +5,7 @@ use Zotlabs\Extend\Route;
 /**
  * Name: Flashcards
  * Description: Grandma style learning method that uses spaced repetition as a learning technique.
- * Version: 25.03.15
+ * Version: 25.05.27
  * Author: Tom Wiedenhöft (ojrandom@protonmail.com)
  * Maintainer: Tom Wiedenhöft (ojrandom@protonmail.com)
  *
