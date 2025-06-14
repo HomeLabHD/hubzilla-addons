@@ -4,29 +4,9 @@ namespace Zotlabs\Module;
 
 use App;
 use Zotlabs\Lib\Apps;
-use Zotlabs\Lib\PConfig;
 use Zotlabs\Web\Controller;
 
 class Pubcrawl extends Controller {
-
-
-
-	function post() {
-
-		if (!local_channel()) {
-			return;
-		}
-
-		if (!Apps::addon_app_installed(local_channel(), 'pubcrawl')) {
-			return;
-		}
-
-		check_form_security_token_redirectOnErr('/pubcrawl', 'pubcrawl');
-
-		PConfig::Set(local_channel(), 'activitypub', 'force_note', $_REQUEST['activitypub_force_note']);
-
-		info( t('ActivityPub Protocol Settings updated.') . EOL);
-	}
 
 	function get() {
 
@@ -42,27 +22,14 @@ class Pubcrawl extends Controller {
 		}
 
 		$desc = t('The activitypub protocol does not support location independence. Connections you make within that network may be unreachable from alternate channel locations.');
-		$yes_no = [t('No'),t('Yes')];
 
-		$sc = '<div class="section-content-info-wrapper">' . $desc . '</div><br>';
-
-		$sc .= replace_macros(get_markup_template('field_checkbox.tpl'), [
-			'$field' => ['activitypub_force_note', t('Send activities of type note instead of article'), PConfig::Get(local_channel(), 'activitypub', 'force_note', true), t('Microblog services such as Mastodon do not properly support articles'), $yes_no],
-		]);
+		$sc = '<div class="section-content-info-wrapper">' . $desc . '</div>';
 
 		$tpl = get_markup_template("settings_addon.tpl");
 
-		$o .= replace_macros($tpl, [
-			'$action_url' => 'pubcrawl',
-			'$form_security_token' => get_form_security_token("pubcrawl"),
+		return replace_macros($tpl, [
 			'$title' => t('Activitypub Protocol'),
 			'$content'  => $sc,
-			'$baseurl'   => z_root(),
-			'$submit'    => t('Submit'),
 		]);
-
-		return $o;
-
 	}
-
 }
