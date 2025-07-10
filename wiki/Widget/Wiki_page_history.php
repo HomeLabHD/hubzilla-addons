@@ -22,7 +22,8 @@ class Wiki_page_history {
 			'pageUrlName'   => $pageUrlName
 		]);
 
-		return replace_macros(get_markup_template('nwiki_page_history.tpl', 'addon/wiki'), array(
+    $tpl = get_markup_template('nwiki_page_history.tpl') ?: get_markup_template('nwiki_page_history.tpl', 'addon/wiki');
+		return replace_macros($tpl, array(
 			'$pageHistory' => $pageHistory['history'],
 			'$permsWrite'  => $arr['permsWrite'],
 			'$name_lbl'    => t('Name'),
