@@ -130,7 +130,7 @@ class Gallery extends \Zotlabs\Web\Controller {
 			}
 		}
 
-		$tpl = get_markup_template('gallery.tpl', 'addon/gallery');
+    $tpl = get_markup_template('gallery.tpl') ?: get_markup_template('gallery.tpl', 'addon/gallery');
 		$o = replace_macros($tpl, [
 			'$title' => t('Gallery'),
 			'$albums' => $items,
