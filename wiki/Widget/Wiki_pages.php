@@ -53,7 +53,8 @@ class Wiki_pages {
 
 		$can_delete = ((local_channel() && (local_channel() == \App::$profile['uid'])) ? true : false);
 
-		return replace_macros(get_markup_template('wiki_page_list.tpl', 'addon/wiki'), array(
+    $tpl = get_markup_template('wiki_page_list.tpl') ?: get_markup_template('wiki_page_list.tpl', 'addon/wiki');
+		return replace_macros($tpl, array(
 				'$resource_id' => $arr['resource_id'],
 				'$header' => t('Wiki Pages'),
 				'$channel_address' => $arr['channel_address'],
