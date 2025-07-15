@@ -105,7 +105,7 @@ class Gallery extends \Zotlabs\Web\Controller {
 
 			$unsafe = ((array_key_exists('unsafe', $_GET) && $_GET['unsafe']) ? 1 : 0);
 
-			$r = q("select display_path, hash from attach where is_dir = 1 and uid = %d $sql_extra order by display_path asc",
+			$r = q("select display_path, hash, folder from attach where is_dir = 1 and uid = %d $sql_extra order by display_path asc",
 				intval($owner_uid)
 			);
 
@@ -130,7 +130,7 @@ class Gallery extends \Zotlabs\Web\Controller {
 			}
 		}
 
-		$tpl = get_markup_template('gallery.tpl', 'addon/gallery');
+    $tpl = get_markup_template('gallery.tpl') ?: get_markup_template('gallery.tpl', 'addon/gallery');
 		$o = replace_macros($tpl, [
 			'$title' => t('Gallery'),
 			'$albums' => $items,

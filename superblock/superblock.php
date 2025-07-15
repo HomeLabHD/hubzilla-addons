@@ -1,13 +1,13 @@
 <?php
-
-
 /**
  * Name: superblock
  * Description: block channels
- * Version: 2.0
+ * Version: 2.1
  * Author: Mike Macgirvin
+ * Author: Harald Eilertsen
  * Maintainer: Mike Macgirvin <mike@macgirvin.com>
- * MinVersion: 1.1.3
+ * Maintainer: Harald Eilertsen
+ * MinVErsion: 10.0
  */
 
 /**
@@ -306,20 +306,43 @@ function superblock_conversation_start(&$b) {
 		App::$data['superblock'] = explode(',',$words);
 	}
 
+	$security_token = get_form_security_token('superblock');
+
 	if(! array_key_exists('htmlhead',App::$page))
 		App::$page['htmlhead'] = '';
 
-	App::$page['htmlhead'] .= <<< EOT
+	$script = <<< EOT
+		<script>
+		function superblockBlock(author,item) {
+			$.get('superblock?f=&item=' + item + '&block=' +author, function(data) {
+				location.reload(true);
+			});
+		}
 
-<script>
-function superblockBlock(author,item) {
-	$.get('superblock?f=&item=' + item + '&block=' +author, function(data) {
-		location.reload(true);
-	});
-}
-</script>
+		EOT;
 
-EOT;
+	if (is_site_admin()) {
+		$script .= <<< JS
+		async function superblockSiteBlock(author) {
+			let response = await fetch("superblock", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					action: "siteblock",
+					author: author,
+					form_security_token: "{$security_token}",
+				}),
+			});
+			body = await response.text();
+		}
+		JS;
+	}
+
+	$script .= "</script>";
+
+	App::$page['htmlhead'] .= $script;
 
 }
 
@@ -357,4 +380,14 @@ function superblock_item_photo_menu(&$b) {
 		'action' => 'superblockBlock(\'' . $author . '\',' . $item . '); return false;',
 		'href' => '#'
 	];
+
+	if (is_site_admin()) {
+		$b['menu'][] = [
+			'superblock_admin_block',
+			'title' => t('Block from site'),
+			'icon' => 'fw',
+			'action' => "superblockSiteBlock('{$author}'); return false;",
+			'href' => '#',
+		];
+	}
 }

@@ -5,7 +5,7 @@
 	<ul class="nav nav-pills flex-column">
 		{{if $pages}}
 		{{foreach $pages as $page}}
-		<li class="nav-item nav-item-hack d-flex justify-content-between" id="{{$page.link_id}}">
+		<li class="nav-item d-flex justify-content-between" id="{{$page.link_id}}">
 			<a class="nav-link" href="/wiki/{{$channel_address}}/{{$wikiname}}/{{$page.url}}">{{$page.title}}</a>
       {{if $page.resource_id && $candel}}
 			<i class="nav-link widget-nav-pills-icons bi bi-trash" onclick="wiki_delete_page('{{$page.title|escape:'javascript'}}', '{{$page.title|escape:'javascript'}}', '{{$page.resource_id}}', '{{$page.link_id}}')"></i>

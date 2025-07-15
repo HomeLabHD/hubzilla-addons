@@ -9,6 +9,7 @@
  */
 
 use Zotlabs\Lib\Apps;
+use Zotlabs\Lib\Config;
 use Zotlabs\Extend\Hook;
 use Zotlabs\Extend\Route;
 
@@ -21,6 +22,7 @@ function photocache_load() {
 	Hook::register('cache_mode_hook', 'addon/photocache/photocache.php', 'photocache_mode');
 	Hook::register('cache_url_hook', 'addon/photocache/photocache.php', 'photocache_url');
 	Hook::register('cache_body_hook', 'addon/photocache/photocache.php', 'photocache_body');
+	Hook::register('cache_prefetch_hook', 'addon/photocache/photocache.php', 'photocache_prefetch');
 	Route::register('addon/photocache/Mod_Photocache.php', 'photocache');
 
 	logger('Photo Cache is loaded');
@@ -32,6 +34,7 @@ function photocache_unload() {
 	Hook::unregister('cache_mode_hook', 'addon/photocache/photocache.php', 'photocache_mode');
 	Hook::unregister('cache_url_hook', 'addon/photocache/photocache.php', 'photocache_url');
 	Hook::unregister('cache_body_hook', 'addon/photocache/photocache.php', 'photocache_body');
+	Hook::unregister('cache_prefetch_hook', 'addon/photocache/photocache.php', 'photocache_prefetch');
 	Route::unregister('addon/photocache/Mod_Photocache.php', 'photocache');
 
 	$x = q("UPDATE photo SET expires = '%s' WHERE photo_usage = %d",
@@ -154,9 +157,11 @@ function photocache_hash($str, $alg = 'sha256') {
 			if(photocache_isgrid($match[3]))
 				continue;
 
-			logger('uid: ' . $s['uid'] . '; url: ' . $match[3], LOGGER_DEBUG);
+			logger('photocache uid: ' . $s['uid'] . '; url: ' . $match[3], LOGGER_DEBUG);
 
 			$hash = photocache_hash(preg_replace('|^https?://|' ,'' , $match[3]));
+			logger('photocache hash: ' . print_r($hash,true), LOGGER_DEBUG);
+
 			$resid = photocache_hash($s['uid'] . $hash);
 			$r = q("SELECT * FROM photo WHERE xchan = '%s' AND photo_usage = %d AND uid = %d LIMIT 1",
 				dbesc($hash),
@@ -164,6 +169,8 @@ function photocache_hash($str, $alg = 'sha256') {
 				intval($s['uid'])
 			);
 			if(! $r) {
+				logger(print_r('photocache not available for uid: ' . $s['uid'], true), LOGGER_DEBUG);
+
 				// Create new empty link. Data will be fetched on link open.
 				$r = [
 					'aid' => $x['channel_account_id'],
@@ -237,9 +244,11 @@ function photocache_url(&$cache = []) {
 
 			logger('info: duplicate ' . $cache['item']['resource_id'] . ' data from cache for ' . $k[0]['uid'], LOGGER_DEBUG);
 		}
+
 	}
 
 	$exp = strtotime($cache['item']['expires']) + date('Z');
+
 	// fetch the image if the cache has expired or we need to cache and it has not yet been done
 	$url = (($cache['item']['height'] == 0) || ((($cache['item']['height'] >= $minres || $cache['item']['width'] >= $minres) && ($exp - 60 < time() || $cache['item']['filesize'] == 0))) ? html_entity_decode($cache['item']['display_path'], ENT_QUOTES) : '');
 
@@ -256,52 +265,29 @@ function photocache_url(&$cache = []) {
 		if((! $i['success']) && $i['return_code'] != 304)
 			return logger('photo could not be fetched (HTTP code ' . $i['return_code'] . ')', LOGGER_DEBUG);
 
-		$hdrs = [];
-		$h = explode("\n", $i['header']);
-		foreach ($h as $l) {
-			if (strpos($l, ':') === false) {
-				continue;
-			}
+		$parsed_header = photocache_parse_header_info($i['header']);
 
-			list($t,$v) = array_map("trim", explode(":", trim($l), 2));
-			$hdrs[strtolower($t)] = $v;
+		if ($parsed_header['cancel']) {
+			logger('caching prohibited by remote host directive', LOGGER_DEBUG);
+			return;
 		}
 
-		if(array_key_exists('expires', $hdrs)) {
-			$expires = strtotime($hdrs['expires']);
-			if($expires - 60 < time())
-				return logger('fetched item expired ' . $hdrs['expires'], LOGGER_DEBUG);
+		$cache['item']['expires'] = gmdate('Y-m-d H:i:s', $parsed_header['expires']);
+
+		if ($parsed_header['last-modified']) {
+			$cache['item']['edited'] = gmdate('Y-m-d H:i:s', strtotime($parsed_header['last-modified']));
 		}
 
-		$cc = '';
-		if(array_key_exists('cache-control', $hdrs))
-			$cc = $hdrs['cache-control'];
-		if(strpos($cc, 'no-store'))
-			return logger('caching prohibited by remote host directive ' . $cc, LOGGER_DEBUG);
-		if(strpos($cc, 'no-cache'))
-			$expires = time() + 60;
-		if(! isset($expires)){
-			if($cache_mode['exp'])
-				$ttl = $cache_mode['age'];
-			else
-				$ttl = (preg_match('/max-age=(\d+)/i', $cc, $o) ? intval($o[1]) : $cache_mode['age']);
-			$expires = time() + $ttl;
-		}
-
-		$maxexp = time() + 86400 * get_config('system','default_expire_days', 30);
-		if($expires > $maxexp)
-			$expires = $maxexp;
-
-		$cache['item']['expires'] = gmdate('Y-m-d H:i:s', $expires);
-
-		if(array_key_exists('last-modified', $hdrs))
-			$cache['item']['edited'] = gmdate('Y-m-d H:i:s', strtotime($hdrs['last-modified']));
+		$cache['item']['description'] = $parsed_header['etag'] ?? '';
 
 		if($i['success']) {
 			// New data received (HTTP 200)
 			$type = guess_image_type($cache['item']['display_path'], $i);
-			if(strpos($type, 'image') === false)
+
+			if (!$type || !str_contains($type, 'image')) {
 				return logger('wrong image type detected ' . $type, LOGGER_DEBUG);
+			}
+
 			$cache['item']['mimetype'] = $type;
 
 			$ph = photo_factory($i['body'], $type);
@@ -322,7 +308,6 @@ function photocache_url(&$cache = []) {
 
 				$cache['item']['width'] = $ph->getWidth();
 				$cache['item']['height'] = $ph->getHeight();
-				$cache['item']['description'] = (array_key_exists('etag', $hdrs) ? $hdrs['etag'] : '');
 
 				$k = ((($cache['item']['width'] >= $minres || $cache['item']['height'] >= $minres) && $oldsize == 0) ? true : false);
 
@@ -343,6 +328,8 @@ function photocache_url(&$cache = []) {
 				}
 
 				if($k) {
+					logger(print_r('not in cache: ' . $cache['item']['display_path'],true), LOGGER_DEBUG);
+
 					// if this is first seen image
 					if(! $ph->save($cache['item'], true))
 						logger('can not save image in database', LOGGER_DEBUG);
@@ -375,6 +362,214 @@ function photocache_url(&$cache = []) {
 	if($cache['item']['filesize'] > 0)
 		$cache['status'] = true;
 
-
 	logger('info: ' . $cache['item']['display_path'] . ($cache['status'] ? ' is cached as ' . $cache['item']['resource_id'] . ' for ' . $cache['item']['uid'] : ' is not cached'));
+}
+
+
+/*
+ * @brief prefetch images of public posts for the sys channel.
+ * Other channels can than subsequently copy this entry.
+ * This is hooked into the cache_embeds daemon.
+ */
+
+function photocache_prefetch($item) {
+	$match = null;
+
+	if ($item['item_private']) {
+		// Do not prefetch images of private items
+		return;
+	}
+
+	if (preg_match_all("/\[[zi]mg(.*?)\](.*?)\[\/[zi]mg\]/", $item['body'], $match)) {
+		logger('prefetching image for uid: ' . print_r($item['uid'], true), LOGGER_DEBUG);
+
+		// The URI can be in both places
+		$images = array_merge($match[1], $match[2]);
+
+		if($images) {
+			foreach($images as $image) {
+				if (str_starts_with($image, '=http')) {
+					$image = ltrim($image, '=');
+				}
+
+				if (!str_starts_with($image, 'http') || str_starts_with($image, z_root())) {
+					continue;
+				}
+
+				if (photocache_isgrid($image)) {
+					continue;
+				}
+
+				logger('prefetch url: ' . print_r($image,true), LOGGER_DEBUG);
+
+				$hash = photocache_hash(preg_replace('|^https?://|', '', $image));
+
+				$r = q("SELECT * FROM photo WHERE xchan = '%s' AND photo_usage = %d LIMIT 1",
+					dbesc($hash),
+					intval(PHOTO_CACHE)
+				);
+
+				if ($r) {
+					logger('photo already in cache: ' . print_r($image,true), LOGGER_DEBUG);
+					continue;
+				}
+
+				$result = z_fetch_url($image, true);
+
+				if (!$result['success']) {
+					continue;
+				}
+
+				$type = guess_image_type($image, $result);
+
+				if (!$type || !str_contains($type, 'image')) {
+					logger('wrong image type detected: ' . $type, LOGGER_DEBUG);
+					continue;
+				}
+
+				$parsed_header = photocache_parse_header_info($result['header']);
+
+				if ($parsed_header['cancel']) {
+					logger('caching prohibited by remote server directive', LOGGER_DEBUG);
+					continue;
+				}
+
+				$sys = get_sys_channel();
+
+				// config array for image save method
+				$p = [
+					'aid' => $sys['channel_account_id'],
+					'uid' => $sys['channel_id'],
+					'xchan' => $hash,
+					'resource_id' => photocache_hash($sys['channel_id'] . $hash),
+					'mimetype' => $type,
+					'created' => datetime_convert(),
+					'photo_usage' => PHOTO_CACHE,
+					'filename' => 'photocache_cache_embeds',
+					'display_path' => $image,
+					'description' => $parsed_header['etag'] ?? '',
+					'expires' => gmdate('Y-m-d H:i:s', $parsed_header['expires'])
+				];
+
+				if ($parsed_header['last-modified']) {
+					$p['edited'] = gmdate('Y-m-d H:i:s', strtotime($parsed_header['last-modified']));
+				}
+
+				$ph = photo_factory($result['body'], $type);
+
+				if(!$ph->is_valid()) {
+					logger('prefetch invalid image', LOGGER_DEBUG);
+				}
+
+				$orig_width = $ph->getWidth();
+				$orig_height = $ph->getHeight();
+
+				if($orig_width > 1024 || $orig_height > 1024) {
+					$ph->scaleImage(1024);
+					logger('prefetch photo resized: ' . $orig_width . '->' . $ph->getWidth() . 'w ' . $orig_height . '->' . $ph->getHeight() . 'h', LOGGER_DEBUG);
+				}
+
+				$p['width'] = $ph->getWidth();
+				$p['height'] = $ph->getHeight();
+				$p['filesize'] = strlen($ph->imageString());
+
+				$os_path = Hashpath::path($p['xchan'], 'store/[data]/[cache]', 2, 1);
+				$path = dirname($os_path);
+
+				$p['os_syspath'] = $os_path;
+
+				if (!is_dir($path) && !os_mkdir($path, STORAGE_DEFAULT_PERMISSIONS, true)) {
+					return logger('prefetch could not create path ' . $path, LOGGER_DEBUG);
+				}
+
+				if(is_file($os_path)) {
+					@unlink($os_path);
+				}
+
+				if(!$ph->saveImage($os_path)) {
+					return logger('prefetch could not save file ' . $os_path, LOGGER_DEBUG);
+				}
+
+				logger('image saved: ' . $os_path . '; ' . $p['mimetype'] . ', ' . $p['width'] . 'w x ' . $p['height'] . 'h, ' . $p['filesize'] . ' bytes', LOGGER_DEBUG);
+
+				if(!$ph->save($p, true)) {
+					logger('prefetch can not save image in database', LOGGER_DEBUG);
+				}
+			}
+		}
+	}
+}
+
+function photocache_parse_header_info($header) {
+	$ret = [
+		'expires' => null,
+		'last-modified' => null,
+		'etag' => null,
+		'cancel' => false
+	];
+
+	$cache_mode = [];
+	photocache_mode($cache_mode);
+
+	$hdrs = [];
+
+	$h = explode("\n", $header);
+	foreach ($h as $l) {
+		if (strpos($l, ':') === false) {
+			continue;
+		}
+
+		list($t,$v) = array_map('trim', explode(':', trim($l), 2));
+		$hdrs[strtolower($t)] = $v;
+	}
+
+	if(array_key_exists('expires', $hdrs)) {
+		$expires = strtotime($hdrs['expires']);
+		if($expires - 60 < time()) {
+			$ret['cancel'] = true;
+		}
+	}
+
+	$cc = '';
+	if (array_key_exists('cache-control', $hdrs)) {
+		$cc = $hdrs['cache-control'];
+	}
+
+	if (str_contains($cc, 'no-store')) {
+		$ret['cancel'] = true;
+	}
+
+	if (str_contains($cc, 'no-cache')) {
+		$expires = time() + 60;
+	}
+
+	if (!isset($expires)) {
+		if($cache_mode['exp']) {
+			$ttl = $cache_mode['age'];
+		}
+		else {
+			$ttl = (preg_match('/max-age=(\d+)/i', $cc, $o) ? intval($o[1]) : $cache_mode['age']);
+		}
+
+		$expires = time() + $ttl;
+	}
+
+	$maxexp = time() + 86400 * Config::Get('system', 'default_expire_days', 30);
+
+	if ($expires > $maxexp) {
+		$expires = $maxexp;
+	}
+
+	$ret['expires'] = $expires;
+
+	if (array_key_exists('last-modified', $hdrs)) {
+		$ret['last-modified'] = $hdrs['last-modified'];
+	}
+
+	if (array_key_exists('etag', $hdrs)) {
+		$ret['etag'] = $hdrs['etag'];
+	}
+
+	return $ret;
+
 }

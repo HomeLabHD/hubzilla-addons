@@ -319,7 +319,7 @@ class Inbox extends Controller {
 			else {
 				$collections = Activity::get_actor_collections($observer_hash);
 
-				if (in_array($collections['followers'], $AS->recips)
+				if (isset($collections['followers']) && in_array($collections['followers'], $AS->recips)
 					|| in_array(ACTIVITY_PUBLIC_INBOX, $AS->recips)
 					|| in_array('Public', $AS->recips)
 					|| in_array('as:Public', $AS->recips)) {
@@ -485,8 +485,6 @@ class Inbox extends Controller {
 				case 'Read':
 				case 'Travel':
 				case 'View':
-				case 'emojiReaction':
-				case 'EmojiReaction':
 				case 'EmojiReact':
 					// These require a resolvable object structure
 					if (empty($AS->obj)) {

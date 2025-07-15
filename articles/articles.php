@@ -132,6 +132,7 @@ function articles_channel_activities_widget(&$arr){
 	$r = q("SELECT edited, plink, body, title FROM item WHERE uid = %d
 		AND author_xchan = '%s' AND item_type = 7
 		AND item_thread_top = 1 AND item_deleted = 0
+		AND verb NOT IN ('Add', 'Remove')
 		ORDER BY edited DESC LIMIT %d",
 		intval($arr['channel']['channel_id']),
 		dbesc($arr['channel']['channel_hash']),

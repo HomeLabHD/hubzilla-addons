@@ -19,7 +19,8 @@ class Wiki_list {
 		$wikis = NativeWiki::listwikis($channel, get_observer_hash());
 
 		if($wikis) {
-			return replace_macros(get_markup_template('wikilist_widget.tpl', 'addon/wiki'), [
+      $tpl = get_markup_template('wikilist_widget.tpl') ?: get_markup_template('wikilist_widget.tpl', 'addon/wiki');
+			return replace_macros($tpl, [
 				'$header' => t('Wikis'),
 				'$channel' => $channel['channel_address'],
 				'$wikis' => $wikis['wikis']

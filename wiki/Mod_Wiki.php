@@ -205,7 +205,8 @@ class Wiki extends Controller {
 				$wikis = NativeWiki::listwikis($owner, get_observer_hash());
 
 				if($wikis) {
-					$o .= replace_macros(get_markup_template('wikilist.tpl', 'addon/wiki'), array(
+          $tpl = get_markup_template('wikilist.tpl') ?: get_markup_template('wikilist.tpl', 'addon/wiki');
+					$o .= replace_macros($tpl, array(
 						'$header' => t('Wikis'),
 						'$channel' => $owner['channel_address'],
 						'$wikis' => $wikis['wikis'],
@@ -371,7 +372,8 @@ class Wiki extends Controller {
 		$placeholder = t('Short description of your changes (optional)');
 
 		$zrl = z_root() . '/wiki/' . argv(1) . '/' . NativeWiki::name_encode($wikiUrlName) . '/' . NativeWiki::name_encode($pageUrlName);
-		$o .= replace_macros(get_markup_template('wiki.tpl', 'addon/wiki'),array(
+    $tpl = get_markup_template('wiki.tpl') ?: get_markup_template('wiki.tpl', 'addon/wiki');
+		$o .= replace_macros($tpl,array(
 			'$wikiheaderName' => $wikiheaderName,
 			'$wikiheaderPage' => $wikiheaderPage,
 			'$renamePage' => $renamePage,
@@ -890,7 +892,8 @@ class Wiki extends Controller {
                 $pageName = NativeWiki::name_decode(escape_tags(argv(3)));
 
 		$wikiname = $w['urlName'];
-		return replace_macros(get_markup_template('wiki_page_not_found.tpl', 'addon/wiki'), array(
+    $tpl = get_markup_template('wiki_page_not_found.tpl') ?: get_markup_template('wiki_page_not_found.tpl', 'addon/wiki');
+		return replace_macros($tpl, array(
 				'$resource_id' => $arr['resource_id'],
 				'$channel_address' => $arr['channel_address'],
 				'$wikiname' => $wikiname,

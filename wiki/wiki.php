@@ -61,6 +61,7 @@ function wiki_channel_activities_widget(&$arr){
 	$r = q("SELECT id, changed, resource_id FROM item WHERE uid = %d
 		AND author_xchan = '%s' AND resource_type = 'nwiki'
 		AND item_deleted = 0
+		AND verb NOT IN ('Add', 'Remove')
 		ORDER BY changed DESC LIMIT %d",
 		intval($arr['channel']['channel_id']),
 		dbesc($arr['channel']['channel_hash']),

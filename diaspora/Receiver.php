@@ -680,6 +680,7 @@ class Diaspora_Receiver {
 		$datarray['author_xchan'] = $contact['xchan_hash'];
 		$datarray['body'] = $newbody;
 		$datarray['app']  = 'Diaspora';
+		$datarray['item_thread_top'] = 1;
 
 		// Diaspora allows anybody to comment on public posts in theory
 		// In fact the comment will be rejected unless it is correctly signed

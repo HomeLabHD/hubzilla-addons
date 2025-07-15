@@ -33,7 +33,7 @@ function fediquest_post_local(&$arr) {
 		return;
 	}
 
-	if (strpos($arr['body'], '[/fediquest]') === false) {
+	if (empty($arr['body']) || !str_contains($arr['body'], '[/fediquest]')) {
 		return;
 	}
 

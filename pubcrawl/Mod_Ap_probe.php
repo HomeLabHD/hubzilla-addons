@@ -3,6 +3,7 @@ namespace Zotlabs\Module;
 
 use Zotlabs\Web\HTTPSig;
 use Zotlabs\Lib\ActivityStreams;
+use Zotlabs\Lib\Activity;
 
 require_once('library/jsonld/jsonld.php');
 
@@ -10,7 +11,7 @@ class Ap_probe extends \Zotlabs\Web\Controller {
 
 	function get() {
 
-		if (!is_site_admin()) {
+		if (!local_channel()) {
 			return;
 		}
 
@@ -46,34 +47,64 @@ class Ap_probe extends \Zotlabs\Web\Controller {
 			$redirects = 0;
 		    $x = z_fetch_url($addr, true, $redirects, [ 'headers' => $headers ]);
 
-	    	if($x['success'])
-
+			if($x['success']) {
 				$o .= '<pre>' . htmlspecialchars($x['header']) . '</pre>' . EOL;
-
-
 				$o .= '<pre>' . htmlspecialchars($x['body']) . '</pre>' . EOL;
-
 				$o .= 'verify returns: ' . str_replace("\n",EOL,print_r(HTTPSig::verify($x),true)) . EOL;
-				$text = $x['body'];
-			}
-			else {
-				$text = $_REQUEST['text'];
-			}
 
-			if($text) {
+				$text = $x['body'];
+
+				$arr = json_decode($x['body'], true);
+
+				if (is_site_admin() && isset($arr['type']) && ActivityStreams::is_an_actor($arr['type'])) {
+					Activity::actor_store($arr, true);
+				}
+			}
+		}
+		else {
+			$text = $_REQUEST['text'];
+		}
+
+		if ($text) {
 
 //				if($text && json_decode($text)) {
 //					$normalized1 = jsonld_normalize(json_decode($text),[ 'algorithm' => 'URDNA2015', 'format' => 'application/nquads' ]);
 //					$o .= str_replace("\n",EOL,htmlentities(var_export($normalized1,true)));
 
-	//				$o .= '<pre>' . json_encode($normalized1, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '</pre>';
+//				$o .= '<pre>' . json_encode($normalized1, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . '</pre>';
 //				}
 
-				$o .= '<pre>' . str_replace(['\\n','\\'],["\n",''],htmlspecialchars(jindent($text))) . '</pre>';
+			$AP = new \Zotlabs\Lib\ActivityStreams($text);
 
-				$AP = new \Zotlabs\Lib\ActivityStreams($text);
-				$o .= '<pre>' . htmlspecialchars($AP->debug()) . '</pre>';
+			if (in_array($AP->objprop('type'), ['Note', 'Article', 'Video', 'Page'])) {
+				$decoded = Activity::decode_note($AP);
+
+				if ($decoded) {
+					$item = [$decoded];
+					xchan_query($item);
+
+					// we will not have those here yet if we fetch from a zot6 channel
+					if (isset($item[0]['author'], $item[0]['owner'])) {
+						// prepare some fields for conversation()
+						if (!empty($item[0]['attach'])) {
+							$item[0]['attach'] = json_encode($item[0]['attach']);
+						}
+
+						if (!empty($item[0]['obj'])) {
+							$item[0]['obj'] = json_encode($item[0]['obj']);
+						}
+
+						$o .= conversation($item, 'search', false, 'preview');
+					}
+				}
+			}
+			$o .= $raw ?? '';
+			$o .= '<pre>' . str_replace(['\\n','\\'],["\n",''],htmlspecialchars(jindent($text))) . '</pre>';
+			$o .= '<pre>' . htmlspecialchars($AP->debug()) . '</pre>';
 		}
+
+		//		logger('preview: ' . $o, LOGGER_DEBUG);
+		//echo json_encode(['preview' => $o]);
 
 		return $o;
 	}
