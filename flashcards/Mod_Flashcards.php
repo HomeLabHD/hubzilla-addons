@@ -8,7 +8,6 @@ use Zotlabs\Web\Controller;
 use Zotlabs\Storage\Directory;
 use Zotlabs\Storage\File;
 use Zotlabs\Storage\BasicAuth;
-use Zotlabs\Access\AccessList;
 
 class Flashcards extends Controller {
 
@@ -181,7 +180,7 @@ class Flashcards extends Controller {
         $status = $this->permChecks();
         $this->getAddonDir();
 
-        if(! $status['status']) {
+        if (!$status['status']) {
             notice($status['errormsg'] . EOL);
             json_return_and_die(array('status' => false, 'errormsg' => $status['errormsg'] . EOL));
         }
@@ -231,7 +230,6 @@ class Flashcards extends Controller {
                     break;
             }
         }
-
     }
 
     private function sendAddonNotInstalled() {
@@ -246,8 +244,8 @@ class Flashcards extends Controller {
 
         $owner_uid = $this->owner['channel_id'];
 
-		//logger('DELETE ME: This is the owner...', LOGGER_DEBUG);
-		//logger(print_r($this->owner, true), LOGGER_DEBUG);
+        //logger('DELETE ME: This is the owner...', LOGGER_DEBUG);
+        //logger(print_r($this->owner, true), LOGGER_DEBUG);
 
         if (!$owner_uid) {  // This IF should be checked before and could be deleted
             logger('Stop: No owner profil');
@@ -266,7 +264,7 @@ class Flashcards extends Controller {
         // We could check the permission "write_storage" as it was in a former version.
         // But we say ONLY the logged in owner can add boxes/flashcards and change them.
         $this->is_owner = ($this->observer['xchan_hash'] && $this->observer['xchan_hash'] == $this->owner['xchan_hash']);
-        if($this->is_owner) {
+        if ($this->is_owner) {
             logger('observer = owner', LOGGER_DEBUG);
         } else {
             logger('observer != owner', LOGGER_DEBUG);
@@ -556,7 +554,7 @@ class Flashcards extends Controller {
         $ret["status"] = true;
         $ret["errormsg"] = null;
 
-		$baseURL = App::get_baseurl();
+        $baseURL = App::get_baseurl();
 
         $boxes = [];
         $nick = $this->owner['channel_address'];
@@ -808,7 +806,7 @@ class Flashcards extends Controller {
         }
 
         $boxRemote = $_POST['box'];
-        if(!$boxRemote) {
+        if (!$boxRemote) {
 
             logger('no remote box given', LOGGER_DEBUG);
 
@@ -821,7 +819,7 @@ class Flashcards extends Controller {
 
         // The browser sends all cards or just a single card or some of them.
         $cardIDsReceived = array();
-        if(isset($cards)) {
+        if (isset($cards)) {
             foreach ($cards as &$card) {
                 array_push($cardIDsReceived, $card['content'][0]);
             }
@@ -869,7 +867,6 @@ class Flashcards extends Controller {
 
                 $this->mergeBox($box_id, $boxRemote, $cardIDsReceived);
             }
-
         } else {
 
             $action = "";
@@ -916,12 +913,12 @@ class Flashcards extends Controller {
 
     private function readBox($dir, $filename) {
         $boxFileExists = $dir->childExists($filename);
-        if(! $boxFileExists) {
-            logger('file does not exist in boxes dir, file = '. $filename, LOGGER_DEBUG);
+        if (!$boxFileExists) {
+            logger('file does not exist in boxes dir, file = ' . $filename, LOGGER_DEBUG);
             return false;
         }
 
-        logger('read box and convert from file = '. $filename, LOGGER_DEBUG);
+        logger('read box and convert from file = ' . $filename, LOGGER_DEBUG);
 
         $JSONstream = $dir->getChild($filename)->get();
         $contents = stream_get_contents($JSONstream);
@@ -929,7 +926,6 @@ class Flashcards extends Controller {
         fclose($JSONstream);
 
         return $box;
-
     }
 
     private function mergeBox($box_id, $boxRemote, $cardIDsReceived) {
@@ -977,12 +973,12 @@ class Flashcards extends Controller {
 
         $filename = $boxID . '.json';
 
-        if($this->boxesDir->childExists($filename)) {
+        if ($this->boxesDir->childExists($filename)) {
 
             // delete box itself
             $this->boxesDir->getChild($filename)->delete();
             // delete directory of box for the observers and their boxes too
-            if($this->boxesDir->childExists($boxID)) {
+            if ($this->boxesDir->childExists($boxID)) {
                 $this->boxesDir->getChild($boxID)->delete();
             }
             logger('Deleted box ' . $filename);
@@ -990,9 +986,7 @@ class Flashcards extends Controller {
         } else {
             logger('Failed to delete box. No file ' . $filename);
             json_return_and_die(array('status' => false, 'errormsg' => 'Box not found on server'));
-
         }
-
     }
 
     private function initAuth() {
@@ -1054,7 +1048,6 @@ class Flashcards extends Controller {
         if (!$this->boxesDir) {
             json_return_and_die(array('message' => 'no directory flashcards or no permission', 'success' => false));
         }
-
     }
 
     private function getRootDir() {
@@ -1063,12 +1056,11 @@ class Flashcards extends Controller {
 
         $channelAddress = $this->owner['channel_address'];
 
-        if(! $rootDirectory->childExists($channelAddress)) {
+        if (!$rootDirectory->childExists($channelAddress)) {
             json_return_and_die(array('message' => 'No cloud directory.', 'success' => false));
         }
 
         return $rootDirectory;
-
     }
 
     private function fetchRessource($url) {
@@ -1165,6 +1157,7 @@ class Flashcards extends Controller {
      * @param $boxLocal array from local DB
      * @param $boxRemote array received to merge with box in DB
      */
+
     function flashcards_merge($boxLocal, $boxRemote, $is_private = true) {
 
         logger('merge boxes local id = ' . $boxLocal['boxID'] . ', remote id = ' . $boxRemote['boxID'], LOGGER_DEBUG);
@@ -1174,22 +1167,21 @@ class Flashcards extends Controller {
             $has_boxLocal_changes = true;
         }
 
-        if($is_private) {
-            if($boxLocal['boxID'] != $boxRemote['boxID']) {
+        if ($is_private) {
+            if ($boxLocal['boxID'] != $boxRemote['boxID']) {
                 unset($boxRemote['cards']);
                 return array('boxLocal' => $boxLocal, 'boxRemote' => $boxRemote);
             }
-        }
-        else {
-            if($boxLocal['boxPublicID'] != $boxRemote['boxPublicID']) {
+        } else {
+            if ($boxLocal['boxPublicID'] != $boxRemote['boxPublicID']) {
                 unset($boxRemote['cards']);
                 return array('boxLocal' => $boxLocal, 'boxRemote' => $boxRemote);
             }
         }
         $keysPublic = array('title', 'description', 'lastEditor', 'lastChangedPublicMetaData', 'lastShared', 'license_public_domain');
         $keysPrivate = array('cardsDecks', 'cardsDeckWaitExponent', 'cardsRepetitionsPerDeck', 'private_block', 'private_sortColumn', 'private_sortReverse', 'private_filter', 'private_visibleColumns', 'private_switch_learn_direction', 'private_switch_learn_all', 'private_autosave', 'private_show_card_sort', 'private_sort_default', 'private_search_convenient', 'lastChangedPrivateMetaData');
-        if($boxLocal['lastChangedPublicMetaData'] != $boxRemote['lastChangedPublicMetaData']) {
-            if($boxLocal['lastChangedPublicMetaData'] > $boxRemote['lastChangedPublicMetaData']) {
+        if ($boxLocal['lastChangedPublicMetaData'] != $boxRemote['lastChangedPublicMetaData']) {
+            if ($boxLocal['lastChangedPublicMetaData'] > $boxRemote['lastChangedPublicMetaData']) {
                 foreach ($keysPublic as &$key) {
                     $boxRemote[$key] = $boxLocal[$key];
                 }
@@ -1199,9 +1191,9 @@ class Flashcards extends Controller {
                 }
             }
         }
-        if($is_private) {
-            if($boxLocal['lastChangedPrivateMetaData'] != $boxRemote['lastChangedPrivateMetaData']) {
-                if($boxLocal['lastChangedPrivateMetaData'] > $boxRemote['lastChangedPrivateMetaData']) {
+        if ($is_private) {
+            if ($boxLocal['lastChangedPrivateMetaData'] != $boxRemote['lastChangedPrivateMetaData']) {
+                if ($boxLocal['lastChangedPrivateMetaData'] > $boxRemote['lastChangedPrivateMetaData']) {
                     foreach ($keysPrivate as &$key) {
                         $boxRemote[$key] = $boxLocal[$key];
                     }
@@ -1213,11 +1205,11 @@ class Flashcards extends Controller {
             }
         }
         $cardsDB = $boxLocal['cards'];
-        if(! $cardsDB) {
+        if (!$cardsDB) {
             $cardsDB = [];
         }
         $cardsRemote = $boxRemote['cards'];
-        if(! $cardsRemote) {
+        if (!$cardsRemote) {
             $cardsRemote = [];
         }
         $cardsDBadded = array();
@@ -1225,11 +1217,11 @@ class Flashcards extends Controller {
         foreach ($cardsRemote as &$cardRemote) {
             $isInDB = false;
             foreach ($cardsDB as &$cardDB) {
-                if($cardRemote['content'][0] == $cardDB['content'][0]) {
+                if ($cardRemote['content'][0] == $cardDB['content'][0]) {
                     $isInDB = true;
                     $isRemoteChanged = false;
-                    if($cardDB['content'][5] != $cardRemote['content'][5]) {
-                        if($cardDB['content'][5] > $cardRemote['content'][5]) {
+                    if ($cardDB['content'][5] != $cardRemote['content'][5]) {
+                        if ($cardDB['content'][5] > $cardRemote['content'][5]) {
                             for ($i = 1; $i < 6; $i++) {
                                 $cardRemote['content'][$i] = $cardDB['content'][$i];
                                 $isRemoteChanged = true;
@@ -1241,9 +1233,9 @@ class Flashcards extends Controller {
                             $has_boxLocal_changes = true;
                         }
                     }
-                    if($is_private) {
-                        if($cardDB['content'][9] != $cardRemote['content'][9]) {
-                            if($cardDB['content'][9] > $cardRemote['content'][9]) {
+                    if ($is_private) {
+                        if ($cardDB['content'][9] != $cardRemote['content'][9]) {
+                            if ($cardDB['content'][9] > $cardRemote['content'][9]) {
                                 for ($i = 6; $i < 10; $i++) {
                                     $cardRemote['content'][$i] = $cardDB['content'][$i];
                                     $isRemoteChanged = true;
@@ -1255,14 +1247,14 @@ class Flashcards extends Controller {
                             }
                         }
                     }
-                    if($isRemoteChanged === true) {
+                    if ($isRemoteChanged === true) {
                         array_push($cardsRemoteToUpload, $cardDB);
                     }
                     break;
                 }
             }
-            if(!$isInDB) {
-                if(!$is_private) {
+            if (!$isInDB) {
+                if (!$is_private) {
                     for ($i = 6; $i < 10; $i++) {
                         $cardRemote['content'][$i] = 0;
                     }
@@ -1277,15 +1269,15 @@ class Flashcards extends Controller {
         foreach ($cardsDB as &$cardDB) {
             $isInRemote = false;
             foreach ($cardsRemote as &$cardRemote) {
-                if($cardRemote[0] == $cardDB[0]) {
+                if ($cardRemote[0] == $cardDB[0]) {
                     $isInRemote = true;
                     break;
                 }
             }
-            if(!$isInRemote) {
-                if($lastShared < $cardDB['content'][5]) {
+            if (!$isInRemote) {
+                if ($lastShared < $cardDB['content'][5]) {
                     array_push($cardsRemoteToUpload, $cardDB);
-                } else if($lastShared < $cardDB['content'][9]) {
+                } else if ($lastShared < $cardDB['content'][9]) {
                     array_push($cardsRemoteToUpload, $cardDB);
                 }
             }
@@ -1312,10 +1304,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2, false);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if($boxOut1 !== $boxIn1) {
+        if ($boxOut1 !== $boxIn1) {
             return false;
         }
-        if($boxOut2 !== $boxCompare2) {
+        if ($boxOut2 !== $boxCompare2) {
             return false;
         }
         // Nothing changed
@@ -1324,10 +1316,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if($boxOut1 !== $boxIn1) {
+        if ($boxOut1 !== $boxIn1) {
             return false;
         }
-        if($boxOut2 !== $boxCompare2) {
+        if ($boxOut2 !== $boxCompare2) {
             return false;
         }
         // Public and private meta data
@@ -1340,10 +1332,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if($boxOut1 !== $boxCompare1) {
+        if ($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if($boxOut2 !== $boxCompare2) {
+        if ($boxOut2 !== $boxCompare2) {
             return false;
         }
         // Public and private meta data the other way around
@@ -1356,10 +1348,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if($boxOut1 !== $boxCompare1) {
+        if ($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if($boxOut2 !== $boxCompare2) {
+        if ($boxOut2 !== $boxCompare2) {
             return false;
         }
         // Add remote card to empty local cards
@@ -1372,10 +1364,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if($boxOut1 !== $boxCompare1) {
+        if ($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if($boxOut2 !== $boxCompare2) {
+        if ($boxOut2 !== $boxCompare2) {
             return false;
         }
         // Add local cards to empty remote cards
@@ -1388,10 +1380,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if($boxOut1 !== $boxCompare1) {
+        if ($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if($boxOut2 !== $boxCompare2) {
+        if ($boxOut2 !== $boxCompare2) {
             return false;
         }
         // change card values
@@ -1404,10 +1396,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if($boxOut1 !== $boxCompare1) {
+        if ($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if($boxOut2 !== $boxCompare2) {
+        if ($boxOut2 !== $boxCompare2) {
             return false;
         }
         // change card values the other way around
@@ -1420,10 +1412,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if($boxOut1 !== $boxCompare1) {
+        if ($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if($boxOut2 !== $boxCompare2) {
+        if ($boxOut2 !== $boxCompare2) {
             return false;
         }
         // add public card to box 1 (local)
@@ -1436,10 +1428,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2, false);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if($boxOut1 !== $boxCompare1) {
+        if ($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if($boxOut2 !== $boxCompare2) {
+        if ($boxOut2 !== $boxCompare2) {
             return false;
         }
 
@@ -1453,10 +1445,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if($boxOut1 !== $boxCompare1) {
+        if ($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if($boxOut2 !== $boxCompare2) {
+        if ($boxOut2 !== $boxCompare2) {
             return false;
         }
 
@@ -1470,10 +1462,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if($boxOut1 !== $boxCompare1) {
+        if ($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if($boxOut2 !== $boxCompare2) {
+        if ($boxOut2 !== $boxCompare2) {
             return false;
         }
 
@@ -1487,10 +1479,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if($boxOut1 !== $boxCompare1) {
+        if ($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if($boxOut2 !== $boxCompare2) {
+        if ($boxOut2 !== $boxCompare2) {
             return false;
         }
 
@@ -1504,10 +1496,10 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if($boxOut1 !== $boxCompare1) {
+        if ($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if($boxOut2 !== $boxCompare2) {
+        if ($boxOut2 !== $boxCompare2) {
             return false;
         }
 
@@ -1521,15 +1513,14 @@ class Flashcards extends Controller {
         $boxes = $this->flashcards_merge($box1, $box2);
         $boxOut1 = json_encode($boxes['boxLocal']);
         $boxOut2 = json_encode($boxes['boxRemote']);
-        if($boxOut1 !== $boxCompare1) {
+        if ($boxOut1 !== $boxCompare1) {
             return false;
         }
-        if($boxOut2 !== $boxCompare2) {
+        if ($boxOut2 !== $boxCompare2) {
             return false;
         }
 
         logger('tests all passed');
         return true;
     }
-
 }

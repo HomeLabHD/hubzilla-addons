@@ -41,7 +41,7 @@
         <button class="btn flashcards_learn" id="button_flashcards_learn_stopp"><i class="bi bi-stop"></i></button>
     </div>
     <div class="p-2">
-        <button class="btn flashcards_learn" id="button_flashcards_learn_next"><i class="bi bi-step-forward"></i></button>
+        <button class="btn flashcards_learn" id="button_flashcards_learn_next"><i class="bi bi-forward"></i></button>
     </div>
     <div class="p-2">
         <button class="btn flashcards_learn" id="button_flashcards_learn_passed"><i class="bi bi-hand-thumbs-up"></i></button>
@@ -304,85 +304,82 @@
 </div>
 
 <div id="panel_flashcards_card" class="panel-collapse collapse">
-	<div class="panel panel-default">
-		<div class="panel-heading flashcards_nav" id="flashcards_panel_card_header">
-		    <h2 class="panel-title">
-				Card
-				<button class="btn" id="flashcards_cardedit_save"><i class="bi bi-save"></i></button>
-				<button class="btn" id="flashcards_cardedit_cancel"><i class="bi bi-x-lg"></i></button>
-		    </h2>
-		</div>
-		<div id="flashcards_main_card">
+    <div class="panel panel-default">
+        <div class="panel-heading flashcards_nav" id="flashcards_panel_card_header">
+            <h2 class="panel-title">
+                Card
+                <button class="btn" id="flashcards_cardedit_save"><i class="bi bi-save"></i></button>
+                <button class="btn" id="flashcards_cardedit_cancel"><i class="bi bi-x-lg"></i></button>
+            </h2>
+        </div>
+        <div id="flashcards_main_card">
             <div class="container-fluid">
-              <div class="row">
-                <div class="col-sm-6">
-                     <div class="form-group">
-                      <label for="flashcards_language1">Side 1:</label>
-                      <textarea class="form-control card-content" rows="5" id="flashcards_language1"></textarea>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label for="flashcards_language1">Side 1:</label>
+                            <textarea class="form-control card-content" rows="5" id="flashcards_language1"></textarea>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="form-group">
+                            <label for="flashcards_language2">Side 2:</label>
+                            <textarea class="form-control card-content" rows="5" id="flashcards_language2"></textarea>
+                        </div>
                     </div>
                 </div>
-                <div class="col-sm-6">
-                     <div class="form-group">
-                      <label for="flashcards_language2">Side 2:</label>
-                      <textarea class="form-control card-content" rows="5" id="flashcards_language2"></textarea>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label for="flashcards_description">Description:</label>
+                            <textarea class="form-control card-content" rows="5" id="flashcards_description"></textarea>
+                        </div>
                     </div>
                 </div>
-              </div>
-              <div class="row">
-                <div class="col-sm-12">
-                     <div class="form-group">
-                      <label for="flashcards_description">Description:</label>
-                      <textarea class="form-control card-content" rows="5" id="flashcards_description"></textarea>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label for="flashcards_tags">Tags:</label>
+                            <input class="form-control card-content" id="flashcards_tags">
+                        </div>
                     </div>
                 </div>
-              </div>
-              <div class="row">
-                <div class="col-sm-12">
-                    <div class="form-group">
-                      <label for="flashcards_tags">Tags:</label>
-                      <input class="form-control card-content" id="flashcards_tags">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <small class="form-text text-muted" id="flashcard_learn_card_details"></small>
                     </div>
                 </div>
-              </div>
-              <div class="row">
-                <div class="col-sm-12">
-                     <small class="form-text text-muted" id="flashcard_learn_card_details"></small>
-                </div>
-              </div>
             </div>
-		</div>
-	</div>
+        </div>
+    </div>
 </div>
-
-<div id="panel_flashcards_permissions" class="panel-collapse collapse">
-</div>
-
+<br>
 <div id="panel_flashcards_cards_actions" style="display: none;">
-	<span class="navbar-brand">
-            <div class="container-fluid">
-              <div class="row">
+    <span class="navbar-brand">
+        <div class="container-fluid">
+            <div class="row">
                 <div class="col-sm-12">
                     <div class="form-group">
                         <button class="nav-item btn btn-default" id="button_flashcards_search_cards" style="display: none;">
                             <i class="bi bi-search"></i>
                         </button>
                         <button class="nav-item btn btn-default" id="button_flashcards_new_card">
-                            <i class="bi bi-calendar-date"></i>
+                            <i class="bi bi-calendar-plus"></i>
                         </button>
                         <span id="span_flashcards_cards_actions_status"></span>
                         <span>Cards</span>
                     </div>
                 </div>
-              </div>
-              <div class="row">
+            </div>
+            <div class="row">
                 <div class="col-sm-12">
                     <div class="form-group">
                         <input id="input_flashcards_search_cards" style="display: none;">
                     </div>
                 </div>
-              </div>
             </div>
-	</span>
+        </div>
+    </span>
 </div>
 
 <div id="panel_flashcards_cards" style="display: none;"></div>
@@ -639,7 +636,8 @@
                     to the server.
                 </p>
             </div>
-	</div>
+        </div>
+    </div>
 </div>
 
 
@@ -655,7 +653,7 @@
 <div id="has_write_permission" style="display: none;">{{$has_write_permission}}</div>
 <!--
 <p>
-	<button class="btn" id="run_unit_tests"">Test</button>
+        <button class="btn" id="run_unit_tests"">Test</button>
 </p>
 -->
 
@@ -683,7 +681,6 @@ Modal to delete a box
         </div>
     </div>
 </div>
-<div id="acl_modal_flashcards_cards"></div>
 
 
 <script src="/addon/flashcards/view/js/flashcards.js"></script>
