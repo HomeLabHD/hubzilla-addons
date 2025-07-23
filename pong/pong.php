@@ -13,7 +13,7 @@ function pong_module() {}
 
 
 
-function pong_content(&$a) {
+function pong_content() {
 
 $o = <<< EOT
 
@@ -43,20 +43,20 @@ $o = <<< EOT
 	</div>
 </div>
 </div>
-<audio id="bounceLeft" autobuffer> 
-	<source src="addon/pong/ping.wav" type="audio/x-wav" /> 
-	<source src="addon/pong/ping.ogg" type="audio/ogg" /> 
-</audio> 
-<audio id="bounceRight" autobuffer> 
-	<source src="addon/pong/pong.wav" type="audio/x-wav" /> 
-	<source src="addon/pong/pong.ogg" type="audio/ogg" /> 
-</audio> 
-<audio id="bounceWall" autobuffer> 
-	<source src="addon/pong/bom.wav" type="audio/x-wav" /> 
-	<source src="addon/pong/bom.ogg" type="audio/ogg" /> 
-</audio> 
- 
-<script type="text/javascript" src="addon/pong/game.js"></script> 
+<audio id="bounceLeft" autobuffer>
+	<source src="addon/pong/ping.wav" type="audio/x-wav" />
+	<source src="addon/pong/ping.ogg" type="audio/ogg" />
+</audio>
+<audio id="bounceRight" autobuffer>
+	<source src="addon/pong/pong.wav" type="audio/x-wav" />
+	<source src="addon/pong/pong.ogg" type="audio/ogg" />
+</audio>
+<audio id="bounceWall" autobuffer>
+	<source src="addon/pong/bom.wav" type="audio/x-wav" />
+	<source src="addon/pong/bom.ogg" type="audio/ogg" />
+</audio>
+
+<script type="text/javascript" src="addon/pong/game.js"></script>
 
 EOT;
 

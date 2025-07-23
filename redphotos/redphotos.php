@@ -14,7 +14,7 @@ function redphotos_uninstall() {}
 function redphotos_module() {}
 
 
-function redphotos_init(&$a) {
+function redphotos_init() {
 
 	if(! local_channel())
 		return;
@@ -23,12 +23,12 @@ function redphotos_init(&$a) {
 //		return;
 
 	$channel = App::get_channel();
-	
+
 	$fr_server = $_REQUEST['fr_server'];
 	$fr_username = $_REQUEST['fr_username'];
 	$fr_password = $_REQUEST['fr_password'];
 	$fr_album = $_REQUEST['fr_album'];
-	
+
 	$max = intval($_REQUEST['fr_max']);
 
 	$cookies = 'store/[data]/redphoto_cookie_' . $channel['channel_address'];
@@ -41,11 +41,11 @@ function redphotos_init(&$a) {
        	curl_setopt ($ch, CURLOPT_COOKIEFILE, $cookies);
         curl_setopt ($ch, CURLOPT_COOKIEJAR, $cookies);
 		curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-		curl_setopt($ch, CURLOPT_USERPWD, $fr_username . ':' . $fr_password); 
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);                          
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);                           
+		curl_setopt($ch, CURLOPT_USERPWD, $fr_username . ':' . $fr_password);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 		curl_setopt($ch, CURLOPT_USERAGENT, 'RedMatrix');
- 
+
 		$output = curl_exec($ch);
 		curl_close($ch);
 
@@ -53,7 +53,7 @@ function redphotos_init(&$a) {
 
 //		echo print_r($j,true);
 
-		if(! $j['success']) 
+		if(! $j['success'])
 			return;
 
 		$total = 0;
@@ -63,7 +63,7 @@ function redphotos_init(&$a) {
 
 		if(count($j['photos'])) {
 			$todo = count($j['photos']);
-			logger('redphotos: processing: ' . $todo); 
+			logger('redphotos: processing: ' . $todo);
 
 			foreach($j['photos'] as $jj) {
 
@@ -101,9 +101,9 @@ function redphotos_init(&$a) {
 		}
 
 		logger('redphotos: already done: ' . $done);
-		logger('redphotos: done this run: ' . $total); 
+		logger('redphotos: done this run: ' . $total);
 
-		info(t('Photos imported') . ' ' . $done . '/' . $total); 
+		info(t('Photos imported') . ' ' . $done . '/' . $total);
 
 //		set_pconfig(local_channel(),'redphotos','complete','1');
 
@@ -113,7 +113,7 @@ function redphotos_init(&$a) {
 }
 
 
-function redphotos_content(&$a) {
+function redphotos_content() {
 
 	if(! local_channel()) {
 		notice( t('Permission denied') . EOL);
@@ -125,7 +125,7 @@ function redphotos_content(&$a) {
 //		return;
 //	}
 
-	$o = replace_macros(get_markup_template('redphotos.tpl','addon/redphotos'),array( 
+	$o = replace_macros(get_markup_template('redphotos.tpl','addon/redphotos'),array(
 		'$header' => t('Redmatrix Photo Album Import'),
 		'$desc' => t('This will import all your Redmatrix photo albums to this channel.'),
 		'$fr_server' => array('fr_server', t('Redmatrix Server base URL'),'',''),

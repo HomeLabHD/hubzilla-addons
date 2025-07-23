@@ -14,7 +14,7 @@ function redfiles_uninstall() {}
 function redfiles_module() {}
 
 
-function redfiles_init(&$a) {
+function redfiles_init() {
 
 	if(! local_channel())
 		return;
@@ -23,7 +23,7 @@ function redfiles_init(&$a) {
 //		return;
 
 	$channel = App::get_channel();
-	
+
 	$fr_server = $_REQUEST['fr_server'];
 	$fr_username = $_REQUEST['fr_username'];
 	$fr_password = $_REQUEST['fr_password'];
@@ -39,11 +39,11 @@ function redfiles_init(&$a) {
        	curl_setopt ($ch, CURLOPT_COOKIEFILE, $cookies);
         curl_setopt ($ch, CURLOPT_COOKIEJAR, $cookies);
 		curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-		curl_setopt($ch, CURLOPT_USERPWD, $fr_username . ':' . $fr_password); 
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);                          
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);                           
+		curl_setopt($ch, CURLOPT_USERPWD, $fr_username . ':' . $fr_password);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 		curl_setopt($ch, CURLOPT_USERAGENT, 'RedMatrix');
- 
+
 		$output = curl_exec($ch);
 		curl_close($ch);
 
@@ -51,7 +51,7 @@ function redfiles_init(&$a) {
 
 //		echo print_r($j,true);
 
-		if(! $j['success']) 
+		if(! $j['success'])
 			return;
 
 		$total = 0;
@@ -61,7 +61,7 @@ function redfiles_init(&$a) {
 
 		if(count($j['results'])) {
 			$todo = count($j['results']);
-			logger('redfiles: processing: ' . $todo); 
+			logger('redfiles: processing: ' . $todo);
 
 			foreach($j['results'] as $jj) {
 
@@ -93,7 +93,7 @@ function redfiles_init(&$a) {
 		}
 
 		logger('redfiles: already done: ' . $done);
-		logger('redfiles: done this run: ' . $total); 
+		logger('redfiles: done this run: ' . $total);
 
 //		set_pconfig(local_channel(),'redfiles','complete','1');
 
@@ -103,7 +103,7 @@ function redfiles_init(&$a) {
 }
 
 
-function redfiles_content(&$a) {
+function redfiles_content() {
 
 	if(! local_channel()) {
 		notice( t('Permission denied') . EOL);
@@ -115,7 +115,7 @@ function redfiles_content(&$a) {
 //		return;
 //	}
 
-	$o = replace_macros(get_markup_template('redfiles.tpl','addon/redfiles'),array( 
+	$o = replace_macros(get_markup_template('redfiles.tpl','addon/redfiles'),array(
 		'$header' => t('Redmatrix File Storage Import'),
 		'$desc' => t('This will import all your Redmatrix cloud files to this channel.'),
 		'$fr_server' => array('fr_server', t('Redmatrix Server base URL'),'',''),

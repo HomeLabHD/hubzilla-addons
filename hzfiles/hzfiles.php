@@ -16,7 +16,7 @@ function hzfiles_module() {}
 function hzfiles_load() {}
 function hzfiles_unload() {}
 
-function hzfiles_post(&$a) {
+function hzfiles_post() {
 
 	if(! local_channel())
 		return;
@@ -30,12 +30,12 @@ function hzfiles_post(&$a) {
 	$since = datetime_convert(date_default_timezone_get(),date_default_timezone_get(),$_REQUEST['since']);
 	$until = datetime_convert(date_default_timezone_get(),date_default_timezone_get(),$_REQUEST['until']);
 
-	
+
 	$headers = [];
 	$headers['X-API-Token'] = random_string();
 	$headers['X-API-Request'] = $hz_server . '/api/z/1.0/files?f=&since=' . urlencode($since) . '&until=' . urlencode($until);
 	$headers = HTTPSig::create_sig($headers,$channel['channel_prvkey'], 'acct:' . channel_reddress($channel),true,'sha512');
-		
+
 	$x = z_fetch_url($hz_server . '/api/z/1.0/files?f=&since=' . urlencode($since) . '&until=' . urlencode($until),false,$redirects,[ 'headers' => $headers ]);
 
 	if(! $x['success']) {
@@ -46,14 +46,14 @@ function hzfiles_post(&$a) {
 	$j = json_decode($x['body'],true);
 
 
-	if(! $j['success']) 
+	if(! $j['success'])
 		return;
 
 	$poll_interval = get_config('system','poll_interval',3);
 
 	if(count($j['results'])) {
 		$todo = count($j['results']);
-		logger('total to process: ' . $todo); 
+		logger('total to process: ' . $todo);
 
 		foreach($j['results'] as $jj) {
 
@@ -69,7 +69,7 @@ function hzfiles_post(&$a) {
 }
 
 
-function hzfiles_content(&$a) {
+function hzfiles_content() {
 
 	if(! local_channel()) {
 		notice( t('Permission denied') . EOL);
@@ -77,7 +77,7 @@ function hzfiles_content(&$a) {
 	}
 
 
-	$o = replace_macros(get_markup_template('hzfiles.tpl','addon/hzfiles'),array( 
+	$o = replace_macros(get_markup_template('hzfiles.tpl','addon/hzfiles'),array(
 		'$header' => t('Hubzilla File Storage Import'),
 		'$desc' => t('This will import all your cloud files from another server.'),
 		'$fr_server' => array('hz_server', t('Hubzilla Server base URL'),'',''),
