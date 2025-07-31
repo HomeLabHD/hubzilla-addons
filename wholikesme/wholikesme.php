@@ -12,7 +12,7 @@ function wholikesme_load() {}
 function wholikesme_unload() {}
 function wholikesme_module() {}
 
-function wholikesme_content(&$a) {
+function wholikesme_content() {
 
 	if(! local_channel())
 		return;

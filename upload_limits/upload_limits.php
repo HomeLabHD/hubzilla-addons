@@ -17,7 +17,7 @@ function upload_limits_unload() {}
 
 function upload_limits_module() {}
 
-function upload_limits_content(&$a) {
+function upload_limits_content() {
 
 
 	$o = '';

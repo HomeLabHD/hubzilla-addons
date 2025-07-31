@@ -22,7 +22,7 @@ function mailtest_plugin_admin(&$o) {
 
 
 
-function mailtest_post(&$a) {
+function mailtest_post() {
 	if(! is_site_admin())
 		return;
 
@@ -69,7 +69,7 @@ function mailtest_post(&$a) {
 	}
 }
 
-function mailtest_content(&$a) {
+function mailtest_content() {
 
 	if(! is_site_admin())
 		return;
@@ -81,7 +81,7 @@ function mailtest_content(&$a) {
 	$params['fromEmail'] = get_config('system','from_email');
 	if(! $params['fromEmail'])
 		$params['fromEmail'] = 'Administrator' . '@' . App::get_hostname();
-	
+
 	$params['fromName'] = get_config('system','from_email_name');
 	if(! $params['fromName'])
 		$params['fromName'] = Zotlabs\Lib\System::get_site_name();
