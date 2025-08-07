@@ -151,7 +151,7 @@ class Cards extends Controller {
 		App::set_pager_itemspage(((intval($itemspage)) ? $itemspage : 10));
 		$pager_sql = sprintf(" LIMIT %d OFFSET %d ", intval(App::$pager['itemspage']), intval(App::$pager['start']));
 
-		$sql_extra = item_permissions_sql($owner);
+		$permission_sql = item_permissions_sql($owner);
 		$sql_item = '';
 
 		if($selected_card) {
@@ -163,47 +163,35 @@ class Cards extends Controller {
 			}
 		}
 
-		$item_normal = " and item.item_hidden = 0 and item.item_type in (0,6) and item.item_deleted = 0
-			and item.item_unpublished = 0 and item.item_delayed = 0 and item.item_pending_remove = 0
-			and item.item_blocked = 0 ";
+		$mode = 'articles';
+		$page_mode = 'traditional';
 
-		$r = q("select id from item
-			where uid = %d and item_type = %d and item_thread_top = 1
-			$sql_extra $sql_extra2 $sql_item $item_normal order by item.created desc $pager_sql",
+		$blog_mode = get_pconfig(App::$profile['profile_uid'], 'system', 'cards_list_mode') && !$selected_card;
+		if ($blog_mode) {
+			$page_mode = 'list';
+		}
+
+		$item_normal = item_normal(type: ITEM_TYPE_CARD);
+
+		$r = q("select id as item_id from item
+			where uid = %d and item_type = %d and item_thread_top = 1 and verb = 'Create'
+			$permission_sql $sql_extra2 $sql_item $item_normal order by item.created desc $pager_sql",
 			intval($owner),
 			intval(ITEM_TYPE_CARD)
 		);
 
-		$items_result = [];
+		$items = [];
+
 		if($r) {
-
 			$pager_total = count($r);
+			$items = items_by_parent_ids($r, permission_sql: $permission_sql, blog_mode: $blog_mode, type: ITEM_TYPE_CARD);
 
-			$parents_str = ids_to_querystr($r, 'id');
-
-			$items = q("SELECT item.*, item.id AS item_id
-				FROM item
-				WHERE item.uid = %d $item_normal
-				AND item.parent IN ( %s )
-				$sql_extra",
-				intval(App::$profile['profile_uid']),
-				dbesc($parents_str)
-			);
-			if($items) {
-				xchan_query($items);
-				$items = fetch_post_tags($items, true);
-				$items_result = conv_sort($items, 'updated');
-			}
+			xchan_query($items);
+			$items = fetch_post_tags($items, true);
+			$items = conv_sort($items, 'updated');
 		}
 
-		$mode = 'cards';
-
-		if(get_pconfig(local_channel(),'system','articles_list_mode') && (! $selected_card))
-			$page_mode = 'pager_list';
-		else
-			$page_mode = 'traditional';
-
-		$content = conversation($items_result, $mode, false, $page_mode);
+		$content = conversation($items, $mode, false, $page_mode);
 
 		$o = replace_macros(get_markup_template('cards.tpl', 'addon/cards'), [
 			'$title' => t('Cards'),
