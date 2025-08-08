@@ -155,7 +155,9 @@ class Articles extends Controller {
 		$pager_sql = sprintf(" LIMIT %d OFFSET %d ", intval(App::$pager['itemspage']), intval(App::$pager['start']));
 
 
-		$sql_extra = item_permissions_sql($owner);
+
+
+		$permission_sql = item_permissions_sql($owner);
 		$sql_item  = '';
 
 		if ($selected_card) {
@@ -178,53 +180,40 @@ class Articles extends Controller {
 			$sql_extra2 .= " and item.item_thread_top != 0 ";
 		}
 
-		$item_normal = " and item.item_hidden = 0 and item.item_type in (0,7) and item.item_deleted = 0
-			and item.item_unpublished = 0 and item.item_delayed = 0 and item.item_pending_remove = 0
-			and item.item_blocked = 0 ";
+		$mode = 'articles';
+		$page_mode = 'traditional';
 
-		$r = q("select id from item
-			where item.uid = %d and item_type = %d and item_thread_top = 1
+		$blog_mode = get_pconfig(App::$profile['profile_uid'], 'system', 'articles_list_mode') && !$selected_card;
+		if ($blog_mode) {
+			$page_mode = 'list';
+		}
+
+		$item_normal = item_normal(type: ITEM_TYPE_ARTICLE);
+
+		$r = q("select id as item_id from item
+			where item.uid = %d and item_type = %d and item_thread_top = 1 and verb = 'Create'
 			$sql_extra $sql_extra2 $sql_item $item_normal order by item.created desc $pager_sql",
 			intval($owner),
 			intval(ITEM_TYPE_ARTICLE)
 		);
 
+		$items = [];
+
 		if ($r) {
-
 			$pager_total = count($r);
+			$items = items_by_parent_ids($r, permission_sql: $permission_sql, blog_mode: $blog_mode, type: ITEM_TYPE_ARTICLE);
 
-			$parents_str = ids_to_querystr($r, 'id');
-
-			$r = q("SELECT item.*, item.id AS item_id
-				FROM item
-				WHERE item.uid = %d $item_normal
-				AND item.parent IN ( %s )
-				$sql_extra",
-				intval(App::$profile['profile_uid']),
-				dbesc($parents_str)
-			);
-			if ($r) {
-				xchan_query($r);
-				$items = fetch_post_tags($r, true);
-				$items = conv_sort($items, 'updated');
-			}
-			else
-				$items = [];
+			xchan_query($items);
+			$items = fetch_post_tags($items, true);
+			$items = conv_sort($items, 'updated');
 		}
 
 		// Add Opengraph markup
 		opengraph_add_meta((!empty($items) ? $r[0] : []), $channel);
 
-		$mode = 'articles';
-
-		if (get_pconfig(local_channel(), 'system', 'articles_list_mode') && (!$selected_card))
-			$page_mode = 'pager_list';
-		else
-			$page_mode = 'traditional';
-
 		$content = conversation($items, $mode, false, $page_mode);
 
-    $tpl = get_markup_template('articles.tpl') ?: get_markup_template('articles.tpl', 'addon/articles');
+		$tpl = get_markup_template('articles.tpl') ?: get_markup_template('articles.tpl', 'addon/articles');
 		$o = replace_macros( $tpl, [
 			'$title'   => t('Articles'),
 			'$editor'  => $editor,
