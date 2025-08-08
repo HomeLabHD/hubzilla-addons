@@ -1,0 +1,41 @@
+# Strings for Superblock addon for Hubzilla
+# Copyright (C) 2012 The Hubzilla Community
+# This file is distributed under the same license as the Hubzilla Superblock package.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: 2.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-01 16:37+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: Mod_Superblock.php:117
+msgid "superblock settings updated"
+msgstr ""
+
+#: Mod_Superblock.php:141
+msgid "Currently blocked"
+msgstr ""
+
+#: Mod_Superblock.php:143
+msgid "No channels currently blocked"
+msgstr ""
+
+#: Mod_Superblock.php:145
+msgid "Remove"
+msgstr ""
+
+#: superblock.php:378
+msgid "Block Completely"
+msgstr ""
+
+#: superblock.php:387
+msgid "Block from site"
+msgstr ""
