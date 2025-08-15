@@ -41,7 +41,7 @@ function cavatar_default_profile_photo(&$x) {
 function cavatar_module() {}
 
 
-function cavatar_init(&$a) {
+function cavatar_init() {
 	require_once('addon/cavatar/cat-avatar-generator.php');
 	build_cat($_REQUEST['seed'],intval($_REQUEST['size']));
 
