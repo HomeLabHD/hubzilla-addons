@@ -173,8 +173,8 @@ class Cards extends Controller {
 
 		$item_normal = item_normal(type: ITEM_TYPE_CARD);
 
-		$r = q("select id as item_id from item
-			where uid = %d and item_type = %d and item_thread_top = 1 and verb = 'Create'
+		$r = q("select id as item_id, verb from item
+			where uid = %d and item_type = %d and item_thread_top = 1 and verb in ('Create', 'http://activitystrea.ms/schema/1.0/post')
 			$permission_sql $sql_extra2 $sql_item $item_normal order by item.created desc $pager_sql",
 			intval($owner),
 			intval(ITEM_TYPE_CARD)
@@ -183,6 +183,10 @@ class Cards extends Controller {
 		$items = [];
 
 		if($r) {
+			// 11.08.2025 start transition deprecated AS1 item.verb vocabulary to AS2 on demand.
+			// Keep this until we officially deprecate AS1 data.
+			AS1_to_AS2_verbs($r);
+
 			$pager_total = count($r);
 			$items = items_by_parent_ids($r, permission_sql: $permission_sql, blog_mode: $blog_mode, type: ITEM_TYPE_CARD);
 
