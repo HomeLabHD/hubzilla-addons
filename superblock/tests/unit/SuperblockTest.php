@@ -10,6 +10,7 @@
 
 namespace Zotlabs\Addons\Superblock\Tests;
 
+use PHPUnit\Framework\Attributes\{Before, After};
 use Zotlabs\Lib\Apps;
 use Zotlabs\Lib\Config;
 use Zotlabs\Lib\PConfig;
@@ -31,15 +32,21 @@ class SuperblockTest extends UnitTestCase {
 		'brandon@bruffalo.test',
 	];
 
-	public function testItemFromBlockedUserShouldBeBlocked(): void {
+	#[Before]
+	public function prepare_test(): void {
 		create_sys_channel();
 		$this->create_channel();
 		$this->start_session();
-
-		Apps::import_system_apps();
-
 		$this->setup_channel();
+	}
 
+	#[After]
+	public function cleanup(): void {
+		session_abort();
+		$_SESSION = [];
+	}
+
+	public function testItemFromBlockedUserShouldBeBlocked(): void {
 		//
 		// We could technically use a dataprovider to iterate through the tests vectors,
 		// but since there's a bit of setup before we can run the test itself, it's
@@ -68,6 +75,35 @@ class SuperblockTest extends UnitTestCase {
 		}
 	}
 
+	public function testWallPostsFromBlockedUsersShouldBeBlocked(): void {
+		//
+		// We could technically use a dataprovider to iterate through the tests vectors,
+		// but since there's a bit of setup before we can run the test itself, it's
+		// faster to just iterate through them in one test function.
+		//
+		// This works since each result don't depend on anything else than the initial
+		// setup which is the same regardless of vector.
+		//
+
+		foreach (self::BLOCKED_CHANNELS as $author) {
+			$this->assertTrue($this->checkIfWallPostIsBlocked($author, $author));
+
+			// Should block even if the owner is not blocked
+			foreach (self::NONBLOCKED_CHANNELS as $owner) {
+				$this->assertTrue($this->checkIfWallPostIsBLocked($author, $owner));
+			}
+		}
+
+		foreach (self::NONBLOCKED_CHANNELS as $author) {
+			$this->assertFalse($this->checkIfWallPostIsBlocked($author, $author));
+
+			// Should block even if the author is not blocked
+			foreach (self::BLOCKED_CHANNELS as $owner) {
+				$this->assertTrue($this->checkIfWallPostIsBlocked($author, $owner));
+			}
+		}
+	}
+
 	/**
 	 * Helper function to make the check whether items will be blocked or not
 	 * given `$author` and `$owner`.
@@ -89,10 +125,26 @@ class SuperblockTest extends UnitTestCase {
 		return isset($item['item']['blocked']) ? $item['item']['blocked'] : false;
 	}
 
+	private function checkIfWallPostIsBlocked(string $author, string $owner): bool {
+		$item = [
+			'uid' => $this->channel['channel_id'],
+			'item_wall' => true,
+			'author_xchan' => $author,
+			'owner_xchan' => $owner,
+		];
+
+		superblock_item_store($item);
+		return isset($item['cancel']) ? $item['cancel'] : false;
+	}
+
 	/**
 	 * Create the channel that will run the tests.
 	 */
 	private function create_channel(): void {
+		if (!empty($this->channel)) {
+			return;
+		}
+
 		$result = create_identity([
 			'account_id' => $this->fixtures['account'][0]['account_id'],
 			'nickname' => 'sbtest',
@@ -116,6 +168,7 @@ class SuperblockTest extends UnitTestCase {
 	private function setup_channel(): void {
 		$app = Apps::parse_app_description(__DIR__ . '/../../superblock.apd', false, false);
 		$app['plugin'] = 'superblock';
+		Apps::app_install(0, $app);
 		Apps::app_install($this->channel['channel_id'], $app);
 
 		PConfig::Set(
