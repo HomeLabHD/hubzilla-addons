@@ -78,6 +78,64 @@ class SuperblockTest extends UnitTestCase {
 		}
 	}
 
+	public function testFilterChildItems(): void {
+		$children_with_blocked_authors = array_map(
+			fn ($author) => [
+				'owner_xchan' => self::NONBLOCKED_CHANNELS[1],
+				'author_xchan' => $author,
+				'blocked' => false,
+			],
+			self::BLOCKED_CHANNELS
+		);
+
+		$children_with_blocked_owners = array_map(
+			fn ($owner) => [
+				'owner_xchan' => $owner,
+				'author_xchan' => self::NONBLOCKED_CHANNELS[1],
+				'blocked' => false,
+			],
+			self::BLOCKED_CHANNELS
+		);
+
+		$unblocked_children = array_map(
+			fn ($author) => [
+				'owner_xchan' => $author,
+				'author_xchan' => $author,
+				'blocked' => false,
+			],
+			self::NONBLOCKED_CHANNELS
+		);
+
+		$args = [
+			'item' => [
+				'author_xchan' => self::NONBLOCKED_CHANNELS[0],
+				'owner_xchan' => self::NONBLOCKED_CHANNELS[0],
+				'children' => array_merge(
+					$children_with_blocked_authors,
+					$children_with_blocked_owners,
+					$unblocked_children
+				),
+				'blocked' => false,
+			],
+		];
+
+		call_hooks('stream_item', $args);
+
+		// Verify that the main item was not blocked:
+		$this->assertFalse($args['item']['blocked']);
+
+		// Check that children from blocked authors or owners are marked
+		// as blocked:
+		foreach ($args['item']['children'] as $item) {
+			$this->assertEquals($this->shouldBlockedItem($item), $item['blocked']);
+		}
+	}
+
+	private function shouldBlockedItem(array $item): bool {
+		return in_array($item['author_xchan'], self::BLOCKED_CHANNELS) ||
+			in_array($item['owner_xchan'], self::BLOCKED_CHANNELS);
+	}
+
 	/**
 	 * Helper function to make the check whether items will be blocked or not
 	 * given `$author` and `$owner`.
