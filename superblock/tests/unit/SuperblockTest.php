@@ -16,8 +16,6 @@ use Zotlabs\Lib\Config;
 use Zotlabs\Lib\PConfig;
 use Zotlabs\Tests\Unit\UnitTestCase;
 
-require_once __DIR__ . '/../../superblock.php';
-
 class SuperblockTest extends UnitTestCase {
 	private array $channel = [];
 
@@ -39,13 +37,13 @@ class SuperblockTest extends UnitTestCase {
 		$this->start_session();
 		$this->setup_channel();
 
-		superblock_load();
+		install_plugin('superblock');
 		load_hooks();
 	}
 
 	#[After]
 	public function cleanup(): void {
-		superblock_unload();
+		unload_plugin('superblock');
 
 		session_abort();
 		$_SESSION = [];
