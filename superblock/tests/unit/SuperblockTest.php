@@ -260,6 +260,49 @@ class SuperblockTest extends UnitTestCase {
 		return $item['cancel'];
 	}
 
+	public function testApiFormatItemsDiscardsItemsFromBlockedChannels(): void {
+		$payload = [
+			'api_user' => $this->channel['channel_id'],
+			'items' => [
+				[
+					'owner_xchan' => self::BLOCKED_CHANNELS[0],
+					'author_xchan' => self::NONBLOCKED_CHANNELS[0],
+					'content' => 'Should not be seen',
+				],
+				[
+					'owner_xchan' => self::NONBLOCKED_CHANNELS[1],
+					'author_xchan' => self::NONBLOCKED_CHANNELS[0],
+					'content' => 'This is fine',
+				],
+				[
+					'owner_xchan' => self::NONBLOCKED_CHANNELS[1],
+					'author_xchan' => self::BLOCKED_CHANNELS[1],
+					'content' => 'Should not be seen',
+				],
+			],
+		];
+
+		call_hooks('api_format_items', $payload);
+		$this->assertEquals(1, count($payload['items']));
+		$this->assertEquals('This is fine', $payload['items'][0]['content']);
+	}
+
+	public function testBlockedChannelsShouldNotShowInDirectory(): void {
+		foreach (self::BLOCKED_CHANNELS as $channel) {
+			$data['entry'] = [ 'hash' => $channel ];
+			call_hooks('directory_item', $data);
+			$this->assertFalse(isset($data['entry']));
+		}
+	}
+
+	public function testNonBlockedChannelsShouldShowInDirectory(): void {
+		foreach (self::NONBLOCKED_CHANNELS as $channel) {
+			$data['entry'] = [ 'hash' => $channel ];
+			call_hooks('directory_item', $data);
+			$this->assertTrue(isset($data['entry']));
+		}
+	}
+
 	/**
 	 * Create the channel that will run the tests.
 	 */
