@@ -303,6 +303,31 @@ class SuperblockTest extends UnitTestCase {
 		}
 	}
 
+	public function testFilteringActivityWidget(): void {
+		$args = [
+			'entries' => array_map(
+				fn ($ch) => ['author_xchan' => $ch],
+				array_merge(self::BLOCKED_CHANNELS, self::NONBLOCKED_CHANNELS)
+			)
+		];
+
+		call_hooks('activity_widget', $args);
+
+		$this->assertCount(count(self::NONBLOCKED_CHANNELS), $args['entries']);
+
+		foreach (self::NONBLOCKED_CHANNELS as $ch) {
+			$this->assertContains(['author_xchan' => $ch], $args['entries']);
+		}
+
+		foreach (self::BLOCKED_CHANNELS as $ch) {
+			$this->assertNotContains(
+				['author_xchan' => $ch],
+				$args['entries'],
+				"expected {$ch} to be blocked"
+			);
+		}
+	}
+
 	/**
 	 * Create the channel that will run the tests.
 	 */
