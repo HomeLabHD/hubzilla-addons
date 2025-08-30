@@ -261,7 +261,7 @@ class SuperblockTest extends UnitTestCase {
 	}
 
 	public function testApiFormatItemsDiscardsItemsFromBlockedChannels(): void {
-		$payload = [
+		$args = [
 			'api_user' => $this->channel['channel_id'],
 			'items' => [
 				[
@@ -282,9 +282,9 @@ class SuperblockTest extends UnitTestCase {
 			],
 		];
 
-		call_hooks('api_format_items', $payload);
-		$this->assertEquals(1, count($payload['items']));
-		$this->assertEquals('This is fine', $payload['items'][0]['content']);
+		call_hooks('api_format_items', $args);
+		$this->assertEquals(1, count($args['items']));
+		$this->assertEquals('This is fine', $args['items'][0]['content']);
 	}
 
 	public function testBlockedChannelsShouldNotShowInDirectory(): void {
