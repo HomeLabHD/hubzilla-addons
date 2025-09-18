@@ -55,7 +55,7 @@ function cart_myshop_main(&$pagecontent) {
 		$rendered = cart_myshop_menu();
 	}
 	$templatevalues = ['content' => $rendered];
-	$template       = get_markup_template('myshop.tpl', 'addon/cart/');
+	$template       = get_markup_template('myshop.tpl') ?: get_markup_template('myshop.tpl', 'addon/cart/');
 	$pagecontent    = replace_macros($template, $templatevalues);
 
 	return ($pagecontent);
@@ -96,7 +96,7 @@ function cart_myshop_allorders(&$pagecontent) {
 	$templatevalues["debug"]     = print_r($templatevalues, true);
 	$templateinfo                = ['name' => 'myshop_orderlist.tpl', 'path' => 'addon/cart/'];
 	call_hooks('cart_filter_myshop_orderlist_template', $templateinfo);
-	$template    = get_markup_template($templateinfo['name'], $templateinfo['path']);
+	$template    = get_markup_template($templateinfo['name']) ?: get_markup_template($templateinfo['name'], $templateinfo['path']);
 	$rendered    = replace_macros($template, $templatevalues);
 	$pagecontent = $rendered;
 }
@@ -121,7 +121,7 @@ function cart_myshop_order(&$pagecontent) {
 
 	$templateinfo = ['name' => 'myshop_order.tpl', 'path' => 'addon/cart/'];
 	call_hooks('cart_filter_myshop_order', $templateinfo);
-	$template                        = get_markup_template($templateinfo['name'], $templateinfo['path']);
+	$template                        = get_markup_template($templateinfo['name']) ?: get_markup_template($templateinfo['name'], $templateinfo['path']);
 	$templatevalues['added_display'] = ["order" => $order, "content" => ""];
 	call_hooks('cart_addons_myshop_order_display', $templatevalues['added_display']);
 	call_hooks('cart_addons_myshop_prep_display', $templatevalues);
@@ -367,7 +367,7 @@ function cart_myshop_aside(&$aside) {
 	$rendered .= "<li><a class='nav-link' href='" . $urlroot . "/allorders'>All Orders (" . $ordercount . ")</a></li>";
 	call_hooks('cart_myshop_menufilter', $rendered);
 	$templatevalues["content"] = $rendered;
-	$template                  = get_markup_template('myshop_aside.tpl', 'addon/cart/');
+	$template                  = get_markup_template('myshop_aside.tpl') ?: get_markup_template('myshop_aside.tpl', 'addon/cart/');
 	$rendered                  = replace_macros($template, $templatevalues);
 	$aside                     = '<ul class="nav nav-pills flex-column">' . $rendered . '</ul>' . $aside;
 
