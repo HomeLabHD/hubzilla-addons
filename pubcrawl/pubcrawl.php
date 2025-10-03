@@ -231,7 +231,7 @@ function pubcrawl_encode_item(&$arr) {
 			$arr['encoded']['quoteUrl'] = $matches[1];
 			// Remove the first share bbcode and re-encode content
 			// Multiple quote posts are not supported in AP as of october 2025
-			$arr['encoded']['source']['content'] = preg_replace('/\[share(.*?)\[\/share\]/ism', EMPTY_STR, $arr['encoded']['source']['content'], 1);
+			$arr['encoded']['source']['content'] = preg_replace('/\[share(.*?)\[\/share\]/ism', 'RE: [url=' . $matches[1] . ']' . $matches[1] . '[/url]', $arr['encoded']['source']['content'], 1);
 			$arr['encoded']['content'] = bbcode($arr['encoded']['source']['content']);
 		}
 	}
