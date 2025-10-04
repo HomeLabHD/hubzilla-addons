@@ -222,20 +222,6 @@ function pubcrawl_encode_item(&$arr) {
 		$arr['encoded']['content'] = html_entity_decode(bbcode(preg_replace_callback("/\[crypt\](.*?)\[\/crypt\]/ism", 'bb_parse_b64_crypt', $arr['item']['body'])));
 	}
 
-	if (str_contains($arr['item']['body'], '[/share]')) {
-		// Find the first share link and add the quoteUrl field
-		preg_match('/\[share(.*?)\[\/share\]/ism', $arr['encoded']['source']['content'], $tmp);
-		preg_match("/link='(.*?)'/ism", $tmp[1], $matches);
-
-		if (!empty($matches[1])) {
-			$arr['encoded']['quoteUrl'] = $matches[1];
-			// Remove the first share bbcode and re-encode content
-			// Multiple quote posts are not supported in AP as of october 2025
-			$arr['encoded']['source']['content'] = preg_replace('/\[share(.*?)\[\/share\]/ism', 'RE: [url=' . $matches[1] . ']' . $matches[1] . '[/url]', $arr['encoded']['source']['content'], 1);
-			$arr['encoded']['content'] = bbcode($arr['encoded']['source']['content']);
-		}
-	}
-
 	// if the the item comes from one of our alternate locations
 	// rewrite the id host to the local hub
 
