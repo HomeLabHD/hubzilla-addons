@@ -203,9 +203,15 @@ class Inbox extends Controller {
 				}
 			}
 
-			// fetch the portable_id for the actor, which may or may not be the sender
+			$actor_id = $announce_actor ?? $AS->actor['id'] ?? null;
 
-			$v = Activity::get_actor_hublocs($announce_actor ?? $AS->actor['id'], 'activitypub');
+			if (!$actor_id) {
+				logger('Could not find AS actor id for verification');
+				return;
+			}
+
+			// fetch the portable_id for the actor, which may or may not be the sender
+			$v = Activity::get_actor_hublocs($actor_id, 'activitypub');
 
 			if ($v && $v[0]['hubloc_hash'] !== $hsig['portable_id']) {
 				// The sender is not actually the activity actor, so verify the LD signature.
@@ -213,10 +219,12 @@ class Inbox extends Controller {
 
 				if ($AS->signer && is_array($AS->signer) && $AS->signer['id'] !== $AS->actor['id']) {
 					// the activity wasn't signed by the activity actor
+					logger('Activity not signed by activity actor');
 					return;
 				}
 				if (!$AS->sigok) {
 					// The activity signature isn't valid.
+					logger('Invalid activity signature');
 					return;
 				}
 			}
