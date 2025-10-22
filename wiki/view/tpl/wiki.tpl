@@ -397,7 +397,17 @@
                                 function(ddata) {
                                     if (ddata['status']) {
 										{{if !$mimeType || $mimeType == 'text/markdown'}}
-										var imgURL = ddata['photolink'].replace( /\[.*\]\[.*\](.*)\[.*\]\[.*\]/, '\n![image]($1)' )
+										// The photolink endpoint returns a bbcode link containing the image
+										// tag, like this:
+										//
+										//     [zrl=resource_url][zmg=img_url]filename[/zmg][/zrl]
+										//
+										// The regex below fishes out the img_url to and inserts a proper
+										// markdown image tag in the current editor position.
+										var imgURL = ddata['photolink'].replace(
+											/\[zrl=.*\]\[zmg=(.*)-\d(\.\w+)\].*\[.*\]\[.*\]/,
+											'\n![image]($1$2)'
+										)
 										editor.getSession().insert(editor.getCursorPosition(), imgURL)
 										{{else}}
 										var currentContent = $('#editor').val();
