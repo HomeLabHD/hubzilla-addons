@@ -117,7 +117,11 @@ function pubcrawl_fetch_provider($arr) {
 				// Since in this case we are fetching manually we can just use the info we already have
 				// and dismiss the info provided in App::$cache['as_fetch_objects'].
 				Activity::fetch_and_store_parents($channel, get_observer_hash(), $item, $AS, true);
+				unset(App::$cache['as_fetch_objects']);
+
 			}
+
+			Activity::init_background_fetch(get_observer_hash());
 
 			goaway(z_root() . '/hq/' . $item['uuid']);
 		}
