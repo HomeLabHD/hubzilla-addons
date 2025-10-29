@@ -241,11 +241,17 @@ class SuperblockTest extends UnitTestCase {
 		}
 	}
 
-	private function checkIfNotificationIsBlocked(string $author, string $parent_author = '', string $parent_owner = ''): bool {
+	private function checkIfNotificationIsBlocked(
+		string $author,
+		string $parent_author = '',
+		string $parent_owner = ''
+	): bool {
 		$item = [
 			'uid' => $this->channel['channel_id'],
 			'sender_hash' => $author,
 		];
+
+		$item['parent_item'] = null;
 
 		if (!empty($parent_author) || !empty($parent_owner)) {
 			$item['parent_item'] = [
