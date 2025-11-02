@@ -154,9 +154,6 @@ class Articles extends Controller {
 		App::set_pager_itemspage(((intval($itemspage)) ? $itemspage : 10));
 		$pager_sql = sprintf(" LIMIT %d OFFSET %d ", intval(App::$pager['itemspage']), intval(App::$pager['start']));
 
-
-
-
 		$permission_sql = item_permissions_sql($owner);
 		$sql_item  = '';
 
@@ -192,7 +189,7 @@ class Articles extends Controller {
 
 		$r = q("select id as item_id, verb from item
 			where item.uid = %d and item_type = %d and item_thread_top = 1 and verb in ('Create', 'http://activitystrea.ms/schema/1.0/post')
-			$sql_extra $sql_extra2 $sql_item $item_normal order by item.created desc $pager_sql",
+			$permission_sql $sql_extra2 $sql_item $item_normal order by item.created desc $pager_sql",
 			intval($owner),
 			intval(ITEM_TYPE_ARTICLE)
 		);
