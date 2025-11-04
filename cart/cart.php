@@ -945,7 +945,7 @@ function cart_do_updateitem(&$hookdata) {
 
 function cart_display_item(&$hookdata) {
 	$item                = $hookdata["item"];
-	$hookdata["content"] .= replace_macros(get_markup_template('cart_item_basic.tpl', 'addon/cart/'), ['$item' => $item]);
+	$hookdata["content"] .= replace_macros(get_markup_template('cart_item_basic.tpl') ?: get_markup_template('cart_item_basic.tpl', 'addon/cart/'), ['$item' => $item]);
 
 }
 
@@ -1680,7 +1680,7 @@ function cart_pagecontent() {
 
 		$templateinfo = ['name' => 'basic_catalog.tpl', 'path' => 'addon/cart/'];
 		call_hooks('cart_filter_catalogtemplate', $templateinfo);
-		$template = get_markup_template($templateinfo['name'], $templateinfo['path']);
+		$template = get_markup_template($templateinfo['name']) ?: get_markup_template($templateinfo['name'], $templateinfo['path']);
 		return replace_macros($template, [
 			'$items'      => $items,
 			'$total_qty'  => $total_qty,
@@ -1714,7 +1714,7 @@ function cart_pagecontent() {
 	$templatevalues = ["menu" => $menu];
 	call_hooks('cart_mainmenu_filter', $templatevalues);
 
-	$template = get_markup_template('menu.tpl', 'addon/cart/');
+	$template = get_markup_template('menu.tpl') ?: get_markup_template('menu.tpl', 'addon/cart/');
 	$page     = replace_macros($template, $templatevalues);
 
 	if ((argc() > 2)) {
@@ -1739,7 +1739,7 @@ function cart_display_before_formatcurrency(&$order) {
 function cart_display_applytemplate(&$order) {
 	$templateinfo = ['name' => 'basic_cart.tpl', 'path' => 'addon/cart/'];
 	call_hooks('cart_filter_carttemplate', $templateinfo);
-	$template = get_markup_template($templateinfo['name'], $templateinfo['path']);
+	$template = get_markup_template($templateinfo['name']) ?: get_markup_template($templateinfo['name'], $templateinfo['path']);
 	call_hooks('cart_show_order_filter', $cart_template);
 	$order["content"] = replace_macros($template, $order);
 }
@@ -1776,7 +1776,7 @@ function cart_render_aside(&$aside) {
 	}
 
 	$templatevalues['content'] = $rendered;
-	$template                  = get_markup_template('cart_aside.tpl', 'addon/cart/');
+	$template                  = get_markup_template('cart_aside.tpl') ?: get_markup_template('cart_aside.tpl', 'addon/cart/');
 	$rendered                  = replace_macros($template, $templatevalues);
 	$rendered                  .= $aside;
 	$aside                     = '<ul class="nav nav-pills flex-column">' . $rendered . '</ul>' . $aside;
@@ -1851,7 +1851,7 @@ function cart_checkout_start(&$hookdata) {
 	call_hooks('cart_before_checkout', $hookdata);
 	call_hooks('cart_display_before', $hookdata);
 
-	$template = get_markup_template('basic_checkout_start.tpl', 'addon/cart/');
+	$template = get_markup_template('basic_checkout_start.tpl') ?: get_markup_template('basic_checkout_start.tpl', 'addon/cart/');
 
 	$nick = App::$profile['channel_address'];
 
