@@ -510,7 +510,7 @@ class NativeWikiPage {
 		}
 
 		if ($currpage && $comppage) {
-			require_once('library/class.Diff.php');
+			require_once('class.Diff.php');
 			$diff = \Diff::toTable(\Diff::compare($currentContent, $compareContent));
 
 			return ['success' => true, 'diff' => $diff];
