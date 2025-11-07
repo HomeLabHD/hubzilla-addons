@@ -140,10 +140,11 @@ function twitter_post_local(&$b) {
  */
 if (! function_exists('short_link')) {
 function short_link ($url) {
-    require_once('library/slinky.php');
-    $slinky = new Slinky( $url );
-    $yourls_url = get_config('yourls','url1');
-    if ($yourls_url) {
+	require_once("addon/addon_common/slinky/slinky.php");
+
+	$slinky = new Slinky( $url );
+	$yourls_url = get_config('yourls','url1');
+	if ($yourls_url) {
 		$yourls_username = get_config('yourls','username1');
 		$yourls_password = get_config('yourls', 'password1');
 		$yourls_ssl = get_config('yourls', 'ssl1');
