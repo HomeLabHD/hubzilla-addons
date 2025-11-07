@@ -40,7 +40,7 @@ require_once('include/permissions.php');
 
 define('STATUSNET_DEFAULT_POLL_INTERVAL', 5); // given in minutes
 
-require_once('library/twitteroauth.php');
+require_once("addon/addon_common/twitteroauth/twitteroauth.php");
 
 class StatusNetOAuth extends TwitterOAuth {
 	function get_maxlength() {

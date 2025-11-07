@@ -111,7 +111,7 @@ class Twitter extends Controller {
 				 * which the user can request a PIN to connect the account to a
 				 * account at Twitter.
 				 */
-				require_once('library/twitteroauth.php');
+				require_once("addon/addon_common/twitteroauth/twitteroauth.php");
 				$connection = new \TwitterOAuth($ckey, $csecret);
 				$request_token = $connection->getRequestToken();
 				$token = $request_token['oauth_token'];
@@ -135,7 +135,8 @@ class Twitter extends Controller {
 				 *  we have an OAuth key / secret pair for the user
 				 *  so let's give a chance to disable the postings to Twitter
 				 */
-				require_once('library/twitteroauth.php');
+				require_once("addon/addon_common/twitteroauth/twitteroauth.php");
+
 				$connection = new \TwitterOAuth($ckey,$csecret,$otoken,$osecret);
 				$details = $connection->get('account/verify_credentials');
 				$twitpic = $details->profile_image_url;
