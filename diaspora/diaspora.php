@@ -1707,7 +1707,7 @@ function diaspora_decode_note(&$arr) {
 	}
 
 	$type = in_array($arr['s']['verb'], ['Like', 'Dislike']) ? 'like' : 'comment';
-	$signed_data = $arr['act']->data["diaspora:$type"];
+	$signed_data = $arr['act']->data["diaspora:$type"] ?? null;
 
 	if ($signed_data) {
 		ObjCache::Set($arr['s']['mid'], $signed_data, 'diaspora');
