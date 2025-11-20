@@ -32,8 +32,7 @@ class SuperblockTest extends UnitTestCase {
 
 	#[Before]
 	public function prepare_test(): void {
-		create_sys_channel();
-		$this->create_channel();
+		$this->channel = $this->fixtures['channel'][0];
 		$this->start_session();
 		$this->setup_channel();
 
@@ -388,24 +387,6 @@ class SuperblockTest extends UnitTestCase {
 				"expected {$ch} to be blocked"
 			);
 		}
-	}
-
-	/**
-	 * Create the channel that will run the tests.
-	 */
-	private function create_channel(): void {
-		if (!empty($this->channel)) {
-			return;
-		}
-
-		$result = create_identity([
-			'account_id' => $this->fixtures['account'][0]['account_id'],
-			'nickname' => 'sbtest',
-			'name' => 'Superblock Test Channel',
-		]);
-
-		$this->assertTrue($result['success']);
-		$this->channel = $result['channel'];
 	}
 
 	private function start_session(): void {
