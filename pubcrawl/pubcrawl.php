@@ -756,6 +756,9 @@ function pubcrawl_notifier_hub(&$arr) {
 		$jmsg = json_encode($signed_msg);
 	}
 	elseif (is_string($signed_msg)) {
+		// This should not happen anymore.
+		// The rawmsg is now always stored as json serialised array
+		// and should be returned as array from get_iconfig().
 		$jmsg = $signed_msg;
 	}
 
