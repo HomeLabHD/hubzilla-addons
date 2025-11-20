@@ -728,8 +728,6 @@ class Diaspora_Receiver {
 
 	function comment() {
 
-hz_syslog('dcomment');
-
 		$guid = notags($this->get_property('guid'));
 		if (!$guid) {
 			logger('diaspora_comment: missing guid' . print_r($this->msg, true), LOGGER_DEBUG);
