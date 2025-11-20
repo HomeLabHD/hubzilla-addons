@@ -728,6 +728,8 @@ class Diaspora_Receiver {
 
 	function comment() {
 
+hz_syslog('dcomment');
+
 		$guid = notags($this->get_property('guid'));
 		if (!$guid) {
 			logger('diaspora_comment: missing guid' . print_r($this->msg, true), LOGGER_DEBUG);
@@ -1517,7 +1519,21 @@ class Diaspora_Receiver {
 			return;
 		}
 
+		$thr_parent = $r[0];
 		$parent_item = $r[0];
+
+		if ($target_type === 'Comment') {
+			$r = q("SELECT * FROM item WHERE uid = %d AND mid = '%s' LIMIT 1",
+				intval($this->importer['channel_id']),
+				dbesc($parent_item['parent_mid'])
+			);
+			if (!$r) {
+				logger('diaspora_comment: parent item not found: parent: ' . $parent_guid . ' item: ' . $guid);
+				return;
+			}
+
+			$parent_item = $r[0];
+		}
 
 		if (intval($parent_item['item_nocomment']) || $parent_item['comment_policy'] === 'none'
 			|| ($parent_item['comments_closed'] > NULL_DATE && $parent_item['comments_closed'] < datetime_convert())) {
@@ -1525,51 +1541,16 @@ class Diaspora_Receiver {
 			return;
 		}
 
-/*
-		// does the parent originate from this site?
-		$local_parent_item = (strpos($parent_item['plink'], z_root()) === 0);
-
-		$parent_owner_uid  = null;
-		if ($local_parent_item) {
-			// find the owner channel_id
-			$r = q("SELECT uid FROM item WHERE item_origin = 1 AND uuid = '%s' LIMIT 1",
-				dbesc($parent_guid)
-			);
-			if ($r)
-				$parent_owner_uid = $r[0]['uid'];
-		}
-*/
 		$xchan = find_diaspora_person_by_handle($diaspora_handle);
 
 		if (!$xchan) {
 			logger('Cannot resolve diaspora handle ' . $diaspora_handle);
 			return;
 		}
-/*
-		$contact = diaspora_get_contact_by_handle((($parent_owner_uid) ? $parent_owner_uid : $this->importer['channel_id']), $this->msg['author']);
 
-		if (is_array($contact)) {
-			$abook_contact = true;
-		}
-		else {
-			$contact       = find_diaspora_person_by_handle($this->msg['author']);
-			$abook_contact = false;
-		}
-*/
 		$contact = find_diaspora_person_by_handle($this->msg['author']);
 
 		$arr = [];
-
-		//$pub_comment = 1;
-
-		// By default comments on public posts are allowed from anybody on Diaspora. That is their policy.
-		// If the parent item originates from this hub we can over-ride the default comment policy.
-
-		//if ($parent_owner_uid)
-		//	$pub_comment = get_pconfig($parent_owner_uid, 'system', 'diaspora_public_comments', 1);
-
-		//if (intval($parent_item['item_private']))
-		//	$pub_comment = 0;
 
 		// If it's a like to one of our own posts, check if the liker has permission to like.
 		// We should probably check send_stream permission if the stream owner isn't us,
@@ -1625,12 +1606,6 @@ class Diaspora_Receiver {
 				return;
 			}
 		}
-
-		$i = q("select * from xchan where xchan_hash = '%s' limit 1",
-			dbesc($parent_item['author_xchan'])
-		);
-		if ($i)
-			$item_author = $i[0];
 
 		// Note: I don't think "Like" objects with positive = "false" are ever actually used
 		// It looks like "RelayableRetractions" are used for "unlike" instead
@@ -1703,25 +1678,16 @@ class Diaspora_Receiver {
 		}
 
 		$post_type = (($parent_item['resource_type'] === 'photo') ? t('photo') : t('status'));
-		$links     = [['rel' => 'alternate', 'type' => 'text/html', 'href' => $parent_item['plink']]];
+		$links     = [['rel' => 'alternate', 'type' => 'text/html', 'href' => $item_author['plink']]];
 		$objtype   = (($parent_item['resource_type'] === 'photo') ? 'Image' : 'Note');
-		$object    = \Zotlabs\Lib\Activity::fetch_item(['id' => $parent_item['mid']]);
+		$object    = \Zotlabs\Lib\Activity::fetch_item(['id' => $thr_parent['mid']]);
 
 		$arr['uid']        = $this->importer['channel_id'];
 		$arr['aid']        = $this->importer['channel_account_id'];
 		$arr['mid']        = z_root() . '/activity/' . $guid;
 		$arr['uuid']       = $guid;
 		$arr['parent_mid'] = $parent_item['mid'];
-
-		if ($parent_item['uuid'] !== $parent_guid) {
-			$arr['thr_parent'] = $parent_guid;
-
-			// use a URI for thr_parent if we have it
-			if (strpos($parent_item['mid'], '/') !== false && $arr['thr_parent'] === basename($parent_item['mid'])) {
-				$arr['thr_parent'] = $parent_item['mid'];
-			}
-
-		}
+		$arr['thr_parent'] = $thr_parent['mid'];
 
 		$arr['owner_xchan']  = $parent_item['owner_xchan'];
 		$arr['author_xchan'] = $person['xchan_hash'];
@@ -1764,9 +1730,9 @@ class Diaspora_Receiver {
 			// is already relaying. The parent_item['origin'] indicates the message was created on our system
 
 			if (intval($parent_item['item_origin']) && (!$parent_author_signature)) {
-				Master::Summon(['Notifier', 'comment-import', $result['item_id']]);
+				Master::Summon(['Notifier', 'like', $result['item_id']]);
 				if (!empty($result['approval_id'])) {
-					Master::Summon(['Notifier', 'comment-import', $result['approval_id']]);
+					Master::Summon(['Notifier', 'like', $result['approval_id']]);
 				}
 			}
 
@@ -1851,7 +1817,6 @@ class Diaspora_Receiver {
 			logger('diaspora_signed_retraction: no contact ' . $diaspora_handle . ' for ' . $this->importer['channel_id']);
 			return;
 		}
-
 
 		$signed_data = $guid . ';' . $type ;
 		$key = $this->msg['key'];

@@ -43,7 +43,6 @@ function pubcrawl_load() {
 		'permissions_update'         => 'pubcrawl_permissions_update',
 		'permissions_accept'         => 'pubcrawl_permissions_accept',
 		'connection_remove'          => 'pubcrawl_connection_remove',
-		'post_local'                 => 'pubcrawl_post_local',
 		'notifier_process'           => 'pubcrawl_notifier_process',
 		'notifier_hub'               => 'pubcrawl_notifier_hub',
 		'channel_links'              => 'pubcrawl_channel_links',
@@ -337,53 +336,6 @@ function pubcrawl_channel_links(&$b) {
 			'url'  => z_root() . '/channel/' . $c['channel_address']
 		];
 	}
-}
-
-function pubcrawl_post_local(&$x) {
-	$item[] = $x;
-
-	if ($item[0]['verb'] === 'Add') {
-		return;
-	}
-
-	if ($item[0]['mid'] === $item[0]['parent_mid']) {
-		return;
-	}
-
-	if (!Apps::addon_app_installed($item[0]['uid'], 'pubcrawl')) {
-		return;
-	}
-
-	$channel = channelx_by_n($item[0]['uid']);
-
-	if ($channel['channel_hash'] !== $item[0]['author_xchan']) {
-		// A wall to wall post - we will not be able to sign it with the author key.
-		// Probably we could if the channel is from this site, but keep it simple for now.
-
-		// Signing it with the owner key will result in misattribution on mastodon.
-		return;
-	}
-
-	xchan_query($item);
-
-	// Filter previous rawmsg/fields in case it is an edit
-	$filtered_iconfig = [];
-	foreach($item[0]['iconfig'] as $iconfig) {
-		if ($iconfig['cat'] === 'activitypub' && $iconfig['k'] === 'rawmsg') {
-			continue;
-		}
-		if ($iconfig['cat'] === 'diaspora' && $iconfig['k'] === 'fields') {
-			continue;
-		}
-
-		$filtered_iconfig[] = $iconfig;
-	}
-
-	$item[0]['iconfig'] = $filtered_iconfig;
-
-	$msg = Activity::build_packet(Activity::encode_activity($item[0]), $channel, false);
-
-	set_iconfig($x, 'activitypub', 'rawmsg', $msg, true);
 }
 
 function pubcrawl_webfinger(&$b) {

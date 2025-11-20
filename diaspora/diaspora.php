@@ -64,7 +64,9 @@ function diaspora_load() {
 		'encode_item_xchan'           => 'diaspora_encode_item_xchan',
 		'direct_message_recipients'   => 'diaspora_direct_message_recipients',
 		'get_actor_provider'          => 'diaspora_get_actor_provider',
-		'get_cached_actor_provider'   => 'diaspora_get_cached_actor_provider'
+		'get_cached_actor_provider'   => 'diaspora_get_cached_actor_provider',
+		'encode_activity'             => 'diaspora_encode_activity',
+		'decode_note'                 => 'diaspora_decode_note'
 	]);
 
 	Route::register('addon/diaspora/Mod_Diaspora.php','diaspora');
@@ -1118,7 +1120,7 @@ function diaspora_post_local(&$item) {
 
 		$meta = (($conv) ? $conv : $message);
 
-		set_iconfig($item, 'diaspora', 'fields', $meta, true);
+		set_iconfig($item, 'diaspora', 'fields', $meta);
 
 		return;
 
@@ -1226,7 +1228,7 @@ function diaspora_post_local(&$item) {
 	}
 
 	if ($meta) {
-		set_iconfig($item,'diaspora','fields', $meta, true);
+		set_iconfig($item,'diaspora','fields', $meta);
 	}
 
 }
@@ -1663,3 +1665,41 @@ function diaspora_direct_message_recipients(&$arr) {
 		$arr['column'] = 'xchan_addr';
 	}
 }
+
+function diaspora_encode_activity(&$arr) {
+	if ($arr['item']['mid'] === $arr['item']['parent_mid']) {
+		return;
+	}
+
+	$type = $arr['item']['verb'] === 'Like' ? 'like' : 'comment';
+
+	if ($type === 'comment' && intval($arr['item']['item_private']) === 2) {
+		$type = 'message';
+	}
+
+	$signed_data = IConfig::Get($arr['item'], 'diaspora', 'fields');
+
+	if ($signed_data) {
+		$arr['encoded']["diaspora:$type"] = $signed_data;
+	}
+}
+
+function diaspora_decode_note(&$arr) {
+	if ($arr['s']['mid'] === $arr['s']['parent_mid']) {
+		return;
+	}
+
+	$type = $arr['s']['verb'] === 'Like' ? 'like' : 'comment';
+
+	if ($type === 'comment' && intval($arr['s']['item_private']) === 2) {
+		$type = 'message';
+	}
+
+	$signed_data = $arr['act']->data["diaspora:$type"] ?? null;
+
+	if ($signed_data) {
+		IConfig::Set($arr['s'], 'diaspora', 'fields', $signed_data);
+	}
+}
+
+
