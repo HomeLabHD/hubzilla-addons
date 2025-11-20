@@ -7,6 +7,8 @@ use Zotlabs\Lib\Enotify;
 use Zotlabs\Lib\MessageFilter;
 use Zotlabs\Lib\Libsync;
 use Zotlabs\Lib\AccessList;
+use Zotlabs\Lib\IConfig;
+use Zotlabs\Lib\ObjCache;
 use Zotlabs\Daemon\Master;
 
 class Diaspora_Receiver {
@@ -487,6 +489,8 @@ class Diaspora_Receiver {
 			return 202;
 		}
 
+		ObjCache::Set($datarray['mid'], $this->msg['msg'], 'diaspora');
+
 		if ($updated) {
 			$result = item_store_update($datarray);
 		}
@@ -709,6 +713,8 @@ class Diaspora_Receiver {
 			logger('diaspora_reshare: filtering this author.');
 			return 202;
 		}
+
+		ObjCache::Set($datarray['mid'], $this->msg['msg'], 'diaspora');
 
 		$result = item_store($datarray);
 
@@ -1093,7 +1099,7 @@ class Diaspora_Receiver {
 			return 202;
 		}
 
-		set_iconfig($datarray, 'diaspora', 'fields', $this->xmlbase, true);
+		ObjCache::Set($datarray['mid'], $this->xmlbase, 'diaspora');
 
 		if ($editing) {
 			$result = item_store_update($datarray);
@@ -1269,7 +1275,7 @@ class Diaspora_Receiver {
 			return 202;
 		}
 
-		set_iconfig($datarray, 'diaspora', 'fields', $this->xmlbase, true);
+		ObjCache::Set($datarray['mid'], $this->xmlbase, 'diaspora');
 
 		$result = item_store($datarray);
 
@@ -1407,7 +1413,7 @@ class Diaspora_Receiver {
 
 		$datarray['app'] = $app;
 
-		set_iconfig($datarray, 'diaspora', 'fields', $this->xmlbase, true);
+		ObjCache::Set($datarray['mid'], $this->xmlbase, 'diaspora');
 
 		$result = item_store($datarray);
 
@@ -1718,7 +1724,8 @@ class Diaspora_Receiver {
 			}
 		}
 */
-		set_iconfig($arr, 'diaspora', 'fields', $this->msg['msg'], true);
+
+		ObjCache::Set($arr['mid'], $this->msg['msg'], 'diaspora');
 
 		$result = item_store($arr);
 
@@ -2275,7 +2282,7 @@ class Diaspora_Receiver {
 			}
 		}
 
-		set_iconfig($arr,'diaspora','fields',$unxml,true);
+		ObjCache::Set($arr['mid'], $unxml, 'diaspora');
 
 		if($orig_item)
 			$result = item_store_update($arr);

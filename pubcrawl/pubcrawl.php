@@ -17,6 +17,8 @@ use Zotlabs\Lib\ActivityStreams;
 use Zotlabs\Lib\Crypto;
 use Zotlabs\Lib\Multibase;
 use Zotlabs\Lib\Libzot;
+use Zotlabs\Lib\IConfig;
+use Zotlabs\Lib\ObjCache;
 use Zotlabs\Module\Ap_probe;
 use Zotlabs\Module\Followers;
 use Zotlabs\Module\Following;
@@ -646,7 +648,12 @@ function pubcrawl_notifier_process(&$arr) {
 		}
 	}
 
-	$raw_msg = get_iconfig($arr['target_item'], 'activitypub', 'rawmsg');
+	$raw_msg = ObjCache::Get($arr['target_item']['mid']);
+
+	if (!$raw_msg) {
+		$raw_msg = IConfig::Get($arr['target_item'], 'activitypub', 'rawmsg');
+	}
+
 	if (!is_array($raw_msg)) {
 		// Try to decode it
 		$raw_msg = json_decode($raw_msg, true);
@@ -740,7 +747,11 @@ function pubcrawl_notifier_hub(&$arr) {
 		// which we are sending downstream, use that signed activity as is.
 		// The channel will then sign the HTTP transaction.
 		if ($arr['channel']['channel_hash'] != $arr['target_item']['author_xchan']) {
-			$signed_msg = get_iconfig($arr['target_item'], 'activitypub', 'rawmsg');
+			$signed_msg = ObjCache::Get($arr['target_item']['mid']);
+
+			if (!$signed_msg) {
+				$signed_msg = IConfig::Get($arr['target_item'], 'activitypub', 'rawmsg');
+			}
 
 			// If we don't have a signed message and we are not the author,
 			// the message will be misattributed in mastodon

@@ -2,6 +2,8 @@
 
 use Zotlabs\Lib\Apps;
 use Zotlabs\Lib\Crypto;
+use Zotlabs\Lib\IConfig;
+use Zotlabs\Lib\ObjCache;
 
 function diaspora_prepare_outbound($msg,$owner,$contact,$public = false) {
 
@@ -501,7 +503,11 @@ function diaspora_send_upstream($item,$owner,$contact,$public_batch = false,$upl
 
 	diaspora_deliver_local_comments($item,$parent);
 
-	$signed_fields = get_iconfig($item,'diaspora','fields');
+	$signed_fields = ObjCache::Get($item['mid'], 'diaspora');
+
+	if (!$signed_fields) {
+		$signed_fields = IConfig::Get($item, 'diaspora', 'fields');
+	}
 
 	if($signed_fields) {
 		if($attendance) {
@@ -602,7 +608,11 @@ function diaspora_send_downstream($item,$owner,$contact,$public_batch = false) {
 	else
 		return;
 
-	$signed_fields = get_iconfig($item,'diaspora','fields');
+	$signed_fields = ObjCache::Get($item['mid'], 'diaspora');
+
+	if (!$signed_fields) {
+		$signed_fields = IConfig::Get($item, 'diaspora', 'fields');
+	}
 
 	if($signed_fields) {
 
@@ -632,7 +642,13 @@ function diaspora_send_downstream($item,$owner,$contact,$public_batch = false) {
 			// The diaspora_post_local callback will sign it (with the owner's sig, since the author didn't supply one).
 			diaspora_post_local($fake_item);
 			// extract the signature we just created
-			$signed_fields = get_iconfig($fake_item,'diaspora','fields');
+
+			$signed_fields = ObjCache::Get($fake_item['mid'], 'diaspora');
+
+			if (!$signed_fields) {
+				$signed_fields = IConfig::Get($fake_item, 'diaspora', 'fields');
+			}
+
 			$msg = arrtoxml((($conv_like) ? 'like' : 'comment' ), $signed_fields);
 		}
 		else {
@@ -689,7 +705,12 @@ function diaspora_send_retraction($item,$owner,$contact,$public_batch = false) {
 function diaspora_send_mail($item, $contact) {
 
 	$owner = channelx_by_hash($item['target_item']['author']['xchan_hash']);
-	$fields = get_iconfig($item['target_item'], 'diaspora', 'fields');
+
+	$fields = ObjCache::Get($item['target_item']['mid'], 'diaspora');
+
+	if (!$fields) {
+		$fields = IConfig::Get($item['target_item'], 'diaspora', 'fields');
+	}
 
 	if($item['top_level_post'])
 		$outmsg = arrtoxml('conversation', $fields);
