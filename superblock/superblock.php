@@ -16,6 +16,9 @@
  *
  */
 
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Zotlabs\Addons\Superblock\BlockList;
 use Zotlabs\Lib\Apps;
 use Zotlabs\Extend\Route;
 
@@ -54,42 +57,6 @@ function superblock_unload() {
 
 }
 
-
-
-class Superblock {
-
-	private $list = [];
-
-	function __construct($channel_id) {
-		$cnf = get_pconfig($channel_id,'system','blocked');
-		if(! $cnf)
-			return;
-		$this->list = explode(',',$cnf);
-	}
-
-	function get_list() {
-		return $this->list;
-	}
-
-	function match($n) {
-		if(! $this->list)
-			return false;
-
-		//foreach($this->list as $l) {
-		//	if(trim($n) === trim($l)) {
-		//		return true;
-		//	}
-		//}
-
-		if (in_array($n, $this->list)) {
-			return true;
-		}
-
-		return false;
-	}
-
-}
-
 function superblock_stream_item(&$b) {
 	if(! local_channel())
 		return;
@@ -97,7 +64,7 @@ function superblock_stream_item(&$b) {
 	if(! Apps::addon_app_installed(local_channel(), 'superblock'))
 		return;
 
-	$sb = new Superblock(local_channel());
+	$sb = new BlockList(local_channel());
 
 	$found = false;
 
@@ -132,7 +99,7 @@ function superblock_item_store(&$b) {
 	if(! $b['item_wall'])
 		return;
 
-	$sb = new Superblock($b['uid']);
+	$sb = new BlockList($b['uid']);
 
 	$found = false;
 
@@ -152,7 +119,7 @@ function superblock_post_mail(&$b) {
 	if(! Apps::addon_app_installed($b['channel_id'], 'superblock'))
 		return;
 
-	$sb = new Superblock($b['channel_id']);
+	$sb = new BlockList($b['channel_id']);
 
 	$found = false;
 
@@ -170,7 +137,7 @@ function superblock_enotify_store(&$b) {
 	if(! Apps::addon_app_installed($b['uid'], 'superblock'))
 		return;
 
-	$sb = new Superblock($b['uid']);
+	$sb = new BlockList($b['uid']);
 
 	$found = false;
 
@@ -196,7 +163,7 @@ function superblock_enotify_format(&$b) {
 		return;
 	}
 
-	$sb = new Superblock($b['uid']);
+	$sb = new BlockList($b['uid']);
 
 	$found = false;
 
@@ -213,7 +180,7 @@ function superblock_messages_widget(&$b) {
 		return;
 	}
 
-	$sb = new Superblock($b['uid']);
+	$sb = new BlockList($b['uid']);
 
 	if ($sb->match($b['owner_xchan']) || $sb->match($b['author_xchan'])) {
 		$b['cancel'] = true;
@@ -225,7 +192,7 @@ function superblock_api_format_items(&$b) {
 	if(! Apps::addon_app_installed($b['api_user'], 'superblock'))
 		return;
 
-	$sb = new Superblock($b['api_user']);
+	$sb = new BlockList($b['api_user']);
 	$ret = [];
 
 	for($x = 0; $x < count($b['items']); $x ++) {
@@ -254,7 +221,7 @@ function superblock_directory_item(&$b) {
 	if(! Apps::addon_app_installed(local_channel(), 'superblock'))
 		return;
 
-	$sb = new Superblock(local_channel());
+	$sb = new BlockList(local_channel());
 
 	$found = false;
 
@@ -276,7 +243,7 @@ function superblock_activity_widget(&$b) {
 	if(! Apps::addon_app_installed(local_channel(), 'superblock'))
 		return;
 
-	$sb = new Superblock(local_channel());
+	$sb = new BlockList(local_channel());
 
 	$found = false;
 
