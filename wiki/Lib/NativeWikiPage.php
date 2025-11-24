@@ -268,9 +268,10 @@ class NativeWikiPage {
 
 		$ids = '';
 
-		$ic = q("select * from iconfig left join item on iconfig.iid = item.id where uid = %d and cat = 'nwikipage' and k = 'pagetitle' and v = '%s'",
+		$ic = q("select iid from iconfig left join item on iconfig.iid = item.id where uid = %d and cat = 'nwikipage' and k = 'pagetitle' and v = '%s' and resource_id = '%s'",
 			intval($channel_id),
-			dbesc($pageUrlName)
+			dbesc($pageUrlName),
+			dbesc($resource_id)
 		);
 
 		if ($ic) {
@@ -321,9 +322,10 @@ class NativeWikiPage {
 
 		$ids = '';
 
-		$ic = q("select * from iconfig left join item on iconfig.iid = item.id where uid = %d and cat = 'nwikipage' and k = 'pagetitle' and v = '%s'",
+		$ic = q("select iid from iconfig left join item on iconfig.iid = item.id where uid = %d and cat = 'nwikipage' and k = 'pagetitle' and v = '%s' and resource_id = '%s'",
 			intval($channel_id),
-			dbesc($pageUrlName)
+			dbesc($pageUrlName),
+			dbesc($resource_id)
 		);
 
 		if ($ic) {
