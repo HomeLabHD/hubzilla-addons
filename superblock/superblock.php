@@ -19,6 +19,7 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use Zotlabs\Addons\Superblock\BlockList;
+use Zotlabs\Addons\Superblock\Superblock;
 use Zotlabs\Lib\Apps;
 use Zotlabs\Extend\Route;
 
@@ -57,304 +58,210 @@ function superblock_unload() {
 
 }
 
-function superblock_stream_item(&$b) {
-	if(! local_channel())
-		return;
+function superblock_stream_item(&$b)
+{
+	$channelId = local_channel();
 
-	if(! Apps::addon_app_installed(local_channel(), 'superblock'))
-		return;
-
-	$sb = new BlockList(local_channel());
-
-	$found = false;
-
-	if(is_array($b['item']) && (! $found)) {
-		if($sb->match($b['item']['author_xchan']))
-			$found = true;
-		elseif($sb->match($b['item']['owner_xchan']))
-			$found = true;
+	if ($channelId && Apps::addon_app_installed($channelId, 'superblock')) {
+		$plugin = Superblock::getInstance($channelId);
+		$plugin->filterStreamItem($b['item']);
 	}
+}
 
-	if(!empty($b['item']['children'])) {
-		for($d = 0; $d < count($b['item']['children']); $d ++) {
-			if($sb->match($b['item']['children'][$d]['owner_xchan']))
-				$b['item']['children'][$d]['blocked'] = true;
-			elseif($sb->match($b['item']['children'][$d]['author_xchan']))
-				$b['item']['children'][$d]['blocked'] = true;
+
+function superblock_item_store(&$b)
+{
+	if (!empty($b['item_wall'])
+		&& isset($b['uid'])
+		&& Apps::addon_app_installed($b['uid'], 'superblock'))
+	{
+		$plugin = Superblock::getInstance($b['uid']);
+		$plugin->cancelItem($b);
+	}
+}
+
+function superblock_post_mail(&$b)
+{
+	if (isset($b['channel_id'])
+		&& Apps::addon_app_installed($b['channel_id'], 'superblock'))
+	{
+		$plugin = Superblock::getInstance($b['channel_id']);
+		$plugin->filterMailPost($b);
+	}
+}
+
+function superblock_enotify_store(&$b)
+{
+	if (isset($b['uid'])
+		&& Apps::addon_app_installed($b['uid'], 'superblock'))
+	{
+		$plugin = Superblock::getInstance($b['uid']);
+		$plugin->filterEnotifyStore($b);
+	}
+}
+
+
+function superblock_enotify_format(&$b)
+{
+	if (isset($b['uid'])
+		&& Apps::addon_app_installed($b['uid'], 'superblock'))
+	{
+		$plugin = Superblock::getInstance($b['uid']);
+		$plugin->filterEnotifyFormat($b);
+	}
+}
+
+function superblock_messages_widget(&$b)
+{
+	if (isset($b['uid'])
+		&& Apps::addon_app_installed($b['uid'], 'superblock'))
+	{
+		$plugin = Superblock::getInstance($b['uid']);
+		$plugin->cancelItem($b);
+	}
+}
+
+function superblock_api_format_items(&$b)
+{
+	if (isset($b['api_user'])
+		&& Apps::addon_app_installed($b['api_user'], 'superblock'))
+	{
+		$plugin = Superblock::getInstance($b['api_user']);
+
+		// array_filter does not reindex the array, so we wrap it in array_values
+		// to be sure the resulting array is indexed linearly without gaps.
+		$b['items'] = array_values(
+			array_filter($b['items'], fn ($item) => $plugin->filterItem($item) === false)
+		);
+	}
+}
+
+
+function superblock_directory_item(&$b)
+{
+	$channelId = local_channel();
+
+	if ($channelId && Apps::addon_app_installed($channelId, 'superblock')) {
+		$plugin = Superblock::getInstance($channelId);
+		$plugin->filterDirectoryItem($b);
+	}
+}
+
+
+function superblock_activity_widget(&$b)
+{
+	$channelId = local_channel();
+
+	if ($channelId && Apps::addon_app_installed($channelId, 'superblock')) {
+		$plugin = Superblock::getInstance($channelId);
+
+		// array_filter does not reindex the array, so we wrap it in array_values
+		// to be sure the resulting array is indexed linearly without gaps.
+		$b['entries'] = array_values(
+			array_filter($b['entries'], fn ($item) => $plugin->filterItem($item) === false)
+		);
+	}
+}
+
+
+/**
+ * Inject javascript helpers at start of the conversation view.
+ *
+ * phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+ */
+function superblock_conversation_start(&$b)
+{
+	$channelId = local_channel();
+
+	if ($channelId && Apps::addon_app_installed($channelId, 'superblock')) {
+		$plugin = Superblock::getInstance($channelId);
+
+		$words = get_pconfig(local_channel(),'system','blocked');
+		if ($words) {
+			App::$data['superblock'] = explode(',',$words);
 		}
-	}
 
-	if($found) {
-		$b['item']['blocked'] = true;
-	}
+		$security_token = get_form_security_token('superblock');
 
-}
+		if (empty(App::$page['htmlhead'])) {
+			App::$page['htmlhead'] = '';
+		}
 
+		$script = <<<'JS'
+			<script>
+			function superblockBlock(author,item) {
+				$.get('superblock?f=&item=' + item + '&block=' +author, function(data) {
+					location.reload(true);
+				});
+			}
 
-function superblock_item_store(&$b) {
+			JS;
 
-	if(! Apps::addon_app_installed($b['uid'], 'superblock'))
-		return;
+		if (is_site_admin()) {
+			$script .= <<<JS
+			async function superblockSiteBlock(author) {
+				let response = await fetch("superblock", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						action: "siteblock",
+						author: author,
+						form_security_token: "{$security_token}",
+					}),
+				});
+				body = await response.text();
+			}
+			JS;
+		}
 
-	if(! $b['item_wall'])
-		return;
+		$script .= "</script>";
 
-	$sb = new BlockList($b['uid']);
-
-	$found = false;
-
-	if($sb->match($b['owner_xchan']))
-		$found = true;
-	elseif($sb->match($b['author_xchan']))
-		$found = true;
-
-	if($found) {
-		$b['cancel'] = true;
-	}
-	return;
-}
-
-function superblock_post_mail(&$b) {
-
-	if(! Apps::addon_app_installed($b['channel_id'], 'superblock'))
-		return;
-
-	$sb = new BlockList($b['channel_id']);
-
-	$found = false;
-
-	if($sb->match($b['from_xchan']))
-		$found = true;
-
-	if($found) {
-		$b['cancel'] = true;
-	}
-	return;
-}
-
-function superblock_enotify_store(&$b) {
-
-	if(! Apps::addon_app_installed($b['uid'], 'superblock'))
-		return;
-
-	$sb = new BlockList($b['uid']);
-
-	$found = false;
-
-	if($sb->match($b['sender_hash']))
-		$found = true;
-
-	if(is_array($b['parent_item']) && (! $found)) {
-		if($sb->match($b['parent_item']['owner_xchan']))
-			$found = true;
-		elseif($sb->match($b['parent_item']['author_xchan']))
-			$found = true;
-	}
-
-	if($found) {
-		$b['abort'] = true;
+		App::$page['htmlhead'] .= $script;
 	}
 }
 
+function superblock_item_photo_menu(&$b)
+{
+	$channelId = local_channel();
 
-function superblock_enotify_format(&$b) {
+	if ($channelId && Apps::addon_app_installed(local_channel(), 'superblock')) {
+		$blocked = false;
+		$author = $b['item']['author_xchan'];
+		$item = $b['item']['id'];
 
-	if (!Apps::addon_app_installed($b['uid'], 'superblock')) {
-		return;
-	}
+		if (App::$channel['channel_hash'] == $author)
+			return;
 
-	$sb = new BlockList($b['uid']);
-
-	$found = false;
-
-	if($sb->match($b['hash']))
-		$found = true;
-
-	if($found) {
-		$b['display'] = false;
-	}
-}
-
-function superblock_messages_widget(&$b) {
-	if (!Apps::addon_app_installed($b['uid'], 'superblock')) {
-		return;
-	}
-
-	$sb = new BlockList($b['uid']);
-
-	if ($sb->match($b['owner_xchan']) || $sb->match($b['author_xchan'])) {
-		$b['cancel'] = true;
-	}
-}
-
-function superblock_api_format_items(&$b) {
-
-	if(! Apps::addon_app_installed($b['api_user'], 'superblock'))
-		return;
-
-	$sb = new BlockList($b['api_user']);
-	$ret = [];
-
-	for($x = 0; $x < count($b['items']); $x ++) {
-
-		$found = false;
-
-		if($sb->match($b['items'][$x]['owner_xchan']))
-			$found = true;
-		elseif($sb->match($b['items'][$x]['author_xchan']))
-			$found = true;
-
-		if(! $found)
-			$ret[] = $b['items'][$x];
-	}
-
-	$b['items'] = $ret;
-
-}
-
-
-function superblock_directory_item(&$b) {
-
-	if(! local_channel())
-		return;
-
-	if(! Apps::addon_app_installed(local_channel(), 'superblock'))
-		return;
-
-	$sb = new BlockList(local_channel());
-
-	$found = false;
-
-	if($sb->match($b['entry']['hash'])) {
-		$found = true;
-	}
-
-	if($found) {
-		unset($b['entry']);
-	}
-}
-
-
-function superblock_activity_widget(&$b) {
-
-	if(! local_channel())
-		return;
-
-	if(! Apps::addon_app_installed(local_channel(), 'superblock'))
-		return;
-
-	$sb = new BlockList(local_channel());
-
-	$found = false;
-
-	if($b['entries']) {
-		$output = [];
-		foreach($b['entries'] as $x) {
-			if(! $sb->match($x['author_xchan'])) {
-				$output[] = $x;
+		if(!empty(App::$data['superblock'])) {
+			foreach(App::$data['superblock'] as $bloke) {
+				if(link_compare($bloke,$author)) {
+					$blocked = true;
+					break;
+				}
 			}
 		}
-		$b['entries'] = $output;
-	}
-}
 
+		if($blocked)
+			return;
 
-function superblock_conversation_start(&$b) {
-
-	if(!local_channel()) {
-		return;
-	}
-
-	if(! Apps::addon_app_installed(local_channel(), 'superblock'))
-		return;
-
-	$words = get_pconfig(local_channel(),'system','blocked');
-	if($words) {
-		App::$data['superblock'] = explode(',',$words);
-	}
-
-	$security_token = get_form_security_token('superblock');
-
-	if(! array_key_exists('htmlhead',App::$page))
-		App::$page['htmlhead'] = '';
-
-	$script = <<< EOT
-		<script>
-		function superblockBlock(author,item) {
-			$.get('superblock?f=&item=' + item + '&block=' +author, function(data) {
-				location.reload(true);
-			});
-		}
-
-		EOT;
-
-	if (is_site_admin()) {
-		$script .= <<< JS
-		async function superblockSiteBlock(author) {
-			let response = await fetch("superblock", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					action: "siteblock",
-					author: author,
-					form_security_token: "{$security_token}",
-				}),
-			});
-			body = await response.text();
-		}
-		JS;
-	}
-
-	$script .= "</script>";
-
-	App::$page['htmlhead'] .= $script;
-
-}
-
-function superblock_item_photo_menu(&$b) {
-
-	if(! local_channel())
-		return;
-
-	if(! Apps::addon_app_installed(local_channel(), 'superblock'))
-		return;
-
-	$blocked = false;
-	$author = $b['item']['author_xchan'];
-	$item = $b['item']['id'];
-
-	if(App::$channel['channel_hash'] == $author)
-		return;
-
-	if(!empty(App::$data['superblock'])) {
-		foreach(App::$data['superblock'] as $bloke) {
-			if(link_compare($bloke,$author)) {
-				$blocked = true;
-				break;
-			}
-		}
-	}
-
-	if($blocked)
-		return;
-
-	$b['menu'][] = [
-		'menu' => 'superblock',
-		'title' => t('Block Completely'),
-		'icon' => 'fw',
-		'action' => 'superblockBlock(\'' . $author . '\',' . $item . '); return false;',
-		'href' => '#'
-	];
-
-	if (is_site_admin()) {
 		$b['menu'][] = [
-			'superblock_admin_block',
-			'title' => t('Block from site'),
+			'menu' => 'superblock',
+			'title' => t('Block Completely'),
 			'icon' => 'fw',
-			'action' => "superblockSiteBlock('{$author}'); return false;",
-			'href' => '#',
+			'action' => 'superblockBlock(\'' . $author . '\',' . $item . '); return false;',
+			'href' => '#'
 		];
+
+		if (is_site_admin()) {
+			$b['menu'][] = [
+				'superblock_admin_block',
+				'title' => t('Block from site'),
+				'icon' => 'fw',
+				'action' => "superblockSiteBlock('{$author}'); return false;",
+				'href' => '#',
+			];
+		}
 	}
 }

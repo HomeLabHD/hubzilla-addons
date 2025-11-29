@@ -7,14 +7,14 @@ namespace Composer\Autoload;
 class ComposerStaticInit68112c3d238e97818c4d5ad2d946142b
 {
     public static $prefixLengthsPsr4 = array (
-        'Z' =>
+        'Z' => 
         array (
             'Zotlabs\\Addons\\Superblock\\' => 26,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
-        'Zotlabs\\Addons\\Superblock\\' =>
+        'Zotlabs\\Addons\\Superblock\\' => 
         array (
             0 => __DIR__ . '/../..' . '/superblock/src',
         ),
@@ -23,6 +23,7 @@ class ComposerStaticInit68112c3d238e97818c4d5ad2d946142b
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'Zotlabs\\Addons\\Superblock\\BlockList' => __DIR__ . '/../..' . '/superblock/src/BlockList.php',
+        'Zotlabs\\Addons\\Superblock\\Superblock' => __DIR__ . '/../..' . '/superblock/src/Superblock.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

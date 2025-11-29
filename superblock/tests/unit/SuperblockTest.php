@@ -10,6 +10,7 @@
 
 namespace Zotlabs\Addons\Superblock\Tests;
 
+use App;
 use PHPUnit\Framework\Attributes\{Before, After};
 use Zotlabs\Lib\Apps;
 use Zotlabs\Lib\Config;
@@ -386,6 +387,67 @@ class SuperblockTest extends UnitTestCase {
 				$args['entries'],
 				"expected {$ch} to be blocked"
 			);
+		}
+	}
+
+	#[BackupStaticProperties(App::class)]
+	public function testAddingPhotoMenuForNonBlockedChannels(): void {
+		App::$data['superblock'] = self::BLOCKED_CHANNELS;
+		App::$channel['channel_hash'] = 'someone else';
+		App::$account = [ 'account_roles' => 0 ];
+
+		foreach (self::NONBLOCKED_CHANNELS as $author) {
+			$args = [
+				'item' => [ 'id' => 42, 'author_xchan' => $author ],
+				'menu' => [],
+			];
+
+			call_hooks('thread_author_menu', $args);
+
+			$this->assertArrayHasKey('menu', $args['menu'][0]);
+			$this->assertEquals('superblock', $args['menu'][0]['menu']);
+
+			$this->assertArrayHasKey('action', $args['menu'][0]);
+			$this->assertStringContainsString(
+				"superblockBlock('{$author}',42);",
+				$args['menu'][0]['action']
+			);
+		}
+	}
+
+	#[BackupStaticProperties(App::class)]
+	public function testDontAddPhotoMenuForBlockedChannels(): void {
+		App::$data['superblock'] = self::BLOCKED_CHANNELS;
+		App::$channel['channel_hash'] = 'someone else';
+
+		foreach (self::BLOCKED_CHANNELS as $author) {
+			$args = [
+				'item' => [ 'id' => 42, 'author_xchan' => $author ],
+				'menu' => [],
+			];
+
+			call_hooks('thread_author_menu', $args);
+
+			$this->assertEmpty($args['menu']);
+		}
+	}
+
+	#[BackupStaticProperties(App::class)]
+	public function testDontAddPhotoMenuForSelf(): void {
+		App::$data['superblock'] = self::BLOCKED_CHANNELS;
+		App::$channel['channel_hash'] = 'someone else';
+
+		foreach (self::NONBLOCKED_CHANNELS as $author) {
+			$args = [
+				'item' => [ 'id' => 42, 'author_xchan' => $author ],
+				'menu' => [],
+			];
+
+			App::$channel['channel_hash'] = $author;
+
+			call_hooks('thread_author_menu', $args);
+
+			$this->assertEmpty($args['menu']);
 		}
 	}
 
