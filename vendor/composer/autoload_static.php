@@ -22,7 +22,7 @@ class ComposerStaticInit68112c3d238e97818c4d5ad2d946142b
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
-        'Zotlabs\\Addons\\Superblock\\BlockList' => __DIR__ . '/../..' . '/superblock/src/BlockList.php',
+        'Zotlabs\\Addons\\Superblock\\ChannelBlockList' => __DIR__ . '/../..' . '/superblock/src/ChannelBlockList.php',
         'Zotlabs\\Addons\\Superblock\\Superblock' => __DIR__ . '/../..' . '/superblock/src/Superblock.php',
     );
 

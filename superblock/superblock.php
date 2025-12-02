@@ -18,7 +18,6 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Zotlabs\Addons\Superblock\BlockList;
 use Zotlabs\Addons\Superblock\Superblock;
 use Zotlabs\Lib\Apps;
 use Zotlabs\Extend\Route;

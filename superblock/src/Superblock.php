@@ -11,7 +11,7 @@ namespace Zotlabs\Addons\Superblock;
 class Superblock
 {
 	private $channelId;
-	private BlockList $blockList;
+	private ChannelBlockList $blockList;
 
 	private static $instance = null;
 
@@ -24,7 +24,7 @@ class Superblock
 
 	private function __construct(int $channelId) {
 		$this->channelId = $channelId;
-		$this->blockList = new BlockList($channelId);
+		$this->blockList = new ChannelBlockList($channelId);
 	}
 
 	public function filterStreamItem(array &$item): void {
