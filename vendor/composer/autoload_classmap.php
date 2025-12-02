@@ -8,5 +8,7 @@ $baseDir = dirname($vendorDir);
 return array(
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
     'Zotlabs\\Addons\\Superblock\\ChannelBlockList' => $baseDir . '/superblock/src/ChannelBlockList.php',
+    'Zotlabs\\Addons\\Superblock\\ConfigInterface' => $baseDir . '/superblock/src/ConfigInterface.php',
+    'Zotlabs\\Addons\\Superblock\\PConfigAdapter' => $baseDir . '/superblock/src/PConfigAdapter.php',
     'Zotlabs\\Addons\\Superblock\\Superblock' => $baseDir . '/superblock/src/Superblock.php',
 );

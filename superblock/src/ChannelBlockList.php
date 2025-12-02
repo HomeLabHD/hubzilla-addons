@@ -10,8 +10,6 @@
 
 namespace Zotlabs\Addons\Superblock;
 
-use Zotlabs\Lib\PConfig;
-
 /**
  * Block list implementation for a channel.
  */
@@ -27,8 +25,8 @@ class ChannelBlockList
 	 *
 	 * @param int $channelId	Numeric id of this block lists channel.
 	 */
-	function __construct(int $channelId) {
-		$blockList = PConfig::Get($channelId, 'system', 'blocked');
+	function __construct(int $channelId, ConfigInterface $config = new PConfigAdapter()) {
+		$blockList = $config->getBlockedChannels($channelId);
 		if (!empty($blockList)) {
 			$this->list = explode(',', $blockList);
 		}
