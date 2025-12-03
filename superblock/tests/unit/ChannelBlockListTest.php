@@ -20,41 +20,77 @@ require_once dirname(dirname(dirname(__DIR__))) . '/vendor/autoload.php';
 class ChannelBlockListTest extends TestCase
 {
 	#[DataProvider('blockListProvider')]
-	public function testChannelBlockList(int $channelId, bool $result): void {
+	public function testChannelBlockList(string $hash, string|false $blocked, bool $result): void {
 
 		//
 		// Stub implementation of the ConfigInterface, so we can inject into
 		// the class under test to replace the dependency on PConfig.
 		//
-		$testConfig = new class implements ConfigInterface {
+		$testConfig = new class($blocked) implements ConfigInterface {
+			public function __construct(private string $blocked) {}
 			public function getBlockedChannels(int $channelId): string|false {
-				return match ($channelId) {
-					13 => false,
-					14 => 'someone@example.test,blocked@example.test,other@example.test',
-					15 => 'someone@example.test',
-					16 => 'blocked@example.test,other@example.test',
-					17 => 'someone@example.test,blocked@example.test',
-					18 => 'blocked@example.test',
-					19 => ',,,,',
-					default => '',
-				};
+				return $channelId ? $this->blocked : false;
 			}
 		};
 
-		$blockList = new ChannelBlockList($channelId, $testConfig);
+		$blockList = new ChannelBlockList(42, $testConfig);
 
-		$this->assertEquals($result, $blockList->match('blocked@example.test'));
+		$this->assertEquals($result, $blockList->match($hash));
 	}
 
+	/*
+	 * DataProvider for testChannelBlockList
+	 *
+	 * Returns an array of [$hash, $blocked, $result] args for the
+	 * testChannelBlockList function.
+	 */
 	public static function blockListProvider(): array {
 		return [
-			[13, false],
-			[14, true],
-			[15, false],
-			[16, true],
-			[17, true],
-			[18, true],
-			[66, false],
+			[
+				'blocked@example.test',
+				false,
+				false,
+			],
+			[
+				'blocked@example.test',
+				'one@example.test,blocked@example.test,two@example.test,https://example.test/users/bot',
+				true,
+			],
+			[
+				'blocked@example.test',
+				'one@example.test,two@example.test,https://example.test/users/bot',
+				false,
+			],
+			[
+				'blocked@example.test',
+				',,,,',
+				false,
+			],
+			[
+				'blocked@example.test',
+				'one@example.test, blocked@example.test ,two@example.test,https://example.test/users/bot',
+				true,
+			],
+			[
+				' blocked@example.test ',
+				'one@example.test,blocked@example.test,two@example.test,https://example.test/users/bot',
+				true,
+			],
+			[
+				'',
+				'one@example.test,blocked@example.test,two@example.test,https://example.test/users/bot',
+				false,
+			],
+			[
+				' ',
+				'one@example.test, ,blocked@example.test,two@example.test,https://example.test/users/bot',
+				false,
+			],
+			[
+				' ',
+				'',
+				false,
+			],
 		];
 	}
 }

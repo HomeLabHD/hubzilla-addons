@@ -28,7 +28,10 @@ class ChannelBlockList
 	function __construct(int $channelId, ConfigInterface $config = new PConfigAdapter()) {
 		$blockList = $config->getBlockedChannels($channelId);
 		if (!empty($blockList)) {
-			$this->list = explode(',', $blockList);
+			$this->list = array_map(
+				fn (string $s): string => trim($s),
+				explode(',', $blockList)
+			);
 		}
 	}
 
@@ -40,6 +43,7 @@ class ChannelBlockList
 	 * @return bool		`true` if the channel matches, `false` otherwise.
 	 */
 	public function match(string $n): bool {
-		return in_array($n, $this->list);
+		$trimmed = trim($n);
+		return !empty($trimmed) && in_array($trimmed, $this->list);
 	}
 }
