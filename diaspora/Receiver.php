@@ -8,6 +8,7 @@ use Zotlabs\Lib\MessageFilter;
 use Zotlabs\Lib\Libsync;
 use Zotlabs\Lib\AccessList;
 use Zotlabs\Lib\IConfig;
+use Zotlabs\Lib\Config;
 use Zotlabs\Lib\ObjCache;
 use Zotlabs\Daemon\Master;
 
@@ -468,12 +469,17 @@ class Diaspora_Receiver {
 		}
 
 		if ($this->importer['system']) {
-			$incl = get_config('system','pubstream_incl');
-			$excl = get_config('system','pubstream_excl');
+			$incl = Config::Get('system','pubstream_incl', '');
+			$excl = Config::Get('system','pubstream_excl', '');
 
-			if(($incl || $excl) && !MessageFilter::evaluate($datarray, $incl, $excl)) {
-				logger('diaspora_reshare: filtering this author.');
-				return 202;
+			if ($incl || $excl) {
+				$plaintext = prepare_text($datarray['body'], ((isset($datarray['mimetype'])) ? $datarray['mimetype'] : 'text/bbcode'));
+				$plaintext = html2plain((isset($datarray['title']) && $datarray['title']) ? $datarray['title'] . ' ' . $plaintext : $plaintext);
+
+				if (!(new MessageFilter($datarray, $incl, $excl, ['plaintext' => $plaintext]))->evaluate()) {
+					logger('diaspora_reshare: filtering this author.');
+					return 202;
+				}
 			}
 		}
 
@@ -700,12 +706,17 @@ class Diaspora_Receiver {
 			return 202;
 		}
 		if ($this->importer['system']) {
-			$incl = get_config('system','pubstream_incl');
-			$excl = get_config('system','pubstream_excl');
+			$incl = Config::Get('system','pubstream_incl', '');
+			$excl = Config::Get('system','pubstream_excl', '');
 
-			if(($incl || $excl) && !MessageFilter::evaluate($datarray, $incl, $excl)) {
-				logger('diaspora_reshare: filtering this author.');
-				return 202;
+			if ($incl || $excl) {
+				$plaintext = prepare_text($datarray['body'], ((isset($datarray['mimetype'])) ? $datarray['mimetype'] : 'text/bbcode'));
+				$plaintext = html2plain((isset($datarray['title']) && $datarray['title']) ? $datarray['title'] . ' ' . $plaintext : $plaintext);
+
+				if (!(new MessageFilter($datarray, $incl, $excl, ['plaintext' => $plaintext]))->evaluate()) {
+					logger('diaspora_post: filtering this author.');
+					return 202;
+				}
 			}
 		}
 
@@ -1085,12 +1096,17 @@ class Diaspora_Receiver {
 		}
 
 		if ($this->importer['system']) {
-			$incl = get_config('system','pubstream_incl');
-			$excl = get_config('system','pubstream_excl');
+			$incl = Config::Get('system','pubstream_incl', '');
+			$excl = Config::Get('system','pubstream_excl', '');
 
-			if(($incl || $excl) && !MessageFilter::evaluate($datarray, $incl, $excl)) {
-				logger('diaspora_comment: filtering this author.');
-				return 202;
+			if ($incl || $excl) {
+				$plaintext = prepare_text($datarray['body'], ((isset($datarray['mimetype'])) ? $datarray['mimetype'] : 'text/bbcode'));
+				$plaintext = html2plain((isset($datarray['title']) && $datarray['title']) ? $datarray['title'] . ' ' . $plaintext : $plaintext);
+
+				if (!(new MessageFilter($datarray, $incl, $excl, ['plaintext' => $plaintext]))->evaluate()) {
+					logger('diaspora_comment: filtering this author.');
+					return 202;
+				}
 			}
 		}
 

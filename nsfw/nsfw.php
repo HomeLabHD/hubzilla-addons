@@ -12,6 +12,7 @@
 use Zotlabs\Lib\Apps;
 use Zotlabs\Extend\Hook;
 use Zotlabs\Extend\Route;
+use Zotlabs\Lib\MessageFilter;
 
 function nsfw_install() {
 	Hook::register('prepare_body', 'addon/nsfw/nsfw.php', 'nsfw_prepare_body', 10);
@@ -63,109 +64,44 @@ function nsfw_extract_photos($body) {
 function nsfw_prepare_body(&$b) {
 
 	$words = 'nsfw,contentwarning';
-	$arr = [];
 
 	if(local_channel()) {
 		$words = ((Apps::addon_app_installed(local_channel(),'nsfw')) ? get_pconfig(local_channel(),'nsfw','words',$words) : EMPTY_STR);
 	}
 
-	if($words) {
-		$arr = explode(',',$words);
+	if ($words) {
+        $words = str_replace(',', "\n", $words);
 	}
 
-	$found = false;
-
-	if($arr) {
-
-		$body = nsfw_extract_photos($b['html']);
-
-		foreach($arr as $word) {
-			$word = trim($word);
-			$author = '';
-
-			if(! strlen($word)) {
-				continue;
-			}
-
-			if(strpos($word,'lang=') === 0) {
-				if(! $b['item']['lang'])
-					continue;
-				$l = substr($word,5);
-				if(strlen($l) && strcasecmp($l,$b['item']['lang']) !== 0)
-					continue;
-				$found = true;
-				$orig_word = $word;
-				break;
-			}
-			if(strpos($word,'lang!=') === 0) {
-				if(! $b['item']['lang'])
-					continue;
-				$l = substr($word,6);
-				if(strlen($l) && strcasecmp($l,$b['item']['lang']) === 0)
-					continue;
-				$found = true;
-				$orig_word = $word;
-				break;
-			}
-
-			$orig_word = $word;
-
-			if(strpos($word,'::') !== false) {
-				$author = substr($word,0,strpos($word,'::'));
-				$word = substr($word,strpos($word,'::')+2);
-			}
-			if($author && (stripos($b['item']['author']['xchan_name'],$author) === false) && (stripos($b['item']['author']['xchan_addr'],$author) === false))
-				continue;
-
-
-			if(! $word)
-				$found = true;
-
-			if(strpos($word,'/') === 0) {
-				if(preg_match($word,$body)) {
-					$found = true;
-					break;
-				}
-			}
-			else {
-				if(stristr($body,$word)) {
-					$found = true;
-					break;
-				}
-				if(isset($b['item']['term'])) {
-					foreach($b['item']['term'] as $t) {
-						if(stristr($t['term'],$word )) {
-							$found = true;
-							break;
-						}
-					}
-				}
-				if($found)
-					break;
-			}
+	if ($words) {
+		$messageFilter = new MessageFilter($b['item'], '', $words);
+		if ($messageFilter->evaluate()) {
+			return;
 		}
+
+		$matchingRule = $messageFilter->getLastMatch() ?? t('Filtered content');
 	}
 
 	$ob_hash = get_observer_hash();
-	if((! $ob_hash)
-		&& (intval($b['item']['author']['xchan_censored']) || intval($b['item']['author']['xchan_selfcensored']))) {
-		$found = true;
-		$orig_word = t('Possible adult content');
+	if (!$ob_hash
+		&& (intval($b['item']['author']['xchan_censored']) || intval($b['item']['author']['xchan_selfcensored']))
+	) {
+		$matchingRule = t('Possible adult content');
 	}
-	if($found) {
-		$rnd = random_string(8);
 
-		$b['html'] = preg_replace('~<img[^>]*\K(?=src)~i','data-',$b['html']);
+	$rnd = random_string(8);
 
-		if($b['photo']) {
-			$b['photo'] = preg_replace('~<img[^>]*\K(?=src)~i','data-',$b['photo']);
-			$onclick = 'onclick="datasrc2src(\'#nsfw-html-' . $rnd . ' img[data-src]\'); datasrc2src(\'#nsfw-photo-' . $rnd . ' img[data-src]\'); openClose(\'nsfw-html-' . $rnd . '\'); openClose(\'nsfw-photo-' . $rnd . '\');"';
-		}
-		else {
-			$onclick = 'onclick="datasrc2src(\'#nsfw-html-' . $rnd . ' img[data-src]\'); openClose(\'nsfw-html-' . $rnd . '\');"';
-		}
+	$b['html'] = preg_replace('~<img[^>]*\K(?=src)~i','data-',$b['html']);
 
-		$b['html'] = '<div class="text-center"><button id="nsfw-wrap-' . $rnd . '" class="btn btn-warning btn-nsfw-wrap" type="button" ' . $onclick . '>' . sprintf( t('%s - view'),$orig_word ) . '</button></div><div id="nsfw-html-' . $rnd . '" style="display: none; " class="no-collapse">' . $b['html'] . '</div>';
-		$b['photo'] = (($b['photo']) ? '<div id="nsfw-photo-' . $rnd . '" style="display: none; " >' . $b['photo'] . '</div>' : '');
+	if($b['photo']) {
+		$b['photo'] = preg_replace('~<img[^>]*\K(?=src)~i','data-',$b['photo']);
+		$onclick = 'onclick="datasrc2src(\'#nsfw-html-' . $rnd . ' img[data-src]\'); datasrc2src(\'#nsfw-photo-' . $rnd . ' img[data-src]\'); openClose(\'nsfw-html-' . $rnd . '\'); openClose(\'nsfw-photo-' . $rnd . '\');"';
 	}
+	else {
+		$onclick = 'onclick="datasrc2src(\'#nsfw-html-' . $rnd . ' img[data-src]\'); openClose(\'nsfw-html-' . $rnd . '\');"';
+	}
+
+	$b['html'] = '<div class="text-center"><button id="nsfw-wrap-' . $rnd . '" class="btn btn-warning btn-nsfw-wrap" type="button" ' . $onclick . '>' . sprintf( t('%s - view'), $matchingRule) . '</button></div><div id="nsfw-html-' . $rnd . '" style="display: none; " class="no-collapse">' . $b['html'] . '</div>';
+	$b['photo'] = (($b['photo']) ? '<div id="nsfw-photo-' . $rnd . '" style="display: none; " >' . $b['photo'] . '</div>' : '');
+
 }
