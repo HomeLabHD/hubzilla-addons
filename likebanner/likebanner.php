@@ -24,7 +24,6 @@ function likebanner_init() {
 		$fontsize=(($_REQUEST['size'])? intval($_REQUEST['size']) : 28);
 		imagettftext($im,$fontsize,0,$start_x,$start_y,$black, 'addon/likebanner/FreeSansBold.ttf',$_REQUEST['addr']);
 		imagepng($im);
-		ImageDestroy($im);
 		killme();
 	}
 }

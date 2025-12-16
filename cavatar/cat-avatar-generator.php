@@ -3,15 +3,15 @@
  * ====================
  * CAT-AVATAR-GENERATOR
  * ====================
- * 
+ *
  * @authors: Andreas Gohr, David Revoy
- * 
+ *
  * This PHP is licensed under the short and simple permissive:
  * [MIT License](https://en.wikipedia.org/wiki/MIT_License)
- * 
+ *
 **/
 
-// /!\ change the path to your system's cache or a folder(write permission) 
+// /!\ change the path to your system's cache or a folder(write permission)
 // Note: this path end with / and is relative to the cat-avatar-generator.php file.
 $cachepath = 'cache/';
 
@@ -51,8 +51,6 @@ function build_cat($seed='',$size = 300){
 		imagecopy($cat,$im,0,0,0,0,$size,$size);
 	else
 		imagecopyresampled( $cat, $im, 0, 0, 0, 0, $size, $size, 300, 300);
-
-        imagedestroy($im);
     }
 
     // restore random seed
@@ -65,7 +63,6 @@ function build_cat($seed='',$size = 300){
     header('Expires: '. gmdate('D, d M Y H:i:s \G\M\T', time() + 86400));
     header('Content-Type: image/png');
     imagepng($cat, NULL, 9);
-    imagedestroy($cat);
     killme();
 }
 
@@ -74,7 +71,7 @@ function build_cat($seed='',$size = 300){
 we will call build_cat() directly and avoid caching
 
 $imageurl = $_GET["seed"];
-$imageurl = preg_replace('/[^A-Za-z0-9\._-]/', '', $imageurl); 
+$imageurl = preg_replace('/[^A-Za-z0-9\._-]/', '', $imageurl);
 $imageurl = substr($imageurl,0,35).'';
 $cachefile = ''.$cachepath.''.$imageurl.'.jpg';
 $cachetime = 604800; # 1 week (1 day = 86400)
@@ -90,7 +87,7 @@ if (file_exists($cachefile) && time() - $cachetime < filemtime($cachefile)) {
 }
 
 // ...Or start generation
-ob_start(); 
+ob_start();
 
 // render the picture:
 build_cat($_REQUEST['seed']);
