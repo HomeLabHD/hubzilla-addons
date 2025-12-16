@@ -12,6 +12,7 @@ namespace Zotlabs\Addons\Superblock\Tests;
 
 use App;
 use PHPUnit\Framework\Attributes\{Before, After};
+use Zotlabs\Addons\Superblock\Superblock;
 use Zotlabs\Lib\Apps;
 use Zotlabs\Lib\Config;
 use Zotlabs\Lib\PConfig;
@@ -198,6 +199,30 @@ class SuperblockTest extends UnitTestCase {
 
 		call_hooks('item_store', $item);
 		return isset($item['cancel']) ? $item['cancel'] : false;
+	}
+
+	/**
+	 * Superblock may be invoked for different channels in the same session.
+	 * Make sure we don't use the same blocklist for different channels.
+	 */
+	public function testDontUseSameBlocklistForDifferentChannels(): void {
+		$first = Superblock::getInstance($this->channel['channel_id']);
+		$other = Superblock::getInstance($this->channel['channel_id'] + 1);
+
+		$item = [
+			'uid' => $this->channel['channel_id'],
+			'item_wall' => true,
+			'author_xchan' => self::BLOCKED_CHANNELS[0],
+			'owner_xchan' => self::BLOCKED_CHANNELS[0],
+		];
+
+		$other->cancelItem($item);
+		$this->assertArrayNotHasKey('cancel', $item);
+
+		$first->cancelItem($item);
+
+		$this->assertArrayHasKey('cancel', $item);
+		$this->assertTrue($item['cancel']);
 	}
 
 	public function testPMFromBlockedUsersShouldBeBlocked(): void {

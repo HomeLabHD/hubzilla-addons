@@ -10,20 +10,36 @@ namespace Zotlabs\Addons\Superblock;
 
 class Superblock
 {
-	private $channelId;
+	/**
+	 * Static property to hold instances of the Superblock class.
+	 */
+	private static array $instance = [];
+
+	/**
+	 * The actual block list for this instance.
+	 */
 	private ChannelBlockList $blockList;
 
-	private static $instance = null;
-
+	/**
+	 * Return the Superblock instance for the given channelId.
+	 *
+	 * @param int $channelId    The id of the channel for this Superblock instance.
+	 *
+	 * @return A Superblock instance to manage blocks for the given channel.
+	 */
 	public static function getInstance(int $channelId): self {
-		if (self::$instance === null) {
-			self::$instance = new self($channelId);
+		if (empty(self::$instance[$channelId])) {
+			self::$instance[$channelId] = new self($channelId);
 		}
-		return self::$instance;
+		return self::$instance[$channelId];
 	}
 
+	/*
+	 * Private constructor to prevent instantiation by other classes.
+	 *
+	 * @param int $channelId    The is of the channel for this Superblock instance.
+	 */
 	private function __construct(int $channelId) {
-		$this->channelId = $channelId;
 		$this->blockList = new ChannelBlockList($channelId);
 	}
 
