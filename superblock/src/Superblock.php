@@ -8,6 +8,27 @@
 
 namespace Zotlabs\Addons\Superblock;
 
+/**
+ * Superblock addon class.
+ *
+ * This class implements most of the logic used in the Superblock addon.
+ *
+ * It is implemented somewhat like a singleton, except it will instantiate a
+ * new instance of itself for each channel it's going to serve. This is needed
+ * because each channel needs to have their own block list.
+ *
+ * To get the instance for a given channel, use the `getInstance()` static
+ * function:
+ *
+ * ```php
+ *    $channelId = local_channel();
+ *
+ *    if ($channelId && Apps::addon_app_installed($channelId, 'superblock')) {
+ *        $plugin = Superblock::getInstance($channelId);
+ *        $plugin->filterStreamItem($b['item']);
+ *    }
+ * ```
+ */
 class Superblock
 {
 	/**
