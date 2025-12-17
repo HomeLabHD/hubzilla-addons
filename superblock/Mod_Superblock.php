@@ -1,4 +1,10 @@
 <?php
+/*
+ * SPDX-FileCopyrightText: 2025 The Hubzilla Community
+ * SPDX-FileContributor: Harald Eilertsen <haraldei@anduin.net>
+ *
+ * SPDX-License-Identifier: MIT
+ */
 
 namespace Zotlabs\Module;
 
@@ -138,11 +144,11 @@ class Superblock extends Controller {
 		$tpl = get_markup_template('superblock_list.tpl','addon/superblock');
 
 		$o = replace_macros($tpl, [
-			'$blocked' => t('Currently blocked'),
+			'$title' => t('Currently blocked channels'),
 			'$entries' => $r,
 			'$nothing' => (($r) ? '' : t('No channels currently blocked')),
 			'$token' => get_form_security_token('superblock'),
-			'$remove' => t('Remove')
+			'$remove' => t('Remove from blocklist')
 		]);
 
 		return $o;
