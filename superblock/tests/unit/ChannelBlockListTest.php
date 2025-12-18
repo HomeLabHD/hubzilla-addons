@@ -28,8 +28,12 @@ class ChannelBlockListTest extends TestCase
 		//
 		$testConfig = new class($blocked) implements ConfigInterface {
 			public function __construct(private string $blocked) {}
-			public function getBlockedChannels(int $channelId): string|false {
-				return $channelId ? $this->blocked : false;
+			public function getBlockedChannels(int $channelId): array {
+				return $channelId
+					? array_map(fn (string $s): string => trim($s), explode(',', $this->blocked))
+					: [];
+			}
+			public function saveBlockedChannels(int $channelId, array $blockList): void {
 			}
 		};
 

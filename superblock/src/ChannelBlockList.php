@@ -15,6 +15,8 @@ namespace Zotlabs\Addons\Superblock;
  */
 class ChannelBlockList
 {
+	private $channelId;
+	private ConfigInterface $config;
 	private $list = [];
 
 	/**
@@ -26,13 +28,26 @@ class ChannelBlockList
 	 * @param int $channelId	Numeric id of this block lists channel.
 	 */
 	function __construct(int $channelId, ConfigInterface $config = new PConfigAdapter()) {
-		$blockList = $config->getBlockedChannels($channelId);
-		if (!empty($blockList)) {
-			$this->list = array_map(
-				fn (string $s): string => trim($s),
-				explode(',', $blockList)
-			);
-		}
+		$this->channelId = $channelId;
+		$this->config = $config;
+		$this->loadBlockList();
+	}
+
+	/**
+	 * Add a channel to the block list.
+	 *
+	 * @param string $channel   The channel to block, either as a webbie, url
+	 *                          or xchan hash.
+	 */
+	public function add(string $channel): void {
+		$this->list[] = $channel;
+	}
+
+	/**
+	 * Loads the block list from the configuration of the channel.
+	 */
+	private function loadBlockList(): void {
+		$this->list = $this->config->getBlockedChannels($this->channelId);
 	}
 
 	/**
@@ -45,5 +60,16 @@ class ChannelBlockList
 	public function match(string $n): bool {
 		$trimmed = trim($n);
 		return !empty($trimmed) && in_array($trimmed, $this->list);
+	}
+
+	/**
+	 * Save the block list to persistent storage.
+	 *
+	 * This persists the block list using the `ConfigInterface` that was
+	 * passed in the constructor.
+	 */
+	public function save(): void {
+		$this->config->saveBlockedChannels($this->channelId, $this->list);
+		$this->loadBlockList();
 	}
 }

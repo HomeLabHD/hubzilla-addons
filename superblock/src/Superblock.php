@@ -64,6 +64,14 @@ class Superblock
 		$this->blockList = new ChannelBlockList($channelId);
 	}
 
+	public function save(): void {
+		$this->blockList->save();
+	}
+
+	public function blockChannel(string $channel): void {
+		$this->blockList->add($channel);
+	}
+
 	public function filterStreamItem(array &$item): void {
 		if ($this->filterItem($item)) {
 			$item['blocked'] = true;

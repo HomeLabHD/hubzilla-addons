@@ -18,7 +18,24 @@ use Zotlabs\Lib\PConfig;
  */
 class PConfigAdapter implements ConfigInterface
 {
-	public function getBlockedChannels(int $channelId): string|false {
-		return PConfig::Get($channelId, 'system', 'blocked');
+	private const FAMILY = 'system';
+	private const KEY = 'blocked';
+
+	public function getBlockedChannels(int $channelId): array {
+		$data = PConfig::Get($channelId, self::FAMILY, self::KEY);
+
+		return array_map(
+			fn (string $s): string => trim($s),
+			explode(',', $data)
+		);
+	}
+
+	public function saveBlockedChannels(int $channelId, array $blockList): void {
+		PConfig::Set(
+			$channelId,
+			self::FAMILY,
+			self::KEY,
+			implode(',', $blockList)
+		);
 	}
 }

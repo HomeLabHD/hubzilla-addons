@@ -137,6 +137,18 @@ class SuperblockTest extends UnitTestCase {
 			in_array($item['owner_xchan'], self::BLOCKED_CHANNELS);
 	}
 
+	public function testAddingNewBlock(): void {
+		$newBlock = 'anotherblockeduser@example.test';
+
+		$this->assertFalse($this->checkIfItemIsBlocked($newBlock, $newBlock));
+
+		$sb = Superblock::getInstance($this->channel['channel_id']);
+		$sb->blockChannel($newBlock);
+		$sb->save();
+
+		$this->assertTrue($this->checkIfItemIsBlocked($newBlock, $newBlock));
+	}
+
 	/**
 	 * Helper function to make the check whether items will be blocked or not
 	 * given `$author` and `$owner`.
