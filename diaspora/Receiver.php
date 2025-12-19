@@ -474,9 +474,10 @@ class Diaspora_Receiver {
 
 			if ($incl || $excl) {
 				$plaintext = prepare_text($datarray['body'], ((isset($datarray['mimetype'])) ? $datarray['mimetype'] : 'text/bbcode'));
+				$plaintext = html2plain((isset($datarray['summary']) && $datarray['summary']) ? $datarray['summary'] . ' ' . $plaintext : $plaintext);
 				$plaintext = html2plain((isset($datarray['title']) && $datarray['title']) ? $datarray['title'] . ' ' . $plaintext : $plaintext);
 
-				if (!(new MessageFilter($datarray, $incl, $excl, ['plaintext' => $plaintext]))->evaluate()) {
+				if (!(new MessageFilter($datarray, html_entity_decode($incl), html_entity_decode($excl), ['plaintext' => $plaintext]))->evaluate()) {
 					logger('diaspora_reshare: filtering this author.');
 					return 202;
 				}
@@ -711,9 +712,10 @@ class Diaspora_Receiver {
 
 			if ($incl || $excl) {
 				$plaintext = prepare_text($datarray['body'], ((isset($datarray['mimetype'])) ? $datarray['mimetype'] : 'text/bbcode'));
+				$plaintext = html2plain((isset($datarray['summary']) && $datarray['summary']) ? $datarray['summary'] . ' ' . $plaintext : $plaintext);
 				$plaintext = html2plain((isset($datarray['title']) && $datarray['title']) ? $datarray['title'] . ' ' . $plaintext : $plaintext);
 
-				if (!(new MessageFilter($datarray, $incl, $excl, ['plaintext' => $plaintext]))->evaluate()) {
+				if (!(new MessageFilter($datarray, html_entity_decode($incl), html_entity_decode($excl), ['plaintext' => $plaintext]))->evaluate()) {
 					logger('diaspora_post: filtering this author.');
 					return 202;
 				}
@@ -1101,9 +1103,10 @@ class Diaspora_Receiver {
 
 			if ($incl || $excl) {
 				$plaintext = prepare_text($datarray['body'], ((isset($datarray['mimetype'])) ? $datarray['mimetype'] : 'text/bbcode'));
+				$plaintext = html2plain((isset($datarray['summary']) && $datarray['summary']) ? $datarray['summary'] . ' ' . $plaintext : $plaintext);
 				$plaintext = html2plain((isset($datarray['title']) && $datarray['title']) ? $datarray['title'] . ' ' . $plaintext : $plaintext);
 
-				if (!(new MessageFilter($datarray, $incl, $excl, ['plaintext' => $plaintext]))->evaluate()) {
+				if (!(new MessageFilter($datarray, html_entity_decode($incl), html_entity_decode($excl), ['plaintext' => $plaintext]))->evaluate()) {
 					logger('diaspora_comment: filtering this author.');
 					return 202;
 				}

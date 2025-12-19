@@ -78,7 +78,7 @@ function nsfw_prepare_body(&$b) {
 	}
 
 	if ($words) {
-		$messageFilter = new MessageFilter($b['item'], '', $words);
+		$messageFilter = new MessageFilter($b['item'], '', html_entity_decode($words));
 		if ($messageFilter->evaluate()) {
 			return;
 		}
