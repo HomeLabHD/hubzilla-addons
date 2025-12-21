@@ -9,34 +9,64 @@
 namespace Zotlabs\Module;
 
 use App;
+use Zotlabs\Addons\Superblock\Superblock as Plugin;
 use Zotlabs\Lib\Apps;
 use Zotlabs\Lib\Config;
 use Zotlabs\Lib\Libsync;
 use Zotlabs\Web\Controller;
+
+require_once __DIR__ . '/../vendor/autoload.php';
 
 class Superblock extends Controller {
 
 	/**
 	 * The local channel id, or false.
 	 */
-	private $localChannel = false;
+	private int $localChannel;
 
 	/**
 	 * True if it's a json request.
 	 */
-	private $is_json_request = false;
+	private bool $is_json_request;
 
 	/**
-	 * Initialize the state needed for further request handling.
+	 * The request method used for this request.
 	 */
-	public function init(): void {
+	private string $request_method;
+
+	/**
+	 * True if the Superblock app is installed for the channel making the
+	 * request.
+	 */
+	private bool $app_installed;
+
+	/**
+	 * Default constructor to initialize the state of the controller.
+	 */
+	public function __construct() {
 		$this->localChannel = local_channel();
 		$this->is_json_request =
 			$_SERVER['HTTP_CONTENT_TYPE'] === 'application/json';
+
+		$this->request_method = $_SERVER['REQUEST_METHOD'];
+		$this->app_installed = Apps::addon_app_installed($this->localChannel, 'superblock');
+
+	}
+
+	/**
+	 * The init function is called before the actual request processing begins.
+	 */
+	public function init(): void {
+		//
+		// Validate access to the module here.
+		//
+		// Since the init function will be invoked before any of the other
+		// functions, we can validate the acces once and for all here.
+		//
+		$this->validate_access();
 	}
 
 	public function post(): void {
-		$this->validate_access();
 		$params = $this->validate_params();
 		$this->check_security_token($params['form_security_token']);
 
@@ -70,19 +100,19 @@ class Superblock extends Controller {
 		}
 	}
 
-	function get() {
+	function get(): string {
 
-		if(! local_channel())
-			return;
+		$config_changed = false;
+		$words = '';
 
-		if(! Apps::addon_app_installed(local_channel(), 'superblock')) {
+		if (!$this->app_installed) {
 			//Do not display any associated widgets at this point
 			App::$pdl = '';
 			$papp = Apps::get_papp('Superblock');
 			return Apps::app_render($papp, 'module');
 		}
 
-		$words = get_pconfig(local_channel(),'system','blocked');
+		$plugin = Plugin::getInstance($this->localChannel);
 
 		//TODO: move this (config changes) to post()
 
@@ -172,7 +202,9 @@ class Superblock extends Controller {
 			$this->error(403, 'Forbidden');
 		}
 
-		if (!Apps::addon_app_installed($this->localChannel, 'superblock')) {
+		// Redirect POST requests to the APP description page if the APP is
+		// not installed
+		if ($this->request_method === 'POST' && !$this->app_installed) {
 			goaway('/superblock');
 		}
 	}
