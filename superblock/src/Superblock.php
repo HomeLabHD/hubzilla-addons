@@ -72,6 +72,10 @@ class Superblock
 		$this->blockList->add($channel);
 	}
 
+	public function getBlockedChannels(): array {
+		return $this->blockList->getEntries();
+	}
+
 	public function filterStreamItem(array &$item): void {
 		if ($this->filterItem($item)) {
 			$item['blocked'] = true;

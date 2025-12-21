@@ -43,6 +43,10 @@ class ChannelBlockList
 		$this->list[] = $channel;
 	}
 
+	public function getEntries(): array {
+		return $this->list;
+	}
+
 	/**
 	 * Loads the block list from the configuration of the channel.
 	 */

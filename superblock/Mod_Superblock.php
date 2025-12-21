@@ -156,7 +156,7 @@ class Superblock extends Controller {
 		if(! $words)
 			$words = '';
 
-		$list = explode(',',$words);
+		$list = $plugin->getBlockedChannels();
 		stringify_array_elms($list,true);
 		$query_str = implode(',',$list);
 		if($query_str) {

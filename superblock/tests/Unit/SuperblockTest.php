@@ -43,6 +43,16 @@ class SuperblockTest extends UnitTestCase {
 		$this->setup_channel();
 	}
 
+	public function testGetListOfBlockedChannels(): void {
+		$plugin = Superblock::getInstance($this->channel['channel_id']);
+		$list = $plugin->getBlockedChannels();
+
+		$this->assertIsArray($list);
+		$this->assertContains('blockeduser@somesite.test', $list);
+		$this->assertContains('evil@othersite.test', $list);
+		$this->assertContains('upyours@arse.test', $list);
+	}
+
 	public function testItemFromBlockedUserShouldBeBlocked(): void {
 		//
 		// We could technically use a dataprovider to iterate through the tests vectors,
