@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-namespace Zotlabs\Addons\Superblock\Tests;
+namespace Zotlabs\Addons\Superblock\Tests\Unit;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;

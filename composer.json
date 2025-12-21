@@ -35,6 +35,11 @@
             "Zotlabs\\Addons\\Superblock\\": "superblock/src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "Zotlabs\\Addons\\Superblock\\Tests\\": "superblock/tests/"
+        }
+    },
     "minimum-stability": "stable",
     "config": {
         "notify-on-install": false,

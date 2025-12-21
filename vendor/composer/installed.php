@@ -3,7 +3,7 @@
         'name' => 'zotlabs/hubzilla-addons',
         'pretty_version' => 'dev-10.6RC',
         'version' => 'dev-10.6RC',
-        'reference' => 'ef1bfa46ae6d1fe9b44763be1df9790527874287',
+        'reference' => 'f4e1643b171cd5c12b5b89aab4e7fc357c235a96',
         'type' => 'application',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'zotlabs/hubzilla-addons' => array(
             'pretty_version' => 'dev-10.6RC',
             'version' => 'dev-10.6RC',
-            'reference' => 'ef1bfa46ae6d1fe9b44763be1df9790527874287',
+            'reference' => 'f4e1643b171cd5c12b5b89aab4e7fc357c235a96',
             'type' => 'application',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

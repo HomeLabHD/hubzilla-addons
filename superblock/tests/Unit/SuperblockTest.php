@@ -8,17 +8,21 @@
  * SPDX-License-Identifier: MIT
  */
 
-namespace Zotlabs\Addons\Superblock\Tests;
+namespace Zotlabs\Addons\Superblock\Tests\Unit;
 
 use App;
 use PHPUnit\Framework\Attributes\{Before, After};
 use Zotlabs\Addons\Superblock\Superblock;
+use Zotlabs\Addons\Superblock\Tests\Helpers;
 use Zotlabs\Lib\Apps;
 use Zotlabs\Lib\Config;
 use Zotlabs\Lib\PConfig;
 use Zotlabs\Tests\Unit\UnitTestCase;
 
 class SuperblockTest extends UnitTestCase {
+
+	use Helpers\PluginHelperTrait;
+
 	private array $channel = [];
 
 	private const BLOCKED_CHANNELS = [
@@ -34,20 +38,9 @@ class SuperblockTest extends UnitTestCase {
 
 	#[Before]
 	public function prepare_test(): void {
-		$this->channel = $this->fixtures['channel'][0];
-		$this->start_session();
+		$this->channel = $this->fixtures['channel'][1];
+		$this->startSession($this->channel);
 		$this->setup_channel();
-
-		install_plugin('superblock');
-		load_hooks();
-	}
-
-	#[After]
-	public function cleanup(): void {
-		unload_plugin('superblock');
-
-		session_abort();
-		$_SESSION = [];
 	}
 
 	public function testItemFromBlockedUserShouldBeBlocked(): void {
@@ -488,21 +481,11 @@ class SuperblockTest extends UnitTestCase {
 		}
 	}
 
-	private function start_session(): void {
-		session_start();
-
-		$_SESSION['authenticated'] = true;
-		$_SESSION['uid'] = $this->channel['channel_id'];
-	}
-
 	/**
 	 * Install the addon and set the blocklist.
 	 */
 	private function setup_channel(): void {
-		$app = Apps::parse_app_description(__DIR__ . '/../../superblock.apd', false, false);
-		$app['plugin'] = 'superblock';
-		Apps::app_install(0, $app);
-		Apps::app_install($this->channel['channel_id'], $app);
+		$this->installPluginApp($this->channel);
 
 		PConfig::Set(
 			$this->channel['channel_id'],

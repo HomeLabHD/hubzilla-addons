@@ -11,4 +11,8 @@ return array(
     'Zotlabs\\Addons\\Superblock\\ConfigInterface' => $baseDir . '/superblock/src/ConfigInterface.php',
     'Zotlabs\\Addons\\Superblock\\PConfigAdapter' => $baseDir . '/superblock/src/PConfigAdapter.php',
     'Zotlabs\\Addons\\Superblock\\Superblock' => $baseDir . '/superblock/src/Superblock.php',
+    'Zotlabs\\Addons\\Superblock\\Tests\\Helpers\\PluginHelperTrait' => $baseDir . '/superblock/tests/Helpers/PluginHelperTrait.php',
+    'Zotlabs\\Addons\\Superblock\\Tests\\Unit\\ChannelBlockListTest' => $baseDir . '/superblock/tests/Unit/ChannelBlockListTest.php',
+    'Zotlabs\\Addons\\Superblock\\Tests\\Unit\\ModSuperblockTest' => $baseDir . '/superblock/tests/Unit/ModSuperblockTest.php',
+    'Zotlabs\\Addons\\Superblock\\Tests\\Unit\\SuperblockTest' => $baseDir . '/superblock/tests/Unit/SuperblockTest.php',
 );

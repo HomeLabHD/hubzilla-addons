@@ -9,11 +9,16 @@ class ComposerStaticInit68112c3d238e97818c4d5ad2d946142b
     public static $prefixLengthsPsr4 = array (
         'Z' => 
         array (
+            'Zotlabs\\Addons\\Superblock\\Tests\\' => 32,
             'Zotlabs\\Addons\\Superblock\\' => 26,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
+        'Zotlabs\\Addons\\Superblock\\Tests\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/superblock/tests',
+        ),
         'Zotlabs\\Addons\\Superblock\\' => 
         array (
             0 => __DIR__ . '/../..' . '/superblock/src',
@@ -26,6 +31,10 @@ class ComposerStaticInit68112c3d238e97818c4d5ad2d946142b
         'Zotlabs\\Addons\\Superblock\\ConfigInterface' => __DIR__ . '/../..' . '/superblock/src/ConfigInterface.php',
         'Zotlabs\\Addons\\Superblock\\PConfigAdapter' => __DIR__ . '/../..' . '/superblock/src/PConfigAdapter.php',
         'Zotlabs\\Addons\\Superblock\\Superblock' => __DIR__ . '/../..' . '/superblock/src/Superblock.php',
+        'Zotlabs\\Addons\\Superblock\\Tests\\Helpers\\PluginHelperTrait' => __DIR__ . '/../..' . '/superblock/tests/Helpers/PluginHelperTrait.php',
+        'Zotlabs\\Addons\\Superblock\\Tests\\Unit\\ChannelBlockListTest' => __DIR__ . '/../..' . '/superblock/tests/Unit/ChannelBlockListTest.php',
+        'Zotlabs\\Addons\\Superblock\\Tests\\Unit\\ModSuperblockTest' => __DIR__ . '/../..' . '/superblock/tests/Unit/ModSuperblockTest.php',
+        'Zotlabs\\Addons\\Superblock\\Tests\\Unit\\SuperblockTest' => __DIR__ . '/../..' . '/superblock/tests/Unit/SuperblockTest.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

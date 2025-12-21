@@ -6,5 +6,6 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'Zotlabs\\Addons\\Superblock\\Tests\\' => array($baseDir . '/superblock/tests'),
     'Zotlabs\\Addons\\Superblock\\' => array($baseDir . '/superblock/src'),
 );
