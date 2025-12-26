@@ -201,7 +201,7 @@ class Superblock extends Controller {
 	 */
 	private function validate_access(): void {
 		if (!$this->localChannel) {
-			$this->error(403, 'Forbidden');
+			$this->error(401, 'Unauthorized');
 		}
 
 		// Redirect POST requests to the APP description page if the APP is
