@@ -42,6 +42,52 @@ class ChannelBlockListTest extends TestCase
 		$this->assertEquals($result, $blockList->match($hash));
 	}
 
+	public function testAddChannelToBLockListMarksItDirty(): void {
+		//
+		// Stub implementation of the ConfigInterface, so we can inject into
+		// the class under test to replace the dependency on PConfig.
+		//
+		$dummyConfig = new class() implements ConfigInterface {
+			public function __construct() {}
+			public function getBlockedChannels(int $channelId): array {
+				return [];
+			}
+			public function saveBlockedChannels(int $channelId, array $blockList): void {
+			}
+		};
+
+		$blockList = new ChannelBlockList(43, $dummyConfig);
+		$this->assertFalse($blockList->isModified());
+
+		$blockList->add('gangster@scarface.test');
+
+		$this->assertTrue($blockList->isModified());
+		$this->assertTrue($blockList->match('gangster@scarface.test'));
+	}
+
+	public function testRemoveChannelFromBlockListMarksItDirty(): void {
+		//
+		// Stub implementation of the ConfigInterface, so we can inject into
+		// the class under test to replace the dependency on PConfig.
+		//
+		$dummyConfig = new class() implements ConfigInterface {
+			public function __construct() {}
+			public function getBlockedChannels(int $channelId): array {
+				return ['gangster@scarface.test', 'lowlife@mob.test'];
+			}
+			public function saveBlockedChannels(int $channelId, array $blockList): void {
+			}
+		};
+
+		$blockList = new ChannelBlockList(43, $dummyConfig);
+		$this->assertFalse($blockList->isModified());
+
+		$blockList->remove('gangster@scarface.test');
+
+		$this->assertTrue($blockList->isModified());
+		$this->assertFalse($blockList->match('gangster@scarface.test'));
+	}
+
 	/*
 	 * DataProvider for testChannelBlockList
 	 *

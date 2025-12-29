@@ -105,7 +105,6 @@ class Superblock extends Controller {
 	function get(): string {
 
 		$config_changed = false;
-		$words = '';
 
 		if (!$this->app_installed) {
 			//Do not display any associated widgets at this point
@@ -118,45 +117,20 @@ class Superblock extends Controller {
 
 		//TODO: move this (config changes) to post()
 
-		if(array_key_exists('block',$_GET) && $_GET['block']) {
-			$r = q("select id from item where id = %d and author_xchan = '%s' limit 1",
-				intval($_GET['item']),
-				dbesc($_GET['block'])
-			);
-			if($r) {
-				if(strlen($words))
-					$words .= ',';
-				$words .= trim($_GET['block']);
-			}
-			$config_changed = true;
+		if (!empty($_GET['block'])) {
+			$plugin->blockChannel($_GET['block']);
 		}
 
-		if(array_key_exists('unblock',$_GET) && $_GET['unblock']) {
-			if(check_form_security_token('superblock','sectok')) {
-				$newlist = [];
-				$list = explode(',',$words);
-				if($list) {
-					foreach($list as $li) {
-						if($li !== $_GET['unblock']) {
-							$newlist[] = $li;
-						}
-					}
-				}
-
-				$words = implode(',',$newlist);
-			}
-			$config_changed = true;
+		if (!empty($_GET['unblock']) && check_form_security_token('superblock','sectok')) {
+			$plugin->unblockChannel($_GET['unblock']);
 		}
 
-		if($config_changed) {
-			set_pconfig(local_channel(),'system','blocked',$words);
+		if ($plugin->configChanged()) {
+			$plugin->save();
 			Libsync::build_sync_packet(local_channel(), [ 'config' ]);
 
 			info( t('superblock settings updated') . EOL );
 		}
-
-		if(! $words)
-			$words = '';
 
 		$list = $plugin->getBlockedChannels();
 		stringify_array_elms($list,true);
@@ -168,23 +142,20 @@ class Superblock extends Controller {
 			$r = [];
 
 		if($r) {
-			for($x = 0; $x < count($r); $x ++) {
+			for($x = 0; $x < count($r); $x++) {
 				$r[$x]['encoded_hash'] = urlencode($r[$x]['xchan_hash']);
 			}
 		}
 
 		$tpl = get_markup_template('superblock_list.tpl','addon/superblock');
 
-		$o = replace_macros($tpl, [
+		return replace_macros($tpl, [
 			'$title' => t('Currently blocked channels'),
 			'$entries' => $r,
 			'$nothing' => (($r) ? '' : t('No channels currently blocked')),
 			'$token' => get_form_security_token('superblock'),
 			'$remove' => t('Remove from blocklist')
 		]);
-
-		return $o;
-
 	}
 
 	/**

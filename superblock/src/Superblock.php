@@ -72,6 +72,14 @@ class Superblock
 		$this->blockList->add($channel);
 	}
 
+	public function unblockChannel(string $channel): void {
+		$this->blockList->remove($channel);
+	}
+
+	public function configChanged(): bool {
+		return $this->blockList->isModified();
+	}
+
 	public function getBlockedChannels(): array {
 		return $this->blockList->getEntries();
 	}

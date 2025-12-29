@@ -17,6 +17,7 @@ class ChannelBlockList
 {
 	private $channelId;
 	private ConfigInterface $config;
+	private bool $dirty;
 	private $list = [];
 
 	/**
@@ -31,6 +32,7 @@ class ChannelBlockList
 		$this->channelId = $channelId;
 		$this->config = $config;
 		$this->loadBlockList();
+		$this->dirty = false;
 	}
 
 	/**
@@ -41,10 +43,20 @@ class ChannelBlockList
 	 */
 	public function add(string $channel): void {
 		$this->list[] = $channel;
+		$this->dirty = true;
+	}
+
+	public function remove(string $channel): void {
+		$this->list = array_filter($this->list, fn($ch) => $ch !== $channel);
+		$this->dirty = true;
 	}
 
 	public function getEntries(): array {
 		return $this->list;
+	}
+
+	public function isModified(): bool {
+		return $this->dirty;
 	}
 
 	/**
