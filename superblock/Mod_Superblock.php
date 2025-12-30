@@ -72,7 +72,24 @@ class Superblock extends Controller {
 		$params = $this->validate_params();
 		$this->check_security_token($params['form_security_token']);
 
+		$plugin = Plugin::getInstance($this->localChannel);
+
 		switch ($params['action']) {
+			case 'block':
+				$author = $params['author'];
+				if (!$author) {
+					$this->error(400, 'Invalid xchan');
+				}
+
+				$author_xchan = xchan_fetch(['hash' => $author]);
+				if (!$author_xchan) {
+					$this->error(400, 'Unknown author');
+				}
+
+				$plugin->blockChannel($author_xchan['hash']);
+				$this->success("blocked {$author_xchan['address']} permanently");
+				break;
+
 			case 'siteblock':
 				if (!is_site_admin()) {
 					$this->error(403, 'You do not have access to perform this operation');
@@ -100,6 +117,13 @@ class Superblock extends Controller {
 			default:
 				$this->error(400, 'No action given');
 		}
+
+		if ($plugin->configChanged()) {
+			$plugin->save();
+			Libsync::build_sync_packet(local_channel(), [ 'config' ]);
+
+			info( t('superblock settings updated') . EOL );
+		}
 	}
 
 	function get(): string {
@@ -116,10 +140,6 @@ class Superblock extends Controller {
 		$plugin = Plugin::getInstance($this->localChannel);
 
 		//TODO: move this (config changes) to post()
-
-		if (!empty($_GET['block'])) {
-			$plugin->blockChannel($_GET['block']);
-		}
 
 		if (!empty($_GET['unblock']) && check_form_security_token('superblock','sectok')) {
 			$plugin->unblockChannel($_GET['unblock']);
@@ -138,13 +158,8 @@ class Superblock extends Controller {
 		if($query_str) {
 			$r = q("select * from xchan where xchan_hash in ( " . $query_str . " ) and xchan_hash != '' ");
 		}
-		else
+		else {
 			$r = [];
-
-		if($r) {
-			for($x = 0; $x < count($r); $x++) {
-				$r[$x]['encoded_hash'] = urlencode($r[$x]['xchan_hash']);
-			}
 		}
 
 		$tpl = get_markup_template('superblock_list.tpl','addon/superblock');
@@ -196,7 +211,7 @@ class Superblock extends Controller {
 			[
 				'action' => [
 					'filter' => FILTER_VALIDATE_REGEXP,
-					'options' => ['regexp' => '/^siteblock$/']
+					'options' => ['regexp' => '/^(block|siteblock)$/']
 				],
 				'author' => [
 					'filter' => FILTER_DEFAULT,
@@ -260,13 +275,12 @@ class Superblock extends Controller {
 	 * **Note:** This function will not return if the request was a json
 	 * request.
 	 *
-	 * @param string $channel		The channel address that was blocked.
+	 * @param string $message		Success message for the calling user.
 	 */
-	private function success(string $channel): void {
-		$msg = t("{$channel} was added to the sitewide block list.");
-		info($msg);
+	private function success(string $message): void {
+		info($message);
 		if ($this->is_json_request) {
-			json_return_and_die([ 'status' => 'success', 'message' => $msg ]);
+			json_return_and_die([ 'status' => 'success', 'message' => $message ]);
 		}
 	}
 

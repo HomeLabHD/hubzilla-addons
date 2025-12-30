@@ -186,38 +186,25 @@ function superblock_conversation_start(&$b)
 			App::$page['htmlhead'] = '';
 		}
 
-		$script = <<<'JS'
+		App::$page['htmlhead'] .= <<<'JS'
 			<script>
-			function superblockBlock(author,item) {
-				$.get('superblock?f=&item=' + item + '&block=' +author, function(data) {
-					location.reload(true);
-				});
-			}
-
-			JS;
-
-		if (is_site_admin()) {
-			$script .= <<<JS
-			async function superblockSiteBlock(author) {
+			async function superblockAjax(action, author, item) {
 				let response = await fetch("superblock", {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
 					},
 					body: JSON.stringify({
-						action: "siteblock",
+						action: action,
 						author: author,
+						item: item,
 						form_security_token: "{$security_token}",
 					}),
 				});
 				body = await response.text();
 			}
+			</script>
 			JS;
-		}
-
-		$script .= "</script>";
-
-		App::$page['htmlhead'] .= $script;
 	}
 }
 
@@ -249,7 +236,7 @@ function superblock_item_photo_menu(&$b)
 			'menu' => 'superblock',
 			'title' => t('Block Completely'),
 			'icon' => 'fw',
-			'action' => 'superblockBlock(\'' . $author . '\',' . $item . '); return false;',
+			'action' => "superblockAjax('block', '{$author}', {$item}); return false;",
 			'href' => '#'
 		];
 
@@ -258,7 +245,7 @@ function superblock_item_photo_menu(&$b)
 				'superblock_admin_block',
 				'title' => t('Block from site'),
 				'icon' => 'fw',
-				'action' => "superblockSiteBlock('{$author}'); return false;",
+				'action' => "superblockAjax('siteblock', '{$author}', {$item}); return false;",
 				'href' => '#',
 			];
 		}

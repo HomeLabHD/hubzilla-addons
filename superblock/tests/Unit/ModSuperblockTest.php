@@ -11,6 +11,7 @@ namespace Zotlabs\Addons\Superblock\Tests\Unit;
 
 use phpmock\phpunit\PHPMock;
 use Zotlabs\Tests\Unit\Module\TestCase;
+use Zotlabs\Tests\Unit\Module\KillmeException;
 use Zotlabs\Addons\Superblock\Superblock;
 use Zotlabs\Addons\Superblock\Tests\Helpers;
 
@@ -21,7 +22,11 @@ class ModSuperblockTest extends TestCase {
 	use Helpers\PluginHelperTrait;
 	use PHPMock;
 
+	// Holds the channel that we simulate during the test
 	private array $channel;
+
+	// Used to store the result of ajax calls
+	private array $returnedJson;
 
 	public function testGetModuleWhenAppNotInstalledRendersAppInfo(): void {
 		$this->channel = $this->fixtures['channel'][1];
@@ -75,9 +80,92 @@ class ModSuperblockTest extends TestCase {
 		$this->assertPageContains('href="superblock?f=&unblock=knallert%40blowback.test');
 	}
 
+	public function testAddNewBlockByHTMLForm(): void {
+		$this->channel = $this->fixtures['channel'][1];
+		$this->startSession($this->channel);
+		$this->installPluginApp($this->channel);
+		$this->stubGetSecurityToken();
+		$this->stubCheckFormSecurityToken(true);
+
+		// Only channels matching xchans are listed!
+		xchan_store_lowlevel([
+			'xchan_addr' => 'snertemoen@valdres.test',
+			'xchan_hash' => 'snertemoen@valdres.test',
+			'xchan_url' => 'https://valdres.test/users/snertemoen',
+		]);
+
+		$this->post('superblock', [], [
+			'action' => 'block',
+			'author' => 'snertemoen@valdres.test',
+			'item' => 666,
+			'form_security_token' => 'very_secure',
+		]);
+
+		$this->assertPageContains('href="https://valdres.test/users/snertemoen"');
+		$this->assertPageContains('href="superblock?f=&unblock=snertemoen%40valdres.test');
+	}
+
+	public function testAddNewBlockByAjax(): void {
+		$this->channel = $this->fixtures['channel'][1];
+		$this->startSession($this->channel);
+		$this->installPluginApp($this->channel);
+		$this->stubGetSecurityToken();
+		$this->stubCheckFormSecurityToken(true);
+		$this->stubFileGetContents();
+		$this->stubJsonReturnAndDie();
+
+		// Only channels matching xchans are listed!
+		xchan_store_lowlevel([
+			'xchan_addr' => 'snertemoen@valdres.test',
+			'xchan_hash' => 'snertemoen@valdres.test',
+			'xchan_url' => 'https://valdres.test/users/snertemoen',
+		]);
+
+		try {
+			$this->ajax_request('POST', 'superblock', [
+				'action' => 'block',
+				'author' => 'snertemoen@valdres.test',
+				'item' => 666,
+				'form_security_token' => 'very_secure',
+			]);
+		} catch (KillmeException $e) {
+			$this->assertIsArray($this->returnedJson);
+			$this->assertArrayHasKey('status', $this->returnedJson);
+			$this->assertEquals('success', $this->returnedJson['status']);
+			$this->assertArrayHasKey('message', $this->returnedJson);
+			$this->assertEquals(
+				'blocked snertemoen@valdres.test permanently',
+				$this->returnedJson['message']
+			);
+		}
+	}
+
 	private function stubGetSecurityToken(): void {
 		$this->getFunctionMock('Zotlabs\Module', 'get_form_security_token')
 			->expects($this->any())
 			->willReturn('very security');
+	}
+
+	private function stubCheckFormSecurityToken(bool $valid): void {
+		$this->getFunctionMock('Zotlabs\Module', 'check_form_security_token')
+			->expects($this->any())
+			->willReturn($valid);
+	}
+
+	private function stubFileGetCOntents(): void {
+		$this->getFunctionMock('Zotlabs\Module', 'file_get_contents')
+			->expects($this->any())
+			->willReturnCallback(fn() => $_SERVER['HTTP_POST_BODY']);
+	}
+
+	private function stubJsonReturnAndDie(): void {
+		$this->getFunctionMock('Zotlabs\Module', 'json_return_and_die')
+			->expects($this->once())
+			->willReturnCallback(function (array $data) {
+				$this->returnedJson = $data;
+
+				// Make sure we stop processing
+				throw new KillmeException();
+			});
 	}
 }

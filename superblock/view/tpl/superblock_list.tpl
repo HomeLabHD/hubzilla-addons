@@ -27,7 +27,7 @@
 		<li>
 			<div class="superblock-blocked-entry">
 				<a class="superblock-entry-avatar zid" href="{{$e.xchan_url}}">
-					<img src="{{$e.xchan_photo_s}}" alt="{{$e.encoded_hash}}">
+					<img src="{{$e.xchan_photo_s}}" alt="{{$e.xchan_addr|escape}}">
 				</a>
 				<div class="superblock-entry-body">
 					<div class="superblock-channel-name">{{$e.xchan_name}}</div>
@@ -37,7 +37,7 @@
 				</div>
 				<div class="superblock-entry-actions">
 					<a class="pull-right"
-						href="superblock?f=&unblock={{$e.encoded_hash}}&sectok={{$token}}"
+						href="superblock?f=&unblock={{$e.xchan_hash|escape:'url'}}&sectok={{$token}}"
 						title="{{$remove}}"><i class="bi bi-trash"></i></a>
 				</div>
 			</div>

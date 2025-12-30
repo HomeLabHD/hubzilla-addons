@@ -449,7 +449,7 @@ class SuperblockTest extends UnitTestCase {
 
 			$this->assertArrayHasKey('action', $args['menu'][0]);
 			$this->assertStringContainsString(
-				"superblockBlock('{$author}',42);",
+				"superblockAjax('block', '{$author}', 42);",
 				$args['menu'][0]['action']
 			);
 		}
