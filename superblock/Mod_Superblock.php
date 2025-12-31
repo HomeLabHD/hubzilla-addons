@@ -17,6 +17,12 @@ use Zotlabs\Web\Controller;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+/**
+ * Superblock module controller.
+ *
+ * This module implements the request handler (Controller) for the main
+ * Superblock view.
+ */
 class Superblock extends Controller {
 
 	/**
@@ -68,6 +74,20 @@ class Superblock extends Controller {
 		$this->validate_access();
 	}
 
+	/**
+	 * Handle POST requests to the superblock endpoint.
+	 *
+	 * This will typically be invoked asynchronously through an AJAX call,
+	 * where the request parameters are passed in as a json object in the
+	 * request body. In this case it will also return a json object with the
+	 * result of the action in the response body, and processing terminates.
+	 *
+	 * It can also handle being invoked as HTML form as it's payload, in which
+	 * case the request parameters will be found in the PHP `$_POST`
+	 * superglobal, as normally for PHP. In this case the user is informed
+	 * about the result in a notification, and we fall through to the `get`
+	 * method for generating the HTML response to the request.
+	 */
 	public function post(): void {
 		$params = $this->validate_params();
 		$this->check_security_token($params['form_security_token']);
@@ -126,6 +146,16 @@ class Superblock extends Controller {
 		}
 	}
 
+	/**
+	 * Handle GET requests to the superblock endpoint.
+	 *
+	 * This also renders the result of a POST request with a HTML form payload.
+	 *
+	 * Renders a list of blocked channels, as well as actions for manipulating the
+	 * list.
+	 *
+	 * @return string	The rendered HTML of the request.
+	 */
 	function get(): string {
 
 		$config_changed = false;
@@ -197,6 +227,13 @@ class Superblock extends Controller {
 		}
 	}
 
+	/**
+	 * Validate and extract parameters for POST requests.
+	 *
+	 * Returns an array of parameters passed in after validating and sanitizing
+	 * them. The parameters can be passed as either a JSON object if this is an
+	 * AJAX request, or as a HTML form payload.
+	 */
 	private function validate_params(): array {
 		if ($this->is_json_request) {
 			$data = json_decode(file_get_contents('php://input'), true);
