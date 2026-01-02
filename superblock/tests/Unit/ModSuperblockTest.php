@@ -72,29 +72,36 @@ class ModSuperblockTest extends TestCase {
 		$this->assertPageContains('href="superblock?f=&unblock=knallert%40blowback.test');
 	}
 
-	public function testAddNewBlockByHTMLForm(): void {
+	#[DataProvider('actionProvider')]
+	public function testAddNewBlockByHTMLForm(array $params, array $status): void {
 		$this->channel = $this->fixtures['channel'][1];
 		$this->startSession($this->channel);
 		$this->installPluginApp($this->channel);
 		$this->stubGetSecurityToken();
 		$this->stubCheckFormSecurityToken();
+		$this->stubHttpStatusExit();
 
 		// Only channels matching xchans are listed!
 		$this->addXChans();
 
-		$this->post('superblock', [], [
-			'action' => 'block',
-			'author' => 'snertemoen@valdres.test',
-			'item' => 666,
-			'form_security_token' => 'very security',
-		]);
+		try {
+			$this->post('superblock', [], $params);
+		} catch (KillmeException $e) {
+			$this->assertIsArray($this->returnedJson);
+			$this->assertArrayHasKey('status', $this->returnedJson);
+			$this->assertEquals($status['code'], $this->returnedJson['status']);
+			$this->assertArrayHasKey('message', $this->returnedJson);
+			$this->assertEquals($status['msg'], $this->returnedJson['message']);
+
+			return;
+		}
 
 		$this->assertPageContains('href="https://valdres.test/users/snertemoen"');
 		$this->assertPageContains('href="superblock?f=&unblock=snertemoen%40valdres.test');
 	}
 
 	#[DataProvider('actionProvider')]
-	public function testAjaxRequest(array $params, string $status, string $msg): void {
+	public function testAjaxRequest(array $params, array $status): void {
 		$this->channel = $this->fixtures['channel'][1];
 		$this->startSession($this->channel);
 		$this->installPluginApp($this->channel);
@@ -111,9 +118,9 @@ class ModSuperblockTest extends TestCase {
 		} catch (KillmeException $e) {
 			$this->assertIsArray($this->returnedJson);
 			$this->assertArrayHasKey('status', $this->returnedJson);
-			$this->assertEquals($status, $this->returnedJson['status']);
+			$this->assertEquals($status['text'], $this->returnedJson['status']);
 			$this->assertArrayHasKey('message', $this->returnedJson);
-			$this->assertEquals($msg, $this->returnedJson['message']);
+			$this->assertEquals($status['msg'], $this->returnedJson['message']);
 		}
 	}
 
@@ -126,8 +133,11 @@ class ModSuperblockTest extends TestCase {
 					'item' => 666,
 					'form_security_token' => 'very security',
 				],
-				'status' => 'success',
-				'msg' => 'blocked snertemoen@valdres.test permanently',
+				'status' => [
+					'text' => 'success',
+					'code' => 200,
+					'msg' => 'blocked snertemoen@valdres.test permanently',
+				],
 			],
 			'POST with no action is rejected' => [
 				'params' => [
@@ -135,8 +145,11 @@ class ModSuperblockTest extends TestCase {
 					'item' => 666,
 					'form_security_token' => 'very security',
 				],
-				'status' => 'error',
-				'msg' => 'No action given',
+				'status' => [
+				   'text' => 'error',
+				   'code' => 400,
+				   'msg' => 'No action given',
+				],
 			],
 			'POST with no author is rejected' => [
 				'params' => [
@@ -144,8 +157,11 @@ class ModSuperblockTest extends TestCase {
 					'item' => 666,
 					'form_security_token' => 'very security',
 				],
-				'status' => 'error',
-				'msg' => 'Invalid xchan',
+				'status' => [
+					'text' => 'error',
+					'code' => 400,
+					'msg' => 'Invalid xchan',
+				],
 			],
 			'POST with invalid security token is rejected' => [
 				'params' => [
@@ -154,18 +170,24 @@ class ModSuperblockTest extends TestCase {
 					'item' => 666,
 					'form_security_token' => 'wrong token',
 				],
-				'status' => 'error',
-				'msg' => 'Invalid or missing security token',
+				'status' => [
+					'text' => 'error',
+					'code' => 403,
+					'msg' => 'Invalid or missing security token',
+				],
 			],
-			'POST with unknown author should be rejected' => [
+			'POST with unknown author is rejected' => [
 				'params' => [
 					'action' => 'block',
 					'author' => 'unknown@example.test',
 					'item' => 666,
 					'form_security_token' => 'very security',
 				],
-				'status' => 'error',
-				'msg' => 'Unknown author',
+				'status' => [
+					'text' => 'error',
+					'code' => 400,
+					'msg' => 'Unknown author',
+				],
 			],
 		];
 	}
@@ -208,6 +230,17 @@ class ModSuperblockTest extends TestCase {
 			->expects($this->once())
 			->willReturnCallback(function (array $data) {
 				$this->returnedJson = $data;
+
+				// Make sure we stop processing
+				throw new KillmeException();
+			});
+	}
+
+	private function stubHttpStatusExit(): void {
+		$this->getFunctionMock('Zotlabs\Module', 'http_status_exit')
+			->expects($this->atMost(1))
+			->willReturnCallback(function (int $status, string $msg = '') {
+				$this->returnedJson = ['status' => $status, 'message' => $msg];
 
 				// Make sure we stop processing
 				throw new KillmeException();

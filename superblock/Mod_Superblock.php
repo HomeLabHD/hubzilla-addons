@@ -298,7 +298,7 @@ class Superblock extends Controller {
 			http_status($status);
 			json_return_and_die([ 'status' => 'error', 'message' => $message ]);
 		} else {
-			http_status_exit($status);
+			http_status_exit($status, $message);
 		}
 	}
 
