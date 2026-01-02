@@ -11,6 +11,7 @@ namespace Zotlabs\Addons\Superblock\Tests\Unit;
 
 use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Zotlabs\Lib\Libzot;
 use Zotlabs\Tests\Unit\Module\TestCase;
 use Zotlabs\Tests\Unit\Module\KillmeException;
 use Zotlabs\Addons\Superblock\Superblock;
@@ -59,7 +60,7 @@ class ModSuperblockTest extends TestCase {
 		// Then add some blocks
 		$plugin = Superblock::getInstance($this->channel['channel_id']);
 		$plugin->blockChannel('snertemoen@valdres.test');
-		$plugin->blockChannel('knallert@blowback.test');
+		$plugin->blockChannel('https://contact.test/@activitypub');
 		$plugin->save();
 
 		// Only channels matching xchans are listed!
@@ -68,8 +69,8 @@ class ModSuperblockTest extends TestCase {
 		$this->get('superblock');
 		$this->assertPageContains('href="https://valdres.test/users/snertemoen"');
 		$this->assertPageContains('href="superblock?f=&unblock=snertemoen%40valdres.test');
-		$this->assertPageContains('href="https://blowback.test/~knallert"');
-		$this->assertPageContains('href="superblock?f=&unblock=knallert%40blowback.test');
+		$this->assertPageContains('href="https://contact.test/@activitypub"');
+		$this->assertPageContains('href="superblock?f=&unblock=https%3A%2F%2Fcontact.test%2F%40activitypub');
 	}
 
 	#[DataProvider('actionProvider')]
@@ -193,14 +194,26 @@ class ModSuperblockTest extends TestCase {
 	}
 
 	private function addXChans(): void {
+		// A typical Diaspora contact
 		xchan_store_lowlevel([
 			'xchan_addr' => 'snertemoen@valdres.test',
 			'xchan_hash' => 'snertemoen@valdres.test',
 			'xchan_url' => 'https://valdres.test/users/snertemoen',
 		]);
+
+		// Typical ActivityPub contact
+		xchan_store_lowlevel([
+			'xchan_addr' => 'activitypub@contact.test',
+			'xchan_hash' => 'https://contact.test/@activitypub',
+			'xchan_url' =>  'https://contact.test/@activitypub',
+		]);
+
+		// Zot/Nomadic contact
+		$uid = Libzot::new_uid('knallert');
+		$hash = Libzot::make_xchan_hash($uid, 'dummy_public_key_3fa9e');
 		xchan_store_lowlevel([
 			'xchan_addr' => 'knallert@blowback.test',
-			'xchan_hash' => 'knallert@blowback.test',
+			'xchan_hash' => $hash,
 			'xchan_url' => 'https://blowback.test/~knallert'
 		]);
 	}
