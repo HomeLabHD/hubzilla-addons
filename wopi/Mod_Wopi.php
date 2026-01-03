@@ -32,7 +32,7 @@ class Wopi extends Controller {
 			http_status_exit(500, 'Internal Server Error');
 		}
 
-		if (empty($meta['write_perms']) || !$meta['write_perms']) {
+		if ($meta['write_perms'] !== true) {
 			logger("Error: Insufficient write permissions for user: " . $meta['observer']['xchan_hash']);
 			http_status_exit(403, 'Forbidden');
 		}
@@ -48,10 +48,15 @@ class Wopi extends Controller {
 		$fileContent = file_get_contents('php://input');
 		if ($fileContent === false) {
 			logger("Error: Failed to read input stream.");
-			http_status_exit(400, 'Bad Request');
+			http_status_exit(500, 'Internal Server Error');
 		}
 
 		$filePath = $meta['file']['content'];
+		if (!str_starts_with($filePath, 'store/' . $channel['channel_addr'])) {
+			logger("Error: Filepath not allowed: $filePath");
+			http_status_exit(500, 'Internal Server Error');
+		}
+
 		$meta['file']['filesize'] = file_put_contents($filePath, $fileContent);
 		if ($meta['file']['filesize'] === false) {
 			logger("Error: Failed to save file content to: $filePath");
