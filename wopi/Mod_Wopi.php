@@ -17,30 +17,30 @@ class Wopi extends Controller {
 		$token = self::get_bearer_token();
 		if (!$token) {
 			logger("Error: Bearer token not found.");
-			killme();
+			http_status_exit(401, 'Unauthorized');
 		}
 
 		$meta = Cache::get($token, '30 MINUTE');
 		if (!$meta) {
 			logger("Error: Data not found in cache for token: $token");
-			killme();
+			http_status_exit(401, 'Unauthorized');
 		}
 
 		$meta = json_unserialize($meta);
 		if (!$meta) {
 			logger("Error: Failed to unserialize data for token: $token");
-			killme();
+			http_status_exit(500, 'Internal Server Error');
 		}
 
 		if (empty($meta['write_perms']) || !$meta['write_perms']) {
 			logger("Error: Insufficient write permissions for user: " . $meta['observer']['xchan_hash']);
-			killme();
+			http_status_exit(403, 'Forbidden');
 		}
 
 		$channel = channelx_by_n($meta['file']['uid']);
 		if (!$channel) {
 			logger("Error: Channel not found for uid: " . $meta['file']['uid']);
-			killme();
+			http_status_exit(410, 'Gone');
 		}
 
 		$observer_hash = $meta['observer']['xchan_hash'];
@@ -48,14 +48,14 @@ class Wopi extends Controller {
 		$fileContent = file_get_contents('php://input');
 		if ($fileContent === false) {
 			logger("Error: Failed to read input stream.");
-			killme();
+			http_status_exit(400, 'Bad Request');
 		}
 
 		$filePath = $meta['file']['content'];
 		$meta['file']['filesize'] = file_put_contents($filePath, $fileContent);
 		if ($meta['file']['filesize'] === false) {
 			logger("Error: Failed to save file content to: $filePath");
-			killme();
+			http_status_exit(500, 'Internal Server Error');
 		}
 
 		$meta['file']['edited'] = datetime_convert();
@@ -73,14 +73,14 @@ class Wopi extends Controller {
 		}
 
 		logger("Error: Failed to store attachment.");
-		killme();
+		http_status_exit(500, 'Internal Server Error');
 	}
 
 	function get() {
 		$wopi_client_url = Config::Get('system', 'wopi_client_url', '');
 
 		if (!$wopi_client_url) {
-			return;
+			http_status_exit(501, 'Not Implemented');
 		}
 
 		// Handle WOPI client requests
@@ -96,7 +96,7 @@ class Wopi extends Controller {
 			$file = attach_by_id($file_id, $meta['observer']['xchan_hash'] ?? '');
 
 			if (!$file['success']) {
-				return $file['message'];
+				http_status_exit(404, 'Not Found');
 			}
 
 			if (argc() === 3) {
@@ -123,7 +123,7 @@ class Wopi extends Controller {
 				echo file_get_contents($file['data']['content']);
 			}
 
-			killme();
+			http_status_exit(200, 'OK');
 		}
 
 		// Init redirect to WOPI client if applicable
@@ -131,14 +131,14 @@ class Wopi extends Controller {
 		$file_id = argv(1);
 
 		if (!$file_id) {
-			return;
+			http_status_exit(400, 'Bad Request');
 		}
 
 		$observer = App::get_observer();
 		$file = attach_by_id($file_id, $observer['xchan_hash'] ?? '');
 
 		if (!$file['success']) {
-			return $file['message'];
+			http_status_exit(403, 'Forbidden');
 		}
 
 		$file = $file['data'];
@@ -156,7 +156,7 @@ class Wopi extends Controller {
 
 		$discovery = file_get_contents($wopi_client_url . '/hosting/discovery');
 		if (!$discovery) {
-			http_status_exit(500, 'Service not available');
+			http_status_exit(503, 'Service Unavailable');
 		}
 
 		$discovery_parsed = simplexml_load_string($discovery);
