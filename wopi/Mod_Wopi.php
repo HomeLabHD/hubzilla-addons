@@ -52,7 +52,7 @@ class Wopi extends Controller {
 		}
 
 		$filePath = $meta['file']['content'];
-		if (!str_starts_with($filePath, 'store/' . $channel['channel_addr'] . '/')) {
+		if (!str_starts_with($filePath, 'store/' . $channel['channel_address'] . '/')) {
 			logger("Error: Filepath not allowed: $filePath");
 			http_status_exit(500, 'Internal Server Error');
 		}
