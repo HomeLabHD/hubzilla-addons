@@ -96,18 +96,13 @@ class Superblock extends Controller {
 
 		switch ($params['action']) {
 			case 'block':
-				$author = $params['author'];
-				if (!$author) {
-					$this->error(400, 'Invalid xchan');
+				$xchan = xchan_fetch(['hash' => $params['author']]);
+				if (!$xchan) {
+					$this->error(400, 'Invalid or unknown channel');
 				}
 
-				$author_xchan = xchan_fetch(['hash' => $author]);
-				if (!$author_xchan) {
-					$this->error(400, 'Unknown author');
-				}
-
-				$plugin->blockChannel($author_xchan['hash']);
-				$this->success("blocked {$author_xchan['address']} permanently");
+				$plugin->blockChannel($xchan['hash']);
+				$this->success("blocked {$xchan['address']} permanently");
 				break;
 
 			case 'siteblock':

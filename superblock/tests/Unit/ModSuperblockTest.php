@@ -30,6 +30,9 @@ class ModSuperblockTest extends TestCase {
 	// Used to store the result of ajax calls
 	private array $returnedJson;
 
+	// Xchans used by the tests
+	private array $xchans;
+
 	public function testGetModuleWhenAppNotInstalledRendersAppInfo(): void {
 		$this->channel = $this->fixtures['channel'][1];
 		$this->startSession($this->channel);
@@ -57,20 +60,16 @@ class ModSuperblockTest extends TestCase {
 		$this->get('superblock');
 		$this->assertPageContains('No channels currently blocked');
 
-		// Then add some blocks
-		$plugin = Superblock::getInstance($this->channel['channel_id']);
-		$plugin->blockChannel('snertemoen@valdres.test');
-		$plugin->blockChannel('https://contact.test/@activitypub');
-		$plugin->save();
-
-		// Only channels matching xchans are listed!
-		$this->addXChans();
+		// Add some Blocked XChans
+		$this->addXChans(true);
 
 		$this->get('superblock');
-		$this->assertPageContains('href="https://valdres.test/users/snertemoen"');
-		$this->assertPageContains('href="superblock?f=&unblock=snertemoen%40valdres.test');
-		$this->assertPageContains('href="https://contact.test/@activitypub"');
-		$this->assertPageContains('href="superblock?f=&unblock=https%3A%2F%2Fcontact.test%2F%40activitypub');
+		foreach ($this->xchans as $xchan) {
+			$this->assertPageContains("href=\"{$xchan['xchan_url']}\"");
+
+			$encoded_hash = urlencode($xchan['xchan_hash']);
+			$this->assertPageContains("href=\"superblock?f=&unblock={$encoded_hash}");
+		}
 	}
 
 	#[DataProvider('actionProvider')]
@@ -82,10 +81,14 @@ class ModSuperblockTest extends TestCase {
 		$this->stubCheckFormSecurityToken();
 		$this->stubHttpStatusExit();
 
-		// Only channels matching xchans are listed!
-		$this->addXChans();
+		// Add but don't block xchans
+		$this->addXChans(false);
 
 		try {
+			if (!empty($params['author']) && !empty($this->xchans[$params['author']])) {
+				$xchan = $this->xchans[$params['author']];
+				$params['author'] = $this->xchans[$params['author']]['xchan_hash'];
+			}
 			$this->post('superblock', [], $params);
 		} catch (KillmeException $e) {
 			$this->assertIsArray($this->returnedJson);
@@ -97,8 +100,10 @@ class ModSuperblockTest extends TestCase {
 			return;
 		}
 
-		$this->assertPageContains('href="https://valdres.test/users/snertemoen"');
-		$this->assertPageContains('href="superblock?f=&unblock=snertemoen%40valdres.test');
+		$this->assertPageContains("href=\"{$xchan['xchan_url']}\"");
+
+		$encoded_hash = urlencode($xchan['xchan_hash']);
+		$this->assertPageContains("href=\"superblock?f=&unblock={$encoded_hash}");
 	}
 
 	#[DataProvider('actionProvider')]
@@ -111,10 +116,13 @@ class ModSuperblockTest extends TestCase {
 		$this->stubFileGetContents();
 		$this->stubJsonReturnAndDie();
 
-		// Only channels matching xchans are listed!
-		$this->addXChans();
+		// Add, but don't block xchans
+		$this->addXChans(false);
 
 		try {
+			if (!empty($params['author']) && !empty($this->xchans[$params['author']])) {
+				$params['author'] = $this->xchans[$params['author']]['xchan_hash'];
+			}
 			$this->ajax_request('POST', 'superblock', $params);
 		} catch (KillmeException $e) {
 			$this->assertIsArray($this->returnedJson);
@@ -127,10 +135,10 @@ class ModSuperblockTest extends TestCase {
 
 	public static function actionProvider(): array {
 		return [
-			'add new block should succeed' => [
+			'add new block from webbie should succeed' => [
 				'params' => [
 					'action' => 'block',
-					'author' => 'snertemoen@valdres.test',
+					'author' => 'snertemoen',
 					'item' => 666,
 					'form_security_token' => 'very security',
 				],
@@ -140,9 +148,35 @@ class ModSuperblockTest extends TestCase {
 					'msg' => 'blocked snertemoen@valdres.test permanently',
 				],
 			],
+			'add new block from url should succeed' => [
+				'params' => [
+					'action' => 'block',
+					'author' => 'balder',
+					'item' => 666,
+					'form_security_token' => 'very security',
+				],
+				'status' => [
+					'text' => 'success',
+					'code' => 200,
+					'msg' => 'blocked balder@contact.test permanently',
+				],
+			],
+			'add new block from nomadic hash should succeed' => [
+				'params' => [
+					'action' => 'block',
+					'author' => 'knallert',
+					'item' => 666,
+					'form_security_token' => 'very security',
+				],
+				'status' => [
+					'text' => 'success',
+					'code' => 200,
+					'msg' => 'blocked knallert@blowback.test permanently',
+				],
+			],
 			'POST with no action is rejected' => [
 				'params' => [
-					'author' => 'snertemoen@valdres.test',
+					'author' => 'snertemoen',
 					'item' => 666,
 					'form_security_token' => 'very security',
 				],
@@ -161,13 +195,13 @@ class ModSuperblockTest extends TestCase {
 				'status' => [
 					'text' => 'error',
 					'code' => 400,
-					'msg' => 'Invalid xchan',
+					'msg' => 'Invalid or unknown channel',
 				],
 			],
 			'POST with invalid security token is rejected' => [
 				'params' => [
 					'action' => 'block',
-					'author' => 'snertemoen@valdres.test',
+					'author' => 'snertemoen',
 					'item' => 666,
 					'form_security_token' => 'wrong token',
 				],
@@ -187,35 +221,50 @@ class ModSuperblockTest extends TestCase {
 				'status' => [
 					'text' => 'error',
 					'code' => 400,
-					'msg' => 'Unknown author',
+					'msg' => 'Invalid or unknown channel',
 				],
 			],
 		];
 	}
 
-	private function addXChans(): void {
-		// A typical Diaspora contact
-		xchan_store_lowlevel([
-			'xchan_addr' => 'snertemoen@valdres.test',
-			'xchan_hash' => 'snertemoen@valdres.test',
-			'xchan_url' => 'https://valdres.test/users/snertemoen',
-		]);
-
-		// Typical ActivityPub contact
-		xchan_store_lowlevel([
-			'xchan_addr' => 'activitypub@contact.test',
-			'xchan_hash' => 'https://contact.test/@activitypub',
-			'xchan_url' =>  'https://contact.test/@activitypub',
-		]);
-
-		// Zot/Nomadic contact
+	private function addXChans(bool $block): void {
 		$uid = Libzot::new_uid('knallert');
 		$hash = Libzot::make_xchan_hash($uid, 'dummy_public_key_3fa9e');
-		xchan_store_lowlevel([
-			'xchan_addr' => 'knallert@blowback.test',
-			'xchan_hash' => $hash,
-			'xchan_url' => 'https://blowback.test/~knallert'
-		]);
+
+		$this->xchans = [
+			// A typical Diaspora contact
+			'snertemoen' => [
+				'xchan_addr' => 'snertemoen@valdres.test',
+				'xchan_hash' => 'snertemoen@valdres.test',
+				'xchan_url' => 'https://valdres.test/users/snertemoen',
+			],
+
+			// Typical ActivityPub contact
+			'balder' => [
+				'xchan_addr' => 'balder@contact.test',
+				'xchan_hash' => 'https://contact.test/@balder',
+				'xchan_url' =>  'https://contact.test/@balder',
+			],
+
+			// Zot/Nomadic contact
+			'knallert' => [
+				'xchan_addr' => 'knallert@blowback.test',
+				'xchan_hash' => $hash,
+				'xchan_url' => 'https://blowback.test/~knallert'
+			],
+		];
+
+		// Then add some blocks
+		$plugin = Superblock::getInstance($this->channel['channel_id']);
+
+		foreach ($this->xchans as $xchan) {
+			xchan_store_lowlevel($xchan);
+			if ($block) {
+				$plugin->blockChannel($xchan['xchan_hash']);
+			}
+		}
+
+		$plugin->save();
 	}
 
 	private function stubGetSecurityToken(): void {
