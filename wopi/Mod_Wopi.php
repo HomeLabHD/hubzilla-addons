@@ -5,6 +5,8 @@ namespace Zotlabs\Module;
 use App;
 use Zotlabs\Lib\Cache;
 use Zotlabs\Lib\Config;
+use Zotlabs\Lib\Keyutils;
+use Zotlabs\Lib\Crypto;
 use Zotlabs\Web\Controller;
 
 class Wopi extends Controller {
@@ -14,10 +16,21 @@ class Wopi extends Controller {
 	}
 
 	function post() {
+		if (argc() !== 4 && argv(3) !== 'contents') {
+			logger("Error: could not handle request.");
+			http_status_exit(400, 'Bad Request');
+		}
+
 		$token = self::get_bearer_token();
 		if (!$token) {
 			logger("Error: Bearer token not found.");
 			http_status_exit(401, 'Unauthorized');
+		}
+
+		$force_signed_request = Config::Get('system', 'wopi_force_signed_requests');
+		if ($force_signed_request && !self::verifyProof($token)) {
+			logger("Error: could not verify proof.");
+			http_status_exit(403, 'Forbidden');
 		}
 
 		$meta = Cache::get($token, '30 MINUTE');
@@ -91,6 +104,18 @@ class Wopi extends Controller {
 		// Handle WOPI client requests
 		if (argv(1) === 'files') {
 			$token = self::get_bearer_token();
+
+			if (!$token) {
+				logger("Error: Bearer token not found.");
+				http_status_exit(401, 'Unauthorized');
+			}
+
+			$force_signed_request = Config::Get('system', 'wopi_force_signed_requests');
+			if ($force_signed_request && !self::verifyProof($token)) {
+				logger("Error: could not verify proof.");
+				http_status_exit(403, 'Forbidden');
+			}
+
 			$meta = $token ? Cache::get($token, '30 MINUTE') : null;
 
 			if ($meta) {
@@ -118,7 +143,8 @@ class Wopi extends Controller {
 					'UserCanRename' => false,
 					'SupportsRename' => false,
 					'IsAnonymousUser' => $meta['observer'] === null,
-					'LastModifiedTime' => $meta['file']['edited']
+					'LastModifiedTime' => $meta['file']['edited'],
+					'IsAdminUser' => false // TODO: check if admin and set real value
 				];
 
 				json_return_and_die($arr);
@@ -167,6 +193,7 @@ class Wopi extends Controller {
 		$discovery_parsed = simplexml_load_string($discovery);
 
 		self::cache_supported_types($discovery_parsed);
+		self::cache_wopiproof_pubkey($discovery_parsed);
 
 		$result = $discovery_parsed->xpath(sprintf('/wopi-discovery/net-zone/app[@name=\'%s\']/action', $file['filetype']));
 
@@ -202,4 +229,70 @@ class Wopi extends Controller {
 
 		Cache::set('wopi_supported_mime_types', json_encode($supported_types));
 	}
+
+	static function cache_wopiproof_pubkey($xml_parsed) {
+		// TODO: implement key rotation handling (oldmodulus, oldexponent) -> wopi_proof_oldpubkey, etc.
+
+		if (Config::Get('system', 'wopi_proof_pubkey')) {
+			return;
+		}
+
+		$result = $xml_parsed->xpath('/wopi-discovery/proof-key');
+
+		if (!$result) {
+			return;
+		}
+
+		$m = base64_decode($result[0]['modulus']);
+		$e = base64_decode($result[0]['exponent']);
+
+		$key = Keyutils::meToPem($m, $e);
+
+		if ($key) {
+			Config::Set('system', 'wopi_proof_pubkey', $key);
+		}
+
+	}
+
+	static function verifyProof($token) {
+		// TODO: implement key rotation handling with wopi_proof_oldpubkey
+
+		$url = z_root() . $_SERVER['REQUEST_URI'];
+		$timestamp = $_SERVER['HTTP_X_WOPI_TIMESTAMP'] ?? null;
+
+		if (!$timestamp) {
+			return false;
+		}
+
+		$expected_proof = sprintf(
+			'%s%s%s%s%s%s',
+			pack('N', strlen($token)),
+			$token,
+			pack('N', strlen($url)),
+			strtoupper($url),
+			pack('N', PHP_INT_SIZE),
+			pack('J', $timestamp)
+		);
+
+		$proof = $_SERVER['HTTP_X_WOPI_PROOF'] ?? null;
+
+		if (!$proof) {
+			return false;
+		}
+
+		$signature = base64_decode($proof, true);
+
+		if (!$signature) {
+			return false;
+		}
+
+		$key = Config::Get('system', 'wopi_proof_pubkey');
+
+		if (!$key) {
+			return false;
+		}
+
+		return Crypto::verify($expected_proof, $signature, $key);
+	}
+
 }

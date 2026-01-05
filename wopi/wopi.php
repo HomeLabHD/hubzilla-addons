@@ -31,16 +31,21 @@ function wopi_plugin_admin(&$o) {
 	$t = get_markup_template('admin.tpl', 'addon/wopi/');
 
 	$wopi_client_url = Config::Get('system', 'wopi_client_url', '');
+	$wopi_force_signed_requests = Config::Get('system', 'wopi_force_signed_requests', 0);
 
 	$o = replace_macros($t, [
 		'$submit' => t('Submit'),
-		'$wopi_client_url' => ['wopi_client_url', t('URL of the WOPI client'), $wopi_client_url, t('E.g. https://collabora.example.com (this hub must be whitelisted at the WOPI client)')]
+		'$wopi_client_url' => ['wopi_client_url', t('URL of the WOPI client'), $wopi_client_url, t('E.g. https://collabora.example.com (this hub must be whitelisted at the WOPI client)')],
+		'$wopi_force_signed_requests' => ['wopi_force_signed_requests', t('Only accept signed client requests'), $wopi_force_signed_requests, t('Improves security if the client supports it')]
 	]);
 }
 
 function wopi_plugin_admin_post() {
 	$wopi_client_url = isset($_POST['wopi_client_url']) ? notags(trim($_POST['wopi_client_url'])) : '';
 	Config::Set('system', 'wopi_client_url', $wopi_client_url);
+
+	$wopi_force_signed_requests = isset($_POST['wopi_force_signed_requests']) ? intval($_POST['wopi_force_signed_requests']) : 0;
+	Config::Set('system', 'wopi_force_signed_requests', $wopi_force_signed_requests);
 }
 
 function wopi_content_security_policy(&$arr) {
