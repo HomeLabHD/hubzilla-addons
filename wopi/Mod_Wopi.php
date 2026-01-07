@@ -200,6 +200,8 @@ class Wopi extends Controller {
 		if ($result) {
 			goaway($result[0]['urlsrc'] . "WOPISrc=$encoded_url&access_token=$token&closebutton=true");
 		}
+
+		http_status_exit(415, 'Unsupported Media Type');
 	}
 
 	static function get_bearer_token() {
