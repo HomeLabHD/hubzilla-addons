@@ -142,6 +142,7 @@ class Wopi extends Controller {
 					'UserCanWrite' => $meta['write_perms'] ?? null,
 					'UserCanRename' => false,
 					'SupportsRename' => false,
+					'UserCanNotWriteRelative' => true,
 					'IsAnonymousUser' => $meta['observer'] === null,
 					'LastModifiedTime' => $meta['file']['edited'],
 					'IsAdminUser' => false // TODO: check if admin and set real value
