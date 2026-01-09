@@ -35,9 +35,12 @@ function wopiOpenIframe(src) {
 	iframe.style.top = 0;
 	iframe.style.left = 0;
 	iframe.style.zIndex = 2000;
+
+	document.body.style.overflow = 'hidden';
 	document.body.appendChild(iframe);
 }
 
 function wopiCloseIframe() {
 	document.getElementById('wopi_iframe').remove();
+	document.body.style.overflow = '';
 }
