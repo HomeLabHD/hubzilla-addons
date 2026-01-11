@@ -8,6 +8,8 @@
 
 namespace Zotlabs\Addons\Superblock;
 
+use App;
+
 /**
  * Superblock addon class.
  *
@@ -62,6 +64,34 @@ class Superblock
 	 */
 	private function __construct(int $channelId) {
 		$this->blockList = new ChannelBlockList($channelId);
+	}
+
+	public function loadJavaScript(): void {
+		$security_token = get_form_security_token('superblock');
+
+		if (empty(App::$page['htmlhead'])) {
+			App::$page['htmlhead'] = '';
+		}
+
+		App::$page['htmlhead'] .= <<<JS
+			<script>
+			async function superblockAjax(action, author, item) {
+				let response = await fetch("superblock", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						action: action,
+						author: author,
+						item: item,
+						form_security_token: "{$security_token}",
+					}),
+				});
+				body = await response.text();
+			}
+			</script>
+			JS;
 	}
 
 	public function save(): void {

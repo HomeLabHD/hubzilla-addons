@@ -166,7 +166,7 @@ function superblock_activity_widget(&$b)
 /**
  * Inject javascript helpers at start of the conversation view.
  *
- * phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter
+ * phpcs:disable Generic.CodeAnalysis.UnusedFunctionParameter
  */
 function superblock_conversation_start(&$b)
 {
@@ -180,31 +180,7 @@ function superblock_conversation_start(&$b)
 			App::$data['superblock'] = explode(',',$words);
 		}
 
-		$security_token = get_form_security_token('superblock');
-
-		if (empty(App::$page['htmlhead'])) {
-			App::$page['htmlhead'] = '';
-		}
-
-		App::$page['htmlhead'] .= <<<'JS'
-			<script>
-			async function superblockAjax(action, author, item) {
-				let response = await fetch("superblock", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						action: action,
-						author: author,
-						item: item,
-						form_security_token: "{$security_token}",
-					}),
-				});
-				body = await response.text();
-			}
-			</script>
-			JS;
+		$plugin->loadJavaScript();
 	}
 }
 

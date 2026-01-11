@@ -9,6 +9,7 @@
 
 namespace Zotlabs\Addons\Superblock\Tests\Unit;
 
+use App;
 use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Zotlabs\Lib\Libzot;
@@ -66,14 +67,29 @@ class ModSuperblockTest extends TestCase {
 		$this->get('superblock');
 		foreach ($this->xchans as $xchan) {
 			$this->assertPageContains("href=\"{$xchan['xchan_url']}\"");
-
-			$encoded_hash = urlencode($xchan['xchan_hash']);
-			$this->assertPageContains("href=\"superblock?f=&unblock={$encoded_hash}");
+			$this->assertPageContains(
+				"onclick=\"superblockAjax('unblock', '{$xchan['xchan_hash']}', null)");
 		}
 	}
 
+	public function testRenderedHTMLContainsCSRFToken(): void {
+		$this->channel = $this->fixtures['channel'][1];
+		$this->startSession($this->channel);
+		$this->installPluginApp($this->channel);
+		$this->stubGetSecurityToken();
+
+		// Add some Blocked XChans
+		$this->addXChans(true);
+
+		$this->get('superblock');
+
+		$this->assertMatchesRegularExpression(
+			'/form_security_token: "[0-9a-f.]+"/',
+		   	App::$page['htmlhead']);
+	}
+
 	#[DataProvider('actionProvider')]
-	public function testAddNewBlockByHTMLForm(array $params, array $status): void {
+	public function testHTMLFormAction(array $params, array $status): void {
 		$this->channel = $this->fixtures['channel'][1];
 		$this->startSession($this->channel);
 		$this->installPluginApp($this->channel);
@@ -81,8 +97,8 @@ class ModSuperblockTest extends TestCase {
 		$this->stubCheckFormSecurityToken();
 		$this->stubHttpStatusExit();
 
-		// Add but don't block xchans
-		$this->addXChans(false);
+		// Add xchans, and block them if we're testing the unblock action
+		$this->addXChans(isset($params['action']) && $params['action'] === 'unblock');
 
 		try {
 			if (!empty($params['author']) && !empty($this->xchans[$params['author']])) {
@@ -100,14 +116,26 @@ class ModSuperblockTest extends TestCase {
 			return;
 		}
 
-		$this->assertPageContains("href=\"{$xchan['xchan_url']}\"");
-
-		$encoded_hash = urlencode($xchan['xchan_hash']);
-		$this->assertPageContains("href=\"superblock?f=&unblock={$encoded_hash}");
+		if ($params['action'] === 'block') {
+			//
+			// Verify that the rendered page contains the newly blocked channel
+			//
+			$this->assertPageContains("href=\"{$xchan['xchan_url']}\"");
+			$this->assertPageContains(
+				"onclick=\"superblockAjax('unblock', '{$xchan['xchan_hash']}', null)");
+		} elseif ($params['action'] === 'unblock') {
+			//
+			// Verify that the rendered page does _not_ contain the unblockec channel
+			//
+			$this->assertStringNotContainsString("href=\"{$xchan['xchan_url']}\"", App::$page['content']);
+			$this->assertStringNotContainsString(
+				"onclick=\"superblockAjax(\"unblock\", \"{$xchan['xchan_hash']}\", null)",
+				App::$page['content']);
+		}
 	}
 
 	#[DataProvider('actionProvider')]
-	public function testAjaxRequest(array $params, array $status): void {
+	public function testAjaxRequestAction(array $params, array $status): void {
 		$this->channel = $this->fixtures['channel'][1];
 		$this->startSession($this->channel);
 		$this->installPluginApp($this->channel);
@@ -116,11 +144,12 @@ class ModSuperblockTest extends TestCase {
 		$this->stubFileGetContents();
 		$this->stubJsonReturnAndDie();
 
-		// Add, but don't block xchans
-		$this->addXChans(false);
+		// Add xchans, and block them if we're testing the unblock action
+		$this->addXChans(isset($params['action']) && $params['action'] === 'unblock');
 
 		try {
 			if (!empty($params['author']) && !empty($this->xchans[$params['author']])) {
+				$xchan = $this->xchans[$params['author']];
 				$params['author'] = $this->xchans[$params['author']]['xchan_hash'];
 			}
 			$this->ajax_request('POST', 'superblock', $params);
@@ -130,6 +159,29 @@ class ModSuperblockTest extends TestCase {
 			$this->assertEquals($status['text'], $this->returnedJson['status']);
 			$this->assertArrayHasKey('message', $this->returnedJson);
 			$this->assertEquals($status['msg'], $this->returnedJson['message']);
+		}
+
+		if ($this->returnedJson['status'] === 'success') {
+
+			// Reload page to check that channel was added or removed from block list
+			$this->get('superblock');
+
+			if ($params['action'] === 'block') {
+				//
+				// Verify that the rendered page contains the newly blocked channel
+				//
+				$this->assertPageContains("href=\"{$xchan['xchan_url']}\"");
+				$this->assertPageContains(
+					"onclick=\"superblockAjax('unblock', '{$xchan['xchan_hash']}', null)");
+			} elseif ($params['action'] === 'unblock') {
+				//
+				// Verify that the rendered page does _not_ contain the unblockec channel
+				//
+				$this->assertStringNotContainsString("href=\"{$xchan['xchan_url']}\"", App::$page['content']);
+				$this->assertStringNotContainsString(
+					"onclick=\"superblockAjax(\"unblock\", \"{$xchan['xchan_hash']}\", null)",
+					App::$page['content']);
+			}
 		}
 	}
 
@@ -172,6 +224,19 @@ class ModSuperblockTest extends TestCase {
 					'text' => 'success',
 					'code' => 200,
 					'msg' => 'blocked knallert@blowback.test permanently',
+				],
+			],
+			'unblock blocked user should succeed' => [
+				'params' => [
+					'action' => 'unblock',
+					'author' => 'knallert',
+					'item' => null,
+					'form_security_token' => 'very security',
+				],
+				'status' => [
+					'text' => 'success',
+					'code' => 200,
+					'msg' => 'removed knallert@blowback.test from block list',
 				],
 			],
 			'POST with no action is rejected' => [

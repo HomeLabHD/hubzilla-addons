@@ -8,6 +8,7 @@
 
 namespace Zotlabs\Addons\Superblock\Tests\Helpers;
 
+use App;
 use PHPUnit\Framework\Attributes\After;
 use Zotlabs\Lib\Apps;
 
@@ -20,6 +21,8 @@ trait PluginHelperTrait {
 	}
 
 	private function startSession(array $channel): void {
+		App::$channel = $channel;
+
 		session_start();
 
 		if (!empty($channel)) {

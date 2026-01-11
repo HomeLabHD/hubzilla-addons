@@ -94,6 +94,8 @@ class Superblock extends Controller {
 
 		$plugin = Plugin::getInstance($this->localChannel);
 
+		$msg = '';
+
 		switch ($params['action']) {
 			case 'block':
 				$xchan = xchan_fetch(['hash' => $params['author']]);
@@ -102,7 +104,17 @@ class Superblock extends Controller {
 				}
 
 				$plugin->blockChannel($xchan['hash']);
-				$this->success("blocked {$xchan['address']} permanently");
+				$msg = "blocked {$xchan['address']} permanently";
+				break;
+
+			case 'unblock':
+				$xchan = xchan_fetch(['hash' => $params['author']]);
+				if (!$xchan) {
+					$this->error(400, 'Invalid or unknown channel');
+				}
+
+				$plugin->unblockChannel($params['author']);
+				$msg = "removed {$xchan['address']} from block list";
 				break;
 
 			case 'siteblock':
@@ -126,7 +138,7 @@ class Superblock extends Controller {
 					sort($blocked);
 					Config::Set('system', 'blacklisted_channels', $blocked);
 				}
-				$this->success($author_xchan['hash']);
+				$msg = "Added {$author_xchan['address']} to site block list";
 				break;
 
 			default:
@@ -137,7 +149,7 @@ class Superblock extends Controller {
 			$plugin->save();
 			Libsync::build_sync_packet(local_channel(), [ 'config' ]);
 
-			info( t('superblock settings updated') . EOL );
+			$this->success($msg);
 		}
 	}
 
@@ -163,19 +175,7 @@ class Superblock extends Controller {
 		}
 
 		$plugin = Plugin::getInstance($this->localChannel);
-
-		//TODO: move this (config changes) to post()
-
-		if (!empty($_GET['unblock']) && check_form_security_token('superblock','sectok')) {
-			$plugin->unblockChannel($_GET['unblock']);
-		}
-
-		if ($plugin->configChanged()) {
-			$plugin->save();
-			Libsync::build_sync_packet(local_channel(), [ 'config' ]);
-
-			info( t('superblock settings updated') . EOL );
-		}
+		$plugin->loadJavaScript();
 
 		$list = $plugin->getBlockedChannels();
 		stringify_array_elms($list,true);
@@ -243,7 +243,7 @@ class Superblock extends Controller {
 			[
 				'action' => [
 					'filter' => FILTER_VALIDATE_REGEXP,
-					'options' => ['regexp' => '/^(block|siteblock)$/']
+					'options' => ['regexp' => '/^(block|siteblock|unblock)$/']
 				],
 				'author' => [
 					'filter' => FILTER_DEFAULT,

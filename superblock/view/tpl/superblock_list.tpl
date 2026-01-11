@@ -37,7 +37,8 @@
 				</div>
 				<div class="superblock-entry-actions">
 					<a class="pull-right"
-						href="superblock?f=&unblock={{$e.xchan_hash|escape:'url'}}&sectok={{$token}}"
+						href="superblock"
+						onclick="superblockAjax('unblock', '{{$e.xchan_hash}}', null); return false;"
 						title="{{$remove}}"><i class="bi bi-trash"></i></a>
 				</div>
 			</div>
