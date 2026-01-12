@@ -12,6 +12,7 @@ namespace Zotlabs\Addons\Superblock\Tests\Unit;
 use App;
 use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Constraint\LogicalAnd;
 use Zotlabs\Lib\Libzot;
 use Zotlabs\Tests\Unit\Module\TestCase;
 use Zotlabs\Tests\Unit\Module\KillmeException;
@@ -66,9 +67,7 @@ class ModSuperblockTest extends TestCase {
 
 		$this->get('superblock');
 		foreach ($this->xchans as $xchan) {
-			$this->assertPageContains("href=\"{$xchan['xchan_url']}\"");
-			$this->assertPageContains(
-				"onclick=\"superblockAjax('unblock', '{$xchan['xchan_hash']}', null)");
+			$this->assertXChanIsListed($xchan);
 		}
 	}
 
@@ -120,17 +119,12 @@ class ModSuperblockTest extends TestCase {
 			//
 			// Verify that the rendered page contains the newly blocked channel
 			//
-			$this->assertPageContains("href=\"{$xchan['xchan_url']}\"");
-			$this->assertPageContains(
-				"onclick=\"superblockAjax('unblock', '{$xchan['xchan_hash']}', null)");
+			$this->assertXChanIsListed($xchan);
 		} elseif ($params['action'] === 'unblock') {
 			//
 			// Verify that the rendered page does _not_ contain the unblockec channel
 			//
-			$this->assertStringNotContainsString("href=\"{$xchan['xchan_url']}\"", App::$page['content']);
-			$this->assertStringNotContainsString(
-				"onclick=\"superblockAjax(\"unblock\", \"{$xchan['xchan_hash']}\", null)",
-				App::$page['content']);
+			$this->assertXChanIsNotListed($xchan);
 		}
 	}
 
@@ -170,17 +164,12 @@ class ModSuperblockTest extends TestCase {
 				//
 				// Verify that the rendered page contains the newly blocked channel
 				//
-				$this->assertPageContains("href=\"{$xchan['xchan_url']}\"");
-				$this->assertPageContains(
-					"onclick=\"superblockAjax('unblock', '{$xchan['xchan_hash']}', null)");
+				$this->assertXChanIsListed($xchan);
 			} elseif ($params['action'] === 'unblock') {
 				//
 				// Verify that the rendered page does _not_ contain the unblockec channel
 				//
-				$this->assertStringNotContainsString("href=\"{$xchan['xchan_url']}\"", App::$page['content']);
-				$this->assertStringNotContainsString(
-					"onclick=\"superblockAjax(\"unblock\", \"{$xchan['xchan_hash']}\", null)",
-					App::$page['content']);
+				$this->assertXChanIsNotListed($xchan);
 			}
 		}
 	}
@@ -330,6 +319,31 @@ class ModSuperblockTest extends TestCase {
 		}
 
 		$plugin->save();
+	}
+
+	private function xchanIsListed(array $xchan): LogicalAnd {
+		return $this->logicalAnd(
+			$this->stringContains("href=\"{$xchan['xchan_url']}\""),
+			$this->matchesRegularExpression(
+				"|<input\s+type=\"hidden\"\s+name=\"author\"\s+value=\"{$xchan['xchan_hash']}\"|"
+			)
+		);
+	}
+
+	private function assertXChanIsListed(array $xchan): void {
+		$this->assertThat(
+			App::$page['content'],
+			$this->xchanIsListed($xchan)
+		);
+	}
+
+	private function assertXChanIsNotListed(array $xchan): void {
+		$this->assertThat(
+			App::$page['content'],
+			$this->logicalNot(
+				$this->xchanIsListed($xchan)
+			)
+		);
 	}
 
 	private function stubGetSecurityToken(): void {
