@@ -13,6 +13,14 @@
 .superblock-entry-actions {
 	font-size: 220%;
 }
+.superblock-entry-actions button {
+	border: none;
+	background-color: var(--bs-secondary-bg);
+	color: var(--bs-link-color);
+}
+.superblock-entry-actions button:hover {
+	color: var(--bs-link-hover-color);
+}
 .superblock-entry-body {
 	flex: 2;
 }
@@ -40,7 +48,7 @@
 						<input type="hidden" name="action" value="unblock">
 						<input type="hidden" name="author" value="{{$e.xchan_hash|escape}}">
 						<input type="hidden" name="form_security_token" value="{{$token}}">
-						<button type="submit"><i class="bi bi-trash"></i></button>
+						<button type="submit" class="bi bi-trash"></button>
 					</form>
 				</div>
 			</div>
