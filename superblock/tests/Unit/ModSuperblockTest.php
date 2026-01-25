@@ -13,6 +13,7 @@ use App;
 use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Constraint\LogicalAnd;
+use Zotlabs\Lib\Config;
 use Zotlabs\Lib\Libzot;
 use Zotlabs\Tests\Unit\Module\TestCase;
 use Zotlabs\Tests\Unit\Module\KillmeException;
@@ -88,13 +89,14 @@ class ModSuperblockTest extends TestCase {
 	}
 
 	#[DataProvider('actionProvider')]
-	public function testHTMLFormAction(array $params, array $status): void {
+	public function testHTMLFormAction(array $params, array $status, bool $is_admin = false): void {
 		$this->channel = $this->fixtures['channel'][1];
 		$this->startSession($this->channel);
 		$this->installPluginApp($this->channel);
 		$this->stubGetSecurityToken();
 		$this->stubCheckFormSecurityToken();
 		$this->stubHttpStatusExit();
+		$this->stubIsSiteAdmin($is_admin);
 
 		// Add xchans, and block them if we're testing the unblock action
 		$this->addXChans(isset($params['action']) && $params['action'] === 'unblock');
@@ -125,11 +127,18 @@ class ModSuperblockTest extends TestCase {
 			// Verify that the rendered page does _not_ contain the unblockec channel
 			//
 			$this->assertXChanIsNotListed($xchan);
+		} elseif ($params['action'] === 'siteblock') {
+			//
+			// Verify that site blocklist contains added xchan
+			//
+			$siteBlockList = Config::Get('system', 'blacklisted_channels');
+			$this->assertIsArray($siteBlockList);
+			$this->assertContains($params['author'], $siteBlockList);
 		}
 	}
 
 	#[DataProvider('actionProvider')]
-	public function testAjaxRequestAction(array $params, array $status): void {
+	public function testAjaxRequestAction(array $params, array $status, bool $is_admin = false): void {
 		$this->channel = $this->fixtures['channel'][1];
 		$this->startSession($this->channel);
 		$this->installPluginApp($this->channel);
@@ -137,6 +146,7 @@ class ModSuperblockTest extends TestCase {
 		$this->stubCheckFormSecurityToken();
 		$this->stubFileGetContents();
 		$this->stubJsonReturnAndDie();
+		$this->stubIsSiteAdmin($is_admin);
 
 		// Add xchans, and block them if we're testing the unblock action
 		$this->addXChans(isset($params['action']) && $params['action'] === 'unblock');
@@ -157,19 +167,25 @@ class ModSuperblockTest extends TestCase {
 
 		if ($this->returnedJson['status'] === 'success') {
 
-			// Reload page to check that channel was added or removed from block list
-			$this->get('superblock');
-
 			if ($params['action'] === 'block') {
 				//
 				// Verify that the rendered page contains the newly blocked channel
 				//
+				$this->get('superblock');
 				$this->assertXChanIsListed($xchan);
 			} elseif ($params['action'] === 'unblock') {
 				//
 				// Verify that the rendered page does _not_ contain the unblockec channel
 				//
+				$this->get('superblock');
 				$this->assertXChanIsNotListed($xchan);
+			} elseif ($params['action'] === 'siteblock') {
+				//
+				// Verify that site blocklist contains added xchan
+				//
+				$siteBlockList = Config::Get('system', 'blacklisted_channels');
+				$this->assertIsArray($siteBlockList);
+				$this->assertContains($params['author'], $siteBlockList);
 			}
 		}
 	}
@@ -277,6 +293,20 @@ class ModSuperblockTest extends TestCase {
 					'code' => 400,
 					'msg' => 'Invalid or unknown channel',
 				],
+			],
+			'POST siteblock valid author' => [
+				'params' => [
+					'action' => 'siteblock',
+					'author' => 'snertemoen',
+					'item' => 666,
+					'form_security_token' => 'very security'
+				],
+				'status' => [
+					'text' => 'success',
+					'code' => 200,
+					'msg' => 'Added snertemoen@valdres.test to site block list',
+				],
+				'is_admin' => true,
 			],
 		];
 	}
@@ -386,5 +416,11 @@ class ModSuperblockTest extends TestCase {
 				// Make sure we stop processing
 				throw new KillmeException();
 			});
+	}
+
+	private function stubIsSiteAdmin(bool $is_admin): void {
+		$this->getFunctionMock('Zotlabs\Module', 'is_site_admin')
+			->expects($this->any())
+			->willReturn($is_admin);
 	}
 }

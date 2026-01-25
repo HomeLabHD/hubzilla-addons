@@ -132,13 +132,14 @@ class Superblock extends Controller {
 					$this->error(400, 'Unknown author');
 				}
 
-				$blocked = Config::Get('system', 'blacklisted_channels', '');
+				$blocked = Config::Get('system', 'blacklisted_channels', []);
 				if (!in_array($author_xchan['hash'], $blocked)) {
 					$blocked[] = $author_xchan['hash'];
 					sort($blocked);
 					Config::Set('system', 'blacklisted_channels', $blocked);
 				}
 				$msg = "Added {$author_xchan['address']} to site block list";
+				$this->success($msg);
 				break;
 
 			default:
