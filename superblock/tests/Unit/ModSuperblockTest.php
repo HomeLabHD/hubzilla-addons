@@ -33,9 +33,6 @@ class ModSuperblockTest extends TestCase {
 	// Used to store the result of ajax calls
 	private array $returnedJson;
 
-	// Xchans used by the tests
-	private array $xchans;
-
 	public function testGetModuleWhenAppNotInstalledRendersAppInfo(): void {
 		$this->channel = $this->fixtures['channel'][1];
 		$this->startSession($this->channel);
@@ -64,10 +61,13 @@ class ModSuperblockTest extends TestCase {
 		$this->assertPageContains('No channels currently blocked');
 
 		// Add some Blocked XChans
-		$this->addXChans(true);
+		$xchans = self::createXChans();
+		foreach ($xchans as $xchan) {
+			$this->addXChan($xchan, true);
+		}
 
 		$this->get('superblock');
-		foreach ($this->xchans as $xchan) {
+		foreach ($xchans as $xchan) {
 			$this->assertXChanIsListed($xchan);
 		}
 	}
@@ -79,7 +79,10 @@ class ModSuperblockTest extends TestCase {
 		$this->stubGetSecurityToken();
 
 		// Add some Blocked XChans
-		$this->addXChans(true);
+		$xchans = self::createXChans();
+		foreach ($xchans as $xchan) {
+			$this->addXChan($xchan, true);
+		}
 
 		$this->get('superblock');
 
@@ -88,8 +91,31 @@ class ModSuperblockTest extends TestCase {
 		   	App::$page['htmlhead']);
 	}
 
+	public function testRenderAddChannelBLockForm(): void {
+		$this->channel = $this->fixtures['channel'][1];
+		$this->startSession($this->channel);
+		$this->installPluginApp($this->channel);
+		$this->stubGetSecurityToken();
+
+		// With no blocked channels
+		$this->get('superblock/add');
+
+		$this->assertPageContains('<form name="superblock-add-channel-block"');
+		$this->assertPageContains('<input name="author" type="text"');
+		$this->assertPageContains('<input name="action" type="hidden" value="block"');
+		$this->assertPageContains('<input name="form_security_token" type="hidden" value="very security"');
+	}
+
+	/**
+	 * Test processing actions passed as HTML form data.
+	 *
+	 * @param array $params      The data to pass to the request.
+	 * @param array $expected    The expected result of the request.
+	 * @param bool  $is_admin    True if the request should be performed as a site admin.
+	 */
 	#[DataProvider('actionProvider')]
-	public function testHTMLFormAction(array $params, array $status, bool $is_admin = false): void {
+	public function testHTMLFormAction(array $params, array $expected, bool $is_admin = false): void
+	{
 		$this->channel = $this->fixtures['channel'][1];
 		$this->startSession($this->channel);
 		$this->installPluginApp($this->channel);
@@ -98,21 +124,19 @@ class ModSuperblockTest extends TestCase {
 		$this->stubHttpStatusExit();
 		$this->stubIsSiteAdmin($is_admin);
 
-		// Add xchans, and block them if we're testing the unblock action
-		$this->addXChans(isset($params['action']) && $params['action'] === 'unblock');
+		if (!empty($expected['xchan'])) {
+			// Add expected xchan, and block if we're testing the unblock action
+			$this->addXChan($expected['xchan'], isset($params['action']) && $params['action'] === 'unblock');
+		}
 
 		try {
-			if (!empty($params['author']) && !empty($this->xchans[$params['author']])) {
-				$xchan = $this->xchans[$params['author']];
-				$params['author'] = $this->xchans[$params['author']]['xchan_hash'];
-			}
 			$this->post('superblock', [], $params);
 		} catch (KillmeException $e) {
 			$this->assertIsArray($this->returnedJson);
 			$this->assertArrayHasKey('status', $this->returnedJson);
-			$this->assertEquals($status['code'], $this->returnedJson['status']);
+			$this->assertEquals($expected['status']['code'], $this->returnedJson['status']);
 			$this->assertArrayHasKey('message', $this->returnedJson);
-			$this->assertEquals($status['msg'], $this->returnedJson['message']);
+			$this->assertEquals($expected['status']['msg'], $this->returnedJson['message']);
 
 			return;
 		}
@@ -121,12 +145,12 @@ class ModSuperblockTest extends TestCase {
 			//
 			// Verify that the rendered page contains the newly blocked channel
 			//
-			$this->assertXChanIsListed($xchan);
+			$this->assertXChanIsListed($expected['xchan']);
 		} elseif ($params['action'] === 'unblock') {
 			//
 			// Verify that the rendered page does _not_ contain the unblockec channel
 			//
-			$this->assertXChanIsNotListed($xchan);
+			$this->assertXChanIsNotListed($expected['xchan']);
 		} elseif ($params['action'] === 'siteblock') {
 			//
 			// Verify that site blocklist contains added xchan
@@ -137,8 +161,16 @@ class ModSuperblockTest extends TestCase {
 		}
 	}
 
+	/**
+	 * Test processing actions passed as JSON data as an Ajax request.
+	 *
+	 * @param array $params      The data to pass to the request.
+	 * @param array $expected    The expected result of the request.
+	 * @param bool  $is_admin    True if the request should be performed as a site admin.
+	 */
 	#[DataProvider('actionProvider')]
-	public function testAjaxRequestAction(array $params, array $status, bool $is_admin = false): void {
+	public function testAjaxRequestAction(array $params, array $expected, bool $is_admin = false): void
+	{
 		$this->channel = $this->fixtures['channel'][1];
 		$this->startSession($this->channel);
 		$this->installPluginApp($this->channel);
@@ -148,21 +180,19 @@ class ModSuperblockTest extends TestCase {
 		$this->stubJsonReturnAndDie();
 		$this->stubIsSiteAdmin($is_admin);
 
-		// Add xchans, and block them if we're testing the unblock action
-		$this->addXChans(isset($params['action']) && $params['action'] === 'unblock');
+		if (!empty($expected['xchan'])) {
+			// Add expected xchan, and block if we're testing the unblock action
+			$this->addXChan($expected['xchan'], isset($params['action']) && $params['action'] === 'unblock');
+		}
 
 		try {
-			if (!empty($params['author']) && !empty($this->xchans[$params['author']])) {
-				$xchan = $this->xchans[$params['author']];
-				$params['author'] = $this->xchans[$params['author']]['xchan_hash'];
-			}
 			$this->ajax_request('POST', 'superblock', $params);
 		} catch (KillmeException $e) {
 			$this->assertIsArray($this->returnedJson);
 			$this->assertArrayHasKey('status', $this->returnedJson);
-			$this->assertEquals($status['text'], $this->returnedJson['status']);
+			$this->assertEquals($expected['status']['text'], $this->returnedJson['status']);
 			$this->assertArrayHasKey('message', $this->returnedJson);
-			$this->assertEquals($status['msg'], $this->returnedJson['message']);
+			$this->assertEquals($expected['status']['msg'], $this->returnedJson['message']);
 		}
 
 		if ($this->returnedJson['status'] === 'success') {
@@ -172,13 +202,13 @@ class ModSuperblockTest extends TestCase {
 				// Verify that the rendered page contains the newly blocked channel
 				//
 				$this->get('superblock');
-				$this->assertXChanIsListed($xchan);
+				$this->assertXChanIsListed($expected['xchan']);
 			} elseif ($params['action'] === 'unblock') {
 				//
 				// Verify that the rendered page does _not_ contain the unblockec channel
 				//
 				$this->get('superblock');
-				$this->assertXChanIsNotListed($xchan);
+				$this->assertXChanIsNotListed($expected['xchan']);
 			} elseif ($params['action'] === 'siteblock') {
 				//
 				// Verify that site blocklist contains added xchan
@@ -190,132 +220,231 @@ class ModSuperblockTest extends TestCase {
 		}
 	}
 
+	/**
+	 * Add an xchan to the db, and optionally block it.
+	 *
+	 * @param array $xchan	An array containing the xchan to add.
+	 * @param bool	$block	True if the xchan should be added to the block
+	 *                      list.
+	 */
+	private function addXChan(array $xchan, bool $block): void {
+		xchan_store_lowlevel($xchan);
+		if ($block) {
+			$plugin = Superblock::getInstance($this->channel['channel_id']);
+			$plugin->blockChannel($xchan['xchan_hash']);
+			$plugin->save();
+		}
+	}
+
+	/**
+	 * Action provider for the HTMLForm and Ajax tests.
+	 *
+	 * Generates an array of entries that contain the test vectors for
+	 * the tests. The vector is divided into three main parts:
+	 *
+	 *   - `params`: The request params for the POST request.
+	 *   - `expected`: The expected results from the request.
+	 *   - `is_admin`: An optional bool telling if the request should be
+	 *     performed as an admin.
+	 *
+	 * The `expected` field is an array consisting of the status and
+	 * response message expected from the request, as well as the xchan
+	 * that should be added/removed from the block list.
+	 *
+	 * The `status` field contains both the status code for the HTMLForm
+	 * tests, and the result message for the Ajax tests.
+	 *
+	 * @return The array of the test vectors.
+	 */
 	public static function actionProvider(): array {
-		return [
-			'add new block from webbie should succeed' => [
+		$xchans = self::createXChans();
+		$vectors = [];
+
+		foreach (['snertemoen', 'balder', 'knallert'] as $author) {
+			//
+			// Vectors to block by xchan_hash
+			//
+			// This is the normal way a channel will be blocked when
+			// selecting "Block permanently" from the post avatar menu.
+			//
+			$vectors["block {$author} by hash"] = [
 				'params' => [
 					'action' => 'block',
-					'author' => 'snertemoen',
+					'author' => $xchans[$author]['xchan_hash'],
 					'item' => 666,
 					'form_security_token' => 'very security',
 				],
-				'status' => [
-					'text' => 'success',
-					'code' => 200,
-					'msg' => 'blocked snertemoen@valdres.test permanently',
-				],
-			],
-			'add new block from url should succeed' => [
+				'expected' => [
+					'status' => [
+						'text' => 'success',
+						'code' => 200,
+						'msg' => "blocked {$xchans[$author]['xchan_addr']} permanently",
+					],
+					'xchan' => $xchans[$author],
+				]
+			];
+
+			//
+			// Vectors to block by xchan_addr (aka webbie)
+			//
+			// We need to support this to allow users to manually add channels
+			// to the block list.
+			//
+			$vectors["block {$author} by addr"] = [
 				'params' => [
 					'action' => 'block',
-					'author' => 'balder',
+					'author' => $xchans[$author]['xchan_addr'],
 					'item' => 666,
 					'form_security_token' => 'very security',
 				],
-				'status' => [
-					'text' => 'success',
-					'code' => 200,
-					'msg' => 'blocked balder@contact.test permanently',
-				],
-			],
-			'add new block from nomadic hash should succeed' => [
-				'params' => [
-					'action' => 'block',
-					'author' => 'knallert',
-					'item' => 666,
-					'form_security_token' => 'very security',
-				],
-				'status' => [
-					'text' => 'success',
-					'code' => 200,
-					'msg' => 'blocked knallert@blowback.test permanently',
-				],
-			],
-			'unblock blocked user should succeed' => [
+				'expected' => [
+					'status' => [
+						'text' => 'success',
+						'code' => 200,
+						'msg' => "blocked {$xchans[$author]['xchan_addr']} permanently",
+					],
+					'xchan' => $xchans[$author],
+				]
+			];
+
+			//
+			// Vectors to block by xchan_url
+			// This is not supported by xchan_fetch
+			//---------------------------------------------
+			// $vectors["block {$author} by url"] = [
+			// 	'params' => [
+			// 		'action' => 'block',
+			// 		'author' => $xchans[$author]['xchan_url'],
+			// 		'item' => 666,
+			// 		'form_security_token' => 'very security',
+			// 	],
+			// 	'expected' => [
+			// 		'status' => [
+			// 			'text' => 'success',
+			// 			'code' => 200,
+			// 			'msg' => "blocked {$xchans[$author]['xchan_addr']} permanently",
+			// 		],
+			// 		'xchan' => $xchans[$author],
+			// 	]
+			// ];
+
+			//
+			// Vectors to unblock a channel
+			//
+			// We only support unblocking by the xchan hash. This is because we
+			// don't expect anyone to perfom this by typing the user to
+			// unblock. It should allways be done via the UI.
+			//
+			$vectors["unblock {$author}"] = [
 				'params' => [
 					'action' => 'unblock',
-					'author' => 'knallert',
-					'item' => null,
-					'form_security_token' => 'very security',
-				],
-				'status' => [
-					'text' => 'success',
-					'code' => 200,
-					'msg' => 'removed knallert@blowback.test from block list',
-				],
-			],
-			'POST with no action is rejected' => [
-				'params' => [
-					'author' => 'snertemoen',
+					'author' => $xchans[$author]['xchan_hash'],
 					'item' => 666,
 					'form_security_token' => 'very security',
 				],
-				'status' => [
-				   'text' => 'error',
-				   'code' => 400,
-				   'msg' => 'No action given',
-				],
+				'expected' => [
+					'status' => [
+						'text' => 'success',
+						'code' => 200,
+						'msg' => "removed {$xchans[$author]['xchan_addr']} from block list",
+					],
+					'xchan' => $xchans[$author],
+				]
+			];
+		}
+
+		$vectors['POST with no action is rejected'] = [
+			'params' => [
+				'author' => $xchans['snertemoen']['xchan_hash'],
+				'item' => 666,
+				'form_security_token' => 'very security',
 			],
-			'POST with no author is rejected' => [
-				'params' => [
-					'action' => 'block',
-					'item' => 666,
-					'form_security_token' => 'very security',
-				],
+			'expected' => [
 				'status' => [
 					'text' => 'error',
 					'code' => 400,
-					'msg' => 'Invalid or unknown channel',
+					'msg' => 'no action specified',
 				],
+				'xchan' => [],
+			]
+		];
+
+		$vectors['POST with no author is rejected'] = [
+			'params' => [
+				'action' => 'block',
+				'item' => 666,
+				'form_security_token' => 'very security',
 			],
-			'POST with invalid security token is rejected' => [
-				'params' => [
-					'action' => 'block',
-					'author' => 'snertemoen',
-					'item' => 666,
-					'form_security_token' => 'wrong token',
+			'expected' => [
+				'status' => [
+					'text' => 'error',
+					'code' => 400,
+					'msg' => 'no channel specified',
 				],
+				'xchan' => [],
+			]
+		];
+
+		$vectors['POST with invalid security token is rejected'] = [
+			'params' => [
+				'action' => 'block',
+				'author' => 'this_is_ignored',
+				'item' => 666,
+				'form_security_token' => 'wrong token',
+			],
+			'expected' => [
 				'status' => [
 					'text' => 'error',
 					'code' => 403,
 					'msg' => 'Invalid or missing security token',
 				],
+				'xchan' => [],
+			]
+		];
+
+		$vectors['POST with unknown author is rejected'] = [
+			'params' => [
+				'action' => 'block',
+				'author' => 'unknown@example.test',
+				'item' => 666,
+				'form_security_token' => 'very security',
 			],
-			'POST with unknown author is rejected' => [
-				'params' => [
-					'action' => 'block',
-					'author' => 'unknown@example.test',
-					'item' => 666,
-					'form_security_token' => 'very security',
-				],
+			'expected' => [
 				'status' => [
 					'text' => 'error',
 					'code' => 400,
 					'msg' => 'Invalid or unknown channel',
 				],
+				'xchan' => [],
+			]
+		];
+
+		$vectors['POST siteblock valid author'] = [
+			'params' => [
+				'action' => 'siteblock',
+				'author' => $xchans['snertemoen']['xchan_hash'],
+				'item' => 666,
+				'form_security_token' => 'very security'
 			],
-			'POST siteblock valid author' => [
-				'params' => [
-					'action' => 'siteblock',
-					'author' => 'snertemoen',
-					'item' => 666,
-					'form_security_token' => 'very security'
-				],
+			'expected' => [
 				'status' => [
 					'text' => 'success',
 					'code' => 200,
 					'msg' => 'Added snertemoen@valdres.test to site block list',
 				],
-				'is_admin' => true,
+				'xchan' => $xchans['snertemoen'],
 			],
+			'is_admin' => true,
 		];
+
+		return $vectors;
 	}
 
-	private function addXChans(bool $block): void {
+	private static function createXChans(): array {
 		$uid = Libzot::new_uid('knallert');
 		$hash = Libzot::make_xchan_hash($uid, 'dummy_public_key_3fa9e');
 
-		$this->xchans = [
+		return [
 			// A typical Diaspora contact
 			'snertemoen' => [
 				'xchan_addr' => 'snertemoen@valdres.test',
@@ -337,18 +466,6 @@ class ModSuperblockTest extends TestCase {
 				'xchan_url' => 'https://blowback.test/~knallert'
 			],
 		];
-
-		// Then add some blocks
-		$plugin = Superblock::getInstance($this->channel['channel_id']);
-
-		foreach ($this->xchans as $xchan) {
-			xchan_store_lowlevel($xchan);
-			if ($block) {
-				$plugin->blockChannel($xchan['xchan_hash']);
-			}
-		}
-
-		$plugin->save();
 	}
 
 	private function xchanIsListed(array $xchan): LogicalAnd {

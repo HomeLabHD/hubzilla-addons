@@ -27,6 +27,10 @@
 </style>
 <h3>{{$title}}</h3>
 
+{{if $addBlockForm}}
+	{{$addBlockForm}}
+{{/if}}
+
 {{if $nothing}}
 	<div class="descriptive-text">{{$nothing}}</div>
 {{elseif $entries}}

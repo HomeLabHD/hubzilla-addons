@@ -82,15 +82,32 @@ class Superblock extends Controller {
 	 * request body. In this case it will also return a json object with the
 	 * result of the action in the response body, and processing terminates.
 	 *
-	 * It can also handle being invoked as HTML form as it's payload, in which
+	 * It can also handle being invoked via a HTML form, in which
 	 * case the request parameters will be found in the PHP `$_POST`
-	 * superglobal, as normally for PHP. In this case the user is informed
+	 * superglobal, as normal. In this case the user is informed
 	 * about the result in a notification, and we fall through to the `get`
 	 * method for generating the HTML response to the request.
+	 *
+	 * The request parameters are:
+	 *
+	 *   - `action`: The action to perform (block, unblock or siteblock).
+	 *   - `author`: The author (channel) to block, either as an xchan hash or webbie.
+	 *   - `form_security_token`: CSRF token.
+	 *   - `item`: The item that the block is initiated from (unused at the moment).
+	 *
+	 * The `block` and `unblock` actions affect the block list for the channel invoking
+	 * the actions. The `siteblock` action affects the site wide block list, and is
+	 * only available to site administrators.
 	 */
 	public function post(): void {
 		$params = $this->validate_params();
+
 		$this->check_security_token($params['form_security_token']);
+
+		$xchan = $this->findXChanFromAuthor($params['author']);
+		if (!$xchan) {
+			$this->error(400, 'Invalid or unknown channel');
+		}
 
 		$plugin = Plugin::getInstance($this->localChannel);
 
@@ -98,47 +115,23 @@ class Superblock extends Controller {
 
 		switch ($params['action']) {
 			case 'block':
-				$xchan = xchan_fetch(['hash' => $params['author']]);
-				if (!$xchan) {
-					$this->error(400, 'Invalid or unknown channel');
-				}
-
 				$plugin->blockChannel($xchan['hash']);
 				$msg = "blocked {$xchan['address']} permanently";
 				break;
 
 			case 'unblock':
-				$xchan = xchan_fetch(['hash' => $params['author']]);
-				if (!$xchan) {
-					$this->error(400, 'Invalid or unknown channel');
-				}
-
-				$plugin->unblockChannel($params['author']);
+				$plugin->unblockChannel($xchan['hash']);
 				$msg = "removed {$xchan['address']} from block list";
 				break;
 
 			case 'siteblock':
-				if (!is_site_admin()) {
-					$this->error(403, 'You do not have access to perform this operation');
-				}
-
-				$author = $params['author'];
-				if (!$author) {
-					$this->error(400, 'Invalid xchan');
-				}
-
-				$author_xchan = xchan_fetch(['hash' => $author]);
-				if (!$author_xchan) {
-					$this->error(400, 'Unknown author');
-				}
-
 				$blocked = Config::Get('system', 'blacklisted_channels', []);
-				if (!in_array($author_xchan['hash'], $blocked)) {
-					$blocked[] = $author_xchan['hash'];
+				if (!in_array($xchan['hash'], $blocked)) {
+					$blocked[] = $xchan['hash'];
 					sort($blocked);
 					Config::Set('system', 'blacklisted_channels', $blocked);
 				}
-				$msg = "Added {$author_xchan['address']} to site block list";
+				$msg = "Added {$xchan['address']} to site block list";
 				$this->success($msg);
 				break;
 
@@ -165,7 +158,10 @@ class Superblock extends Controller {
 	 * @return string	The rendered HTML of the request.
 	 */
 	function get(): string {
+		return $this->renderBlockList();
+	}
 
+	private function renderBlockList(): string {
 		$config_changed = false;
 
 		if (!$this->app_installed) {
@@ -195,7 +191,25 @@ class Superblock extends Controller {
 			'$entries' => $r,
 			'$nothing' => (($r) ? '' : t('No channels currently blocked')),
 			'$token' => get_form_security_token('superblock'),
-			'$remove' => t('Remove from blocklist')
+			'$remove' => t('Remove from blocklist'),
+			'$addBlockForm' => $this->renderAddBlockForm(),
+		]);
+	}
+
+	private function renderAddBlockForm(): string {
+		$tpl = get_markup_template('superblock_add_block_form.tpl','addon/superblock');
+		return replace_macros($tpl, [
+			'$token' => get_form_security_token('superblock'),
+			'$authorInputField' => [
+				'author',						// name, id
+				'Channel address (webbie):',	// label
+			   	'',								// value
+				t('The address of the channel to block, typically like \'channel@example.com\'.'), // help text
+				'',								// additional label
+				'',								// additional attributes
+			],
+			'$blockChannelButtonText' => t('Block channel!'),
+			'$addNewEntryText' => t('Add new entry'),
 		]);
 	}
 
@@ -264,6 +278,10 @@ class Superblock extends Controller {
 			$this->error(400, 'no channel specified');
 		}
 
+		// Only admins can do a site block
+		if ($params['action'] === 'siteblock' && !is_site_admin()) {
+			$this->error(403, 'You do not have access to perform this operation');
+		}
 		return $params;
 	}
 
@@ -286,6 +304,16 @@ class Superblock extends Controller {
 		if (!check_form_security_token('superblock')) {
 			$this->error(403, "Invalid or missing security token");
 		}
+	}
+
+	private function findXChanFromAuthor(string $author): array|false {
+		$xchan = xchan_fetch(['hash' => $author]);
+
+		if (!$xchan) {
+			$xchan = xchan_fetch(['address' => $author]);
+		}
+
+		return $xchan;
 	}
 
 	/**
