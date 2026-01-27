@@ -239,7 +239,7 @@ class Superblock extends Controller {
 
 		logger("Superblock POST: " . print_r($data, true), LOGGER_DEBUG);
 
-		return filter_var_array(
+		$params = filter_var_array(
 			$data,
 			[
 				'action' => [
@@ -255,6 +255,16 @@ class Superblock extends Controller {
 			],
 			true
 		);
+
+		if (empty($params['action'])) {
+			$this->error(400, 'no action specified');
+		}
+
+		if (empty($params['author'])) {
+			$this->error(400, 'no channel specified');
+		}
+
+		return $params;
 	}
 
 	/**
