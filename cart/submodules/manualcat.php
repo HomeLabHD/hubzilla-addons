@@ -248,7 +248,7 @@ class Cart_manualcat {
     $formelements["submit"]=t("Submit");
     $formelements["uri"]=strtok($_SERVER["REQUEST_URI"],'?').'?SKU='.$sku;
     // item_locked, item_desc, item_price, item_active
-    $formelements["itemdetails"].= replace_macros(get_markup_template('field_checkbox.tpl'), array(
+    $formelements["itemdetails"] = replace_macros(get_markup_template('field_checkbox.tpl'), array(
   				     '$field'	=> array('item_locked', t('Changes Locked'),
   							 (isset($item["item_locked"]) ? $item["item_locked"] : 0),
   							 '',array(t('No'),t('Yes')))));

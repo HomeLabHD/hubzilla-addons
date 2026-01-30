@@ -17,6 +17,8 @@ use Zotlabs\Lib\ActivityStreams;
 use Zotlabs\Lib\Crypto;
 use Zotlabs\Lib\Multibase;
 use Zotlabs\Lib\Libzot;
+use Zotlabs\Lib\IConfig;
+use Zotlabs\Lib\ObjCache;
 use Zotlabs\Module\Ap_probe;
 use Zotlabs\Module\Followers;
 use Zotlabs\Module\Following;
@@ -43,7 +45,6 @@ function pubcrawl_load() {
 		'permissions_update'         => 'pubcrawl_permissions_update',
 		'permissions_accept'         => 'pubcrawl_permissions_accept',
 		'connection_remove'          => 'pubcrawl_connection_remove',
-		'post_local'                 => 'pubcrawl_post_local',
 		'notifier_process'           => 'pubcrawl_notifier_process',
 		'notifier_hub'               => 'pubcrawl_notifier_hub',
 		'channel_links'              => 'pubcrawl_channel_links',
@@ -337,53 +338,6 @@ function pubcrawl_channel_links(&$b) {
 			'url'  => z_root() . '/channel/' . $c['channel_address']
 		];
 	}
-}
-
-function pubcrawl_post_local(&$x) {
-	$item[] = $x;
-
-	if ($item[0]['verb'] === 'Add') {
-		return;
-	}
-
-	if ($item[0]['mid'] === $item[0]['parent_mid']) {
-		return;
-	}
-
-	if (!Apps::addon_app_installed($item[0]['uid'], 'pubcrawl')) {
-		return;
-	}
-
-	$channel = channelx_by_n($item[0]['uid']);
-
-	if ($channel['channel_hash'] !== $item[0]['author_xchan']) {
-		// A wall to wall post - we will not be able to sign it with the author key.
-		// Probably we could if the channel is from this site, but keep it simple for now.
-
-		// Signing it with the owner key will result in misattribution on mastodon.
-		return;
-	}
-
-	xchan_query($item);
-
-	// Filter previous rawmsg/fields in case it is an edit
-	$filtered_iconfig = [];
-	foreach($item[0]['iconfig'] as $iconfig) {
-		if ($iconfig['cat'] === 'activitypub' && $iconfig['k'] === 'rawmsg') {
-			continue;
-		}
-		if ($iconfig['cat'] === 'diaspora' && $iconfig['k'] === 'fields') {
-			continue;
-		}
-
-		$filtered_iconfig[] = $iconfig;
-	}
-
-	$item[0]['iconfig'] = $filtered_iconfig;
-
-	$msg = Activity::build_packet(Activity::encode_activity($item[0]), $channel, false);
-
-	set_iconfig($x, 'activitypub', 'rawmsg', $msg, true);
 }
 
 function pubcrawl_webfinger(&$b) {
@@ -694,7 +648,12 @@ function pubcrawl_notifier_process(&$arr) {
 		}
 	}
 
-	$raw_msg = get_iconfig($arr['target_item'], 'activitypub', 'rawmsg');
+	$raw_msg = ObjCache::Get($arr['target_item']['mid']);
+
+	if (!$raw_msg) {
+		$raw_msg = IConfig::Get($arr['target_item'], 'activitypub', 'rawmsg');
+	}
+
 	if (!is_array($raw_msg)) {
 		// Try to decode it
 		$raw_msg = json_decode($raw_msg, true);
@@ -788,7 +747,11 @@ function pubcrawl_notifier_hub(&$arr) {
 		// which we are sending downstream, use that signed activity as is.
 		// The channel will then sign the HTTP transaction.
 		if ($arr['channel']['channel_hash'] != $arr['target_item']['author_xchan']) {
-			$signed_msg = get_iconfig($arr['target_item'], 'activitypub', 'rawmsg');
+			$signed_msg = ObjCache::Get($arr['target_item']['mid']);
+
+			if (!$signed_msg) {
+				$signed_msg = IConfig::Get($arr['target_item'], 'activitypub', 'rawmsg');
+			}
 
 			// If we don't have a signed message and we are not the author,
 			// the message will be misattributed in mastodon
@@ -804,6 +767,9 @@ function pubcrawl_notifier_hub(&$arr) {
 		$jmsg = json_encode($signed_msg);
 	}
 	elseif (is_string($signed_msg)) {
+		// This should not happen anymore.
+		// The rawmsg is now always stored as json serialised array
+		// and should be returned as array from get_iconfig().
 		$jmsg = $signed_msg;
 	}
 

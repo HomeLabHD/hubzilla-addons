@@ -14,7 +14,7 @@ use Zotlabs\Extend\Route;
 
 require_once('include/items.php');
 require_once('include/permissions.php');
-require_once('library/IXR_Library.php');
+require_once('Lib/IXR_Library.php');
 
 function wppost_load () {
 	Hook::register('post_local', 'addon/wppost/wppost.php', 'wppost_post_local');

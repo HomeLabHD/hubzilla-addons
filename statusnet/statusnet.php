@@ -40,7 +40,7 @@ require_once('include/permissions.php');
 
 define('STATUSNET_DEFAULT_POLL_INTERVAL', 5); // given in minutes
 
-require_once('library/twitteroauth.php');
+require_once("addon/addon_common/twitteroauth/twitteroauth.php");
 
 class StatusNetOAuth extends TwitterOAuth {
 	function get_maxlength() {
@@ -169,7 +169,7 @@ function statusnet_post_local(&$b) {
 
 if (! function_exists( 'short_link' )) {
 function short_link($url) {
-	require_once('library/slinky.php');
+	require_once("addon/addon_common/slinky/slinky.php");
 	$slinky = new Slinky( $url );
 	$yourls_url = get_config('yourls','url1');
 	if ($yourls_url) {

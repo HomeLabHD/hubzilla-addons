@@ -312,6 +312,7 @@ class Wiki extends Controller {
 				if(! ($p && $p['success'])) {
 					$p = NativeWikiPage::get_page_content(array('channel_id' => $owner['channel_id'], 'observer_hash' => $observer_hash, 'resource_id' => $resource_id, 'pageUrlName' => $pageUrlName));
 				}
+
 				if(! ($p && $p['success'])) {
 
 					$html = self::create_missing_page();
@@ -336,7 +337,7 @@ class Wiki extends Controller {
 
 				    // Render the Markdown-formatted page content in HTML
 				    if($mimeType == 'text/bbcode') {
-					$renderedContent = zidify_links(smilies(bbcode($content)));
+					$renderedContent = zidify_links(smilies(bbcode($content, ['tryoembed' => false])));
 					$renderedContent = NativeWikiPage::convert_links($renderedContent,argv(0) . '/' . argv(1) . '/' . NativeWiki::name_encode($wikiUrlName));
 				    }
 			 	    elseif($mimeType === 'text/plain') {

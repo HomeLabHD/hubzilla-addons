@@ -16,6 +16,7 @@ use Zotlabs\Lib\Crypto;
 use Zotlabs\Lib\Keyutils;
 use Zotlabs\Lib\Queue;
 use Zotlabs\Lib\IConfig;
+use Zotlabs\Lib\ObjCache;
 use Zotlabs\Extend\Hook;
 use Zotlabs\Extend\Route;
 use Zotlabs\Daemon\Master;
@@ -64,7 +65,9 @@ function diaspora_load() {
 		'encode_item_xchan'           => 'diaspora_encode_item_xchan',
 		'direct_message_recipients'   => 'diaspora_direct_message_recipients',
 		'get_actor_provider'          => 'diaspora_get_actor_provider',
-		'get_cached_actor_provider'   => 'diaspora_get_cached_actor_provider'
+		'get_cached_actor_provider'   => 'diaspora_get_cached_actor_provider',
+		'encode_activity'             => 'diaspora_encode_activity',
+		'decode_note'                 => 'diaspora_decode_note'
 	]);
 
 	Route::register('addon/diaspora/Mod_Diaspora.php','diaspora');
@@ -429,7 +432,12 @@ function diaspora_notifier_process(&$arr) {
 		// originating from diaspora.
 		// Those must be sent to all participants by the comment author.
 
-		$fields = get_iconfig($arr['parent_item'], 'diaspora', 'fields');
+		$fields = ObjCache::Get($arr['parent_item']['mid'], 'diaspora');
+
+		if (!$fields) {
+			$fields = IConfig::Get($arr['parent_item'], 'diaspora', 'fields');
+		}
+
 		$hashes = [];
 
 		if(is_array($fields) && isset($fields['participants'])) {
@@ -1067,7 +1075,12 @@ function diaspora_post_local(&$item) {
 				intval($item['uid'])
 			);
 
-			$fields = get_iconfig($parent[0], 'diaspora', 'fields');
+			$fields = ObjCache::Get($parent[0]['mid'], 'diaspora');
+
+			if (!$fields) {
+				$fields = IConfig::Get($parent[0], 'diaspora', 'fields');
+			}
+
 			if (!isset($fields['participants'])) {
 				logger('no DM participants');
 				return;
@@ -1118,7 +1131,8 @@ function diaspora_post_local(&$item) {
 
 		$meta = (($conv) ? $conv : $message);
 
-		set_iconfig($item, 'diaspora', 'fields', $meta, true);
+	//	IConfig::Set($item, 'diaspora', 'fields', $meta);
+		ObjCache::Set($item['mid'], $meta, 'diaspora');
 
 		return;
 
@@ -1226,7 +1240,7 @@ function diaspora_post_local(&$item) {
 	}
 
 	if ($meta) {
-		set_iconfig($item,'diaspora','fields', $meta, true);
+		ObjCache::Set($item['mid'], $meta, 'diaspora');
 	}
 
 }
@@ -1653,7 +1667,13 @@ function diaspora_create_event($ev, $author) {
 
 function diaspora_direct_message_recipients(&$arr) {
 	$recips = null;
-	$fields = IConfig::Get($arr['item'], 'diaspora', 'fields');
+
+	$fields = ObjCache::Get($arr['item']['mid'], 'diaspora');
+
+	if (!$fields) {
+		$fields = IConfig::Get($arr['item'], 'diaspora', 'fields');
+	}
+
 	if(isset($fields['participants'])) {
 		$recips = explode(';', $fields['participants']);
 	}
@@ -1663,3 +1683,35 @@ function diaspora_direct_message_recipients(&$arr) {
 		$arr['column'] = 'xchan_addr';
 	}
 }
+
+function diaspora_encode_activity(&$arr) {
+	if ($arr['item']['mid'] === $arr['item']['parent_mid'] || $arr['item']['item_private'] === 2) {
+		return;
+	}
+
+	$signed_data = ObjCache::Get($arr['item']['mid'], 'diaspora');
+
+	if (!$signed_data) {
+		$signed_data = IConfig::Get($arr['item'], 'diaspora', 'fields');
+	}
+
+	if ($signed_data) {
+		$type = in_array($arr['item']['verb'], ['Like', 'Dislike']) ? 'like' : 'comment';
+		$arr['encoded']["diaspora:$type"] = $signed_data;
+	}
+}
+
+function diaspora_decode_note(&$arr) {
+	if ($arr['s']['mid'] === $arr['s']['parent_mid'] || $arr['s']['item_private'] === 2) {
+		return;
+	}
+
+	$type = in_array($arr['s']['verb'], ['Like', 'Dislike']) ? 'like' : 'comment';
+	$signed_data = $arr['act']->data["diaspora:$type"] ?? null;
+
+	if ($signed_data) {
+		ObjCache::Set($arr['s']['mid'], $signed_data, 'diaspora');
+	}
+}
+
+

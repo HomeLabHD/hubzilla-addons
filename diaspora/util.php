@@ -489,4 +489,3 @@ function get_diaspora_reshare_xml($url,$recurse = 0) {
 	}
 	return false;
 }
-
