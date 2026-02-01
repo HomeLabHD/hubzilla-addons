@@ -52,7 +52,7 @@
 						<input type="hidden" name="action" value="unblock">
 						<input type="hidden" name="author" value="{{$e.xchan_hash|escape}}">
 						<input type="hidden" name="form_security_token" value="{{$token}}">
-						<button type="submit" class="bi bi-trash"></button>
+						<button type="submit" class="bi bi-trash" title="{{$remove}}" aria-label="{{$remove}}"></button>
 					</form>
 				</div>
 			</div>
