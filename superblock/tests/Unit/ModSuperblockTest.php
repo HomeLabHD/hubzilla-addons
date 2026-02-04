@@ -100,10 +100,21 @@ class ModSuperblockTest extends TestCase {
 		// With no blocked channels
 		$this->get('superblock/add');
 
-		$this->assertPageContains('<form name="superblock-add-channel-block"');
-		$this->assertPageContains('<input name="author" type="text"');
-		$this->assertPageContains('<input name="action" type="hidden" value="block"');
-		$this->assertPageContains('<input name="form_security_token" type="hidden" value="very security"');
+		// Verify and extract the form element
+		$this->assertEquals(1, preg_match(
+			'/<form\s+name="superblock-add-channel-block"[^>]*>(.*)<\/form>/s',
+			App::$page['content'],
+			$form)
+		);
+
+		// Check that the form contains the elements we want
+		$this->assertMatchesRegularExpression(
+			'/<input\s+class="form-control"\s+name="author"/',
+		   	$form[1]);
+		$this->assertStringContainsString('<input name="action" type="hidden" value="block"', $form[1]);
+		$this->AssertStringContainsString(
+			'<input name="form_security_token" type="hidden" value="very security"',
+		   	$form[1]);
 	}
 
 	/**
