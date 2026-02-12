@@ -1,13 +1,14 @@
-# Strings for Superblock addon for Hubzilla
-# Copyright (C) 2012 The Hubzilla Community
-# This file is distributed under the same license as the Hubzilla Superblock package.
+# ADDON superblock
+# Copyright (C) 
+# This file is distributed under the same license as the hubzilla superblock addon package.
+# 
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: 2.1\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-01 16:37+0200\n"
+"POT-Creation-Date: 2026-02-15 13:24+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,26 +17,78 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: Mod_Superblock.php:117
-msgid "superblock settings updated"
-msgstr ""
-
-#: Mod_Superblock.php:141
-msgid "Currently blocked"
-msgstr ""
-
-#: Mod_Superblock.php:143
-msgid "No channels currently blocked"
-msgstr ""
-
-#: Mod_Superblock.php:145
-msgid "Remove"
-msgstr ""
-
-#: superblock.php:378
+#: superblock.php:213
 msgid "Block Completely"
 msgstr ""
 
-#: superblock.php:387
+#: superblock.php:222
 msgid "Block from site"
+msgstr ""
+
+#: Mod_Superblock.php:132
+msgid "Invalid or unknown channel"
+msgstr ""
+
+#: Mod_Superblock.php:143
+#, php-format
+msgid "blocked %s permanently"
+msgstr ""
+
+#: Mod_Superblock.php:148
+#, php-format
+msgid "removed %s from block list"
+msgstr ""
+
+#: Mod_Superblock.php:158
+#, php-format
+msgid "added %s to site block list"
+msgstr ""
+
+#: Mod_Superblock.php:163
+msgid "No action given"
+msgstr ""
+
+#: Mod_Superblock.php:215
+msgid "Your blocked channels"
+msgstr ""
+
+#: Mod_Superblock.php:217
+msgid "No channels currently blocked"
+msgstr ""
+
+#: Mod_Superblock.php:219
+msgid "Remove from blocklist"
+msgstr ""
+
+#: Mod_Superblock.php:231
+msgid "Channel address (webbie):"
+msgstr ""
+
+#: Mod_Superblock.php:233
+msgid ""
+"The address of the channel to block, typically like 'channel@example.com'."
+msgstr ""
+
+#: Mod_Superblock.php:237
+msgid "Block channel!"
+msgstr ""
+
+#: Mod_Superblock.php:238
+msgid "Add new entry"
+msgstr ""
+
+#: Mod_Superblock.php:303
+msgid "no action specified"
+msgstr ""
+
+#: Mod_Superblock.php:308
+msgid "no channel specified"
+msgstr ""
+
+#: Mod_Superblock.php:314
+msgid "You do not have access to perform this operation"
+msgstr ""
+
+#: Mod_Superblock.php:339
+msgid "Invalid or missing security token"
 msgstr ""

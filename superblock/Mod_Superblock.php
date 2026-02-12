@@ -106,7 +106,7 @@ class Superblock extends Controller {
 
 		$xchan = $this->findXChanFromAuthor($params['author']);
 		if (!$xchan) {
-			$this->error(400, 'Invalid or unknown channel');
+			$this->error(400, t('Invalid or unknown channel'));
 		}
 
 		$plugin = Plugin::getInstance($this->localChannel);
@@ -116,12 +116,12 @@ class Superblock extends Controller {
 		switch ($params['action']) {
 			case 'block':
 				$plugin->blockChannel($xchan['hash']);
-				$msg = "blocked {$xchan['address']} permanently";
+				$msg = sprintf(t('blocked %s permanently'), $xchan['address']);
 				break;
 
 			case 'unblock':
 				$plugin->unblockChannel($xchan['hash']);
-				$msg = "removed {$xchan['address']} from block list";
+				$msg = sprintf(t('removed %s from block list'), $xchan['address']);
 				break;
 
 			case 'siteblock':
@@ -131,12 +131,12 @@ class Superblock extends Controller {
 					sort($blocked);
 					Config::Set('system', 'blacklisted_channels', $blocked);
 				}
-				$msg = "Added {$xchan['address']} to site block list";
+				$msg = sprintf(t('added %s to site block list'), $xchan['address']);
 				$this->success($msg);
 				break;
 
 			default:
-				$this->error(400, 'No action given');
+				$this->error(400, t('No action given'));
 		}
 
 		if ($plugin->configChanged()) {
@@ -187,7 +187,7 @@ class Superblock extends Controller {
 		$tpl = get_markup_template('superblock_list.tpl','addon/superblock');
 
 		return replace_macros($tpl, [
-			'$title' => t('Currently blocked channels'),
+			'$title' => t('Your blocked channels'),
 			'$entries' => $r,
 			'$nothing' => (($r) ? '' : t('No channels currently blocked')),
 			'$token' => get_form_security_token('superblock'),
@@ -202,7 +202,7 @@ class Superblock extends Controller {
 			'$token' => get_form_security_token('superblock'),
 			'$authorInputField' => [
 				'author',						// name, id
-				'Channel address (webbie):',	// label
+				t('Channel address (webbie):'),	// label
 			   	'',								// value
 				t('The address of the channel to block, typically like \'channel@example.com\'.'), // help text
 				'',								// additional label
@@ -271,16 +271,16 @@ class Superblock extends Controller {
 		);
 
 		if (empty($params['action'])) {
-			$this->error(400, 'no action specified');
+			$this->error(400, t('no action specified'));
 		}
 
 		if (empty($params['author'])) {
-			$this->error(400, 'no channel specified');
+			$this->error(400, t('no channel specified'));
 		}
 
 		// Only admins can do a site block
 		if ($params['action'] === 'siteblock' && !is_site_admin()) {
-			$this->error(403, 'You do not have access to perform this operation');
+			$this->error(403, t('You do not have access to perform this operation'));
 		}
 		return $params;
 	}
@@ -299,10 +299,11 @@ class Superblock extends Controller {
 		// `$_REQUEST` superglobal for the token (a really bad idea!), we have
 		// to stuff our token into the superglobal to satisfy the call
 		//
+		// phpcs:disable Generic.PHP.DisallowRequestSuperglobal
 		$_REQUEST['form_security_token'] = $token;
 
 		if (!check_form_security_token('superblock')) {
-			$this->error(403, "Invalid or missing security token");
+			$this->error(403, t('Invalid or missing security token'));
 		}
 	}
 

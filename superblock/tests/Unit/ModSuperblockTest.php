@@ -441,7 +441,7 @@ class ModSuperblockTest extends TestCase {
 				'status' => [
 					'text' => 'success',
 					'code' => 200,
-					'msg' => 'Added snertemoen@valdres.test to site block list',
+					'msg' => 'added snertemoen@valdres.test to site block list',
 				],
 				'xchan' => $xchans['snertemoen'],
 			],

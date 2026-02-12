@@ -7,9 +7,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"Report-Msgid-Bugs-To: haraldei@anduin.net\n"
-"POT-Creation-Date: 2025-06-01 16:37+0200\n"
-"PO-Revision-Date: 2025-08-03 22:52+0200\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-15 13:24+0100\n"
+"PO-Revision-Date: 2026-02-15 13:24+0100\n"
 "Last-Translator: Harald Eilertsen\n"
 "Language-Team: Hubzilla Norwegian Translation Team\n"
 "Language: nb\n"
@@ -26,18 +26,72 @@ msgstr "innstillinger for superblock ble oppdatert"
 msgid "Currently blocked"
 msgstr "Blokkert for øyeblikket"
 
+#: Mod_Superblock.php:132
+msgid "Invalid or unknown channel"
+msgstr "Ugyldig eller ukjent kanal"
+
 #: Mod_Superblock.php:143
+#, php-format
+msgid "blocked %s permanently"
+msgstr "blokkerte %s permanent"
+
+#: Mod_Superblock.php:148
+#, php-format
+msgid "removed %s from block list"
+msgstr "fjernet %s fra blokklisten"
+
+#: Mod_Superblock.php:158
+#, php-format
+msgid "added %s to site block list"
+msgstr "la %s til nettstedets blokkliste"
+
+#: Mod_Superblock.php:163
+msgid "No action given"
+msgstr "Ingen handling oppgitt"
+
+#: Mod_Superblock.php:215
+msgid "Your blocked channels"
+msgstr "Dine blokkerte kanaler"
+
+#: Mod_Superblock.php:217
 msgid "No channels currently blocked"
 msgstr "Ingen kanaler er blokkert i øyeblikket"
 
-#: Mod_Superblock.php:145
-msgid "Remove"
-msgstr "Fjern"
+#: Mod_Superblock.php:219
+msgid "Remove from blocklist"
+msgstr "Fjern fra blokklisten"
 
-#: superblock.php:378
-msgid "Block Completely"
-msgstr "Blokker helt"
+#: Mod_Superblock.php:231
+msgid "Channel address (webbie):"
+msgstr "Kanaladdresse (webbie):"
 
-#: superblock.php:387
-msgid "Block from site"
-msgstr "Blokker fra nettstedet"
+#: Mod_Superblock.php:233
+msgid ""
+"The address of the channel to block, typically like 'channel@example.com'."
+msgstr ""
+"Adressen til kanalen som skal blokkeres, vanligvis noe a'la "
+"'kanal@exempel.com'."
+
+#: Mod_Superblock.php:237
+msgid "Block channel!"
+msgstr "Blokker kanal!"
+
+#: Mod_Superblock.php:238
+msgid "Add new entry"
+msgstr "Legg til ny oppføring"
+
+#: Mod_Superblock.php:303
+msgid "no action specified"
+msgstr "ingen handling oppgitt"
+
+#: Mod_Superblock.php:308
+msgid "no channel specified"
+msgstr "ingen kanal oppgitt"
+
+#: Mod_Superblock.php:314
+msgid "You do not have access to perform this operation"
+msgstr "Du har ikke tilgang til å utføre denne operasjonen"
+
+#: Mod_Superblock.php:339
+msgid "Invalid or missing security token"
+msgstr "Ugyldig eller manglende sikkerhetsmerke"
