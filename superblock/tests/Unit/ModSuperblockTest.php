@@ -33,6 +33,9 @@ class ModSuperblockTest extends TestCase {
 	// Used to store the result of ajax calls
 	private array $returnedJson;
 
+	// Used to hold any info or notice's posted from the code under test
+	private array $notice;
+
 	public function testGetModuleWhenAppNotInstalledRendersAppInfo(): void {
 		$this->channel = $this->fixtures['channel'][1];
 		$this->startSession($this->channel);
@@ -134,41 +137,42 @@ class ModSuperblockTest extends TestCase {
 		$this->stubCheckFormSecurityToken();
 		$this->stubHttpStatusExit();
 		$this->stubIsSiteAdmin($is_admin);
+		$this->stubInfoAndNotice();
 
 		if (!empty($expected['xchan'])) {
 			// Add expected xchan, and block if we're testing the unblock action
 			$this->addXChan($expected['xchan'], isset($params['action']) && $params['action'] === 'unblock');
 		}
 
-		try {
-			$this->post('superblock', [], $params);
-		} catch (KillmeException $e) {
-			$this->assertIsArray($this->returnedJson);
-			$this->assertArrayHasKey('status', $this->returnedJson);
-			$this->assertEquals($expected['status']['code'], $this->returnedJson['status']);
-			$this->assertArrayHasKey('message', $this->returnedJson);
-			$this->assertEquals($expected['status']['msg'], $this->returnedJson['message']);
+		$this->post('superblock', [], $params);
 
-			return;
-		}
+		if ($expected['status']['text'] === 'error') {
+			// Verify that error notice is posted
+			$this->assertEquals('notice', $this->notice['type']);
+			$this->assertEquals($expected['status']['msg'], $this->notice['msg']);
+		} else {
+			if ($params['action'] === 'block') {
+				//
+				// Verify that the rendered page contains the newly blocked channel
+				//
+				$this->assertXChanIsListed($expected['xchan']);
+			} elseif ($params['action'] === 'unblock') {
+				//
+				// Verify that the rendered page does _not_ contain the unblockec channel
+				//
+				$this->assertXChanIsNotListed($expected['xchan']);
+			} elseif ($params['action'] === 'siteblock') {
+				//
+				// Verify that site blocklist contains added xchan
+				//
+				$siteBlockList = Config::Get('system', 'blacklisted_channels');
+				$this->assertIsArray($siteBlockList);
+				$this->assertContains($params['author'], $siteBlockList);
+			}
 
-		if ($params['action'] === 'block') {
-			//
-			// Verify that the rendered page contains the newly blocked channel
-			//
-			$this->assertXChanIsListed($expected['xchan']);
-		} elseif ($params['action'] === 'unblock') {
-			//
-			// Verify that the rendered page does _not_ contain the unblockec channel
-			//
-			$this->assertXChanIsNotListed($expected['xchan']);
-		} elseif ($params['action'] === 'siteblock') {
-			//
-			// Verify that site blocklist contains added xchan
-			//
-			$siteBlockList = Config::Get('system', 'blacklisted_channels');
-			$this->assertIsArray($siteBlockList);
-			$this->assertContains($params['author'], $siteBlockList);
+			// Verify that success info message is posted
+			$this->assertEquals('info', $this->notice['type']);
+			$this->assertEquals($expected['status']['msg'], $this->notice['msg']);
 		}
 	}
 
@@ -423,7 +427,7 @@ class ModSuperblockTest extends TestCase {
 			'expected' => [
 				'status' => [
 					'text' => 'error',
-					'code' => 400,
+					'code' => 200,
 					'msg' => 'Invalid or unknown channel',
 				],
 				'xchan' => [],
@@ -550,5 +554,19 @@ class ModSuperblockTest extends TestCase {
 		$this->getFunctionMock('Zotlabs\Module', 'is_site_admin')
 			->expects($this->any())
 			->willReturn($is_admin);
+	}
+
+	private function stubInfoAndNotice(): void {
+		$this->getFunctionMock('Zotlabs\Module', 'info')
+			->expects($this->atMost(1))
+			->willReturnCallback(function ($msg) {
+				$this->notice = ['type' => 'info', 'msg' => $msg];
+			});
+
+		$this->getFunctionMock('Zotlabs\Module', 'notice')
+			->expects($this->atMost(1))
+			->willReturnCallback(function ($msg) {
+				$this->notice = ['type' => 'notice', 'msg' => $msg];
+			});
 	}
 }

@@ -47,6 +47,11 @@ class Superblock extends Controller {
 	private bool $app_installed;
 
 	/**
+	 * Validated parameters to the request.
+	 */
+	private ?array $params = null;
+
+	/**
 	 * Default constructor to initialize the state of the controller.
 	 */
 	public function __construct() {
@@ -100,20 +105,34 @@ class Superblock extends Controller {
 	 * only available to site administrators.
 	 */
 	public function post(): void {
-		$params = $this->validate_params();
+		$this->processPostRequest();
 
-		$this->check_security_token($params['form_security_token']);
+		if (!empty($this->error) && $this->is_json_request) {
+			http_status($this->error['status']);
+			json_return_and_die($this->error);
+		}
+	}
 
-		$xchan = $this->findXChanFromAuthor($params['author']);
+	private function processPostRequest(): void {
+		if (!$this->validate_params()) {
+			return;
+		}
+
+		if (!$this->check_security_token($this->params['form_security_token'])) {
+			return;
+		}
+
+		$xchan = $this->findXChanFromAuthor($this->params['author']);
 		if (!$xchan) {
 			$this->error(400, t('Invalid or unknown channel'));
+			return;
 		}
 
 		$plugin = Plugin::getInstance($this->localChannel);
 
 		$msg = '';
 
-		switch ($params['action']) {
+		switch ($this->params['action']) {
 			case 'block':
 				$plugin->blockChannel($xchan['hash']);
 				$msg = sprintf(t('blocked %s permanently'), $xchan['address']);
@@ -137,6 +156,7 @@ class Superblock extends Controller {
 
 			default:
 				$this->error(400, t('No action given'));
+				return;
 		}
 
 		if ($plugin->configChanged()) {
@@ -240,11 +260,14 @@ class Superblock extends Controller {
 	/**
 	 * Validate and extract parameters for POST requests.
 	 *
-	 * Returns an array of parameters passed in after validating and sanitizing
-	 * them. The parameters can be passed as either a JSON object if this is an
-	 * AJAX request, or as a HTML form payload.
+	 * The validated parameters are saved in the `$this->params` property.
+	 * Validates parameters passed in as either form params, or a JSON object.
+	 *
+	 * @sideeffect Modifies the `$params` property.
+	 *
+	 * @return bool `true` if the passed in params are valid, `false` otherwise.
 	 */
-	private function validate_params(): array {
+	private function validate_params(): bool {
 		if ($this->is_json_request) {
 			$data = json_decode(file_get_contents('php://input'), true);
 		} else {
@@ -253,7 +276,7 @@ class Superblock extends Controller {
 
 		logger("Superblock POST: " . print_r($data, true), LOGGER_DEBUG);
 
-		$params = filter_var_array(
+		$this->params = filter_var_array(
 			$data,
 			[
 				'action' => [
@@ -270,30 +293,34 @@ class Superblock extends Controller {
 			true
 		);
 
-		if (empty($params['action'])) {
+		if (empty($this->params['action'])) {
 			$this->error(400, t('no action specified'));
+			return false;
 		}
 
-		if (empty($params['author'])) {
+		if (empty($this->params['author'])) {
 			$this->error(400, t('no channel specified'));
+			return false;
 		}
 
 		// Only admins can do a site block
-		if ($params['action'] === 'siteblock' && !is_site_admin()) {
+		if ($this->params['action'] === 'siteblock' && !is_site_admin()) {
 			$this->error(403, t('You do not have access to perform this operation'));
+			return false;
 		}
-		return $params;
+
+		return true;
 	}
 
 	/**
 	 * Function to wrap check_form_security_token, so we can verify the token
 	 * regardless of where it originates.
 	 *
-	 * **Note:** This function will only return if the token is valid.
-	 *
 	 * @param string $token		The token to check.
+	 *
+	 * @return `true` if the token is valid, `false` otherwise.
 	 */
-	private function check_security_token(string $token): void {
+	private function check_security_token(string $token): bool {
 		//
 		// Since `check_form_security_token` is hardcoded to only check the
 		// `$_REQUEST` superglobal for the token (a really bad idea!), we have
@@ -304,7 +331,10 @@ class Superblock extends Controller {
 
 		if (!check_form_security_token('superblock')) {
 			$this->error(403, t('Invalid or missing security token'));
+			return false;
 		}
+
+		return true;
 	}
 
 	private function findXChanFromAuthor(string $author): array|false {
@@ -318,22 +348,16 @@ class Superblock extends Controller {
 	}
 
 	/**
-	 * Return an error status for the request.
-	 *
-	 * If the request is an ajax request, a json object with `$message` is
-	 * returned. In any case the HTTP status code is set to `$status`.
-	 *
-	 * **Note:** This function will not return.
+	 * Convenience method to flag that the request should signal an error.
 	 *
 	 * @param int $status		The HTTP status code to return.
 	 * @param string $message	The error message, only used for ajax requests.
 	 */
 	private function error(int $status, string $message): void {
+		notice($message);
 		if ($this->is_json_request) {
 			http_status($status);
 			json_return_and_die([ 'status' => 'error', 'message' => $message ]);
-		} else {
-			http_status_exit($status, $message);
 		}
 	}
 
