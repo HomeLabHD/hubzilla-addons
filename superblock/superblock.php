@@ -2,7 +2,7 @@
 /**
  * Name: superblock
  * Description: block channels
- * Version: 2.1
+ * Version: 3.0
  * Author: Mike Macgirvin
  * Author: Harald Eilertsen
  * Maintainer: Mike Macgirvin <mike@macgirvin.com>
