@@ -1,7 +1,7 @@
 <?php
 /**
- * Name: superblock
- * Description: block channels
+ * Name: Superblock
+ * Description: Block and manage a block list of channels you don't want to see again.
  * Version: 3.0
  * Author: Mike Macgirvin
  * Author: Harald Eilertsen
