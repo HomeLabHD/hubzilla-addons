@@ -28,7 +28,7 @@
         "source": "https://framagit.org/hubzilla/addons/"
     },
     "require": {
-        "php": ">=8.1"
+        "php": ">=8.2"
     },
     "autoload": {
         "psr-4": {
@@ -42,6 +42,7 @@
     },
     "minimum-stability": "stable",
     "config": {
+		"vendor-dir": "addon_common/vendor",
         "notify-on-install": false,
         "optimize-autoloader": true
     }

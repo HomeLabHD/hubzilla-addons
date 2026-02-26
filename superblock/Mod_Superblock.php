@@ -15,7 +15,7 @@ use Zotlabs\Lib\Config;
 use Zotlabs\Lib\Libsync;
 use Zotlabs\Web\Controller;
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../addon_common/vendor/autoload.php';
 
 /**
  * Superblock module controller.

@@ -20,7 +20,7 @@ use Zotlabs\Tests\Unit\Module\KillmeException;
 use Zotlabs\Addons\Superblock\Superblock;
 use Zotlabs\Addons\Superblock\Tests\Helpers;
 
-require_once dirname(dirname(dirname(__DIR__))) . '/vendor/autoload.php';
+require_once dirname(dirname(dirname(__DIR__))) . '/addon_common/vendor/autoload.php';
 
 class ModSuperblockTest extends TestCase {
 

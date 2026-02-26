@@ -16,7 +16,7 @@
  *
  */
 
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../addon_common/vendor/autoload.php';
 
 use Zotlabs\Addons\Superblock\Superblock;
 use Zotlabs\Lib\Apps;

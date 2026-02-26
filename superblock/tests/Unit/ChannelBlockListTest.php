@@ -15,7 +15,7 @@ use PHPUnit\Framework\TestCase;
 use Zotlabs\Addons\Superblock\ChannelBlockList;
 use Zotlabs\Addons\Superblock\ConfigInterface;
 
-require_once dirname(dirname(dirname(__DIR__))) . '/vendor/autoload.php';
+require_once dirname(dirname(dirname(__DIR__))) . '/addon_common/vendor/autoload.php';
 
 class ChannelBlockListTest extends TestCase
 {
