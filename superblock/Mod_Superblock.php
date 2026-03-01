@@ -1,152 +1,236 @@
 <?php
+/*
+ * SPDX-FileCopyrightText: 2025 The Hubzilla Community
+ * SPDX-FileContributor: Harald Eilertsen <haraldei@anduin.net>
+ *
+ * SPDX-License-Identifier: MIT
+ */
 
 namespace Zotlabs\Module;
 
 use App;
+use Zotlabs\Addons\Superblock\Superblock as Plugin;
 use Zotlabs\Lib\Apps;
 use Zotlabs\Lib\Config;
 use Zotlabs\Lib\Libsync;
 use Zotlabs\Web\Controller;
 
+require_once __DIR__ . '/../addon_common/vendor/autoload.php';
+
+/**
+ * Superblock module controller.
+ *
+ * This module implements the request handler (Controller) for the main
+ * Superblock view.
+ */
 class Superblock extends Controller {
 
 	/**
 	 * The local channel id, or false.
 	 */
-	private $localChannel = false;
+	private int $localChannel;
 
 	/**
 	 * True if it's a json request.
 	 */
-	private $is_json_request = false;
+	private bool $is_json_request;
 
 	/**
-	 * Initialize the state needed for further request handling.
+	 * The request method used for this request.
 	 */
-	public function init(): void {
+	private string $request_method;
+
+	/**
+	 * True if the Superblock app is installed for the channel making the
+	 * request.
+	 */
+	private bool $app_installed;
+
+	/**
+	 * Validated parameters to the request.
+	 */
+	private ?array $params = null;
+
+	/**
+	 * Default constructor to initialize the state of the controller.
+	 */
+	public function __construct() {
 		$this->localChannel = local_channel();
 		$this->is_json_request =
 			$_SERVER['HTTP_CONTENT_TYPE'] === 'application/json';
+
+		$this->request_method = $_SERVER['REQUEST_METHOD'];
+
+		$this->app_installed = $this->localChannel
+			? Apps::addon_app_installed($this->localChannel, 'superblock')
+			: false;
 	}
 
-	public function post(): void {
+	/**
+	 * The init function is called before the actual request processing begins.
+	 */
+	public function init(): void {
+		//
+		// Validate access to the module here.
+		//
+		// Since the init function will be invoked before any of the other
+		// functions, we can validate the acces once and for all here.
+		//
 		$this->validate_access();
-		$params = $this->validate_params();
-		$this->check_security_token($params['form_security_token']);
+	}
 
-		switch ($params['action']) {
-			case 'siteblock':
-				if (!is_site_admin()) {
-					$this->error(403, 'You do not have access to perform this operation');
-				}
+	/**
+	 * Handle POST requests to the superblock endpoint.
+	 *
+	 * This will typically be invoked asynchronously through an AJAX call,
+	 * where the request parameters are passed in as a json object in the
+	 * request body. In this case it will also return a json object with the
+	 * result of the action in the response body, and processing terminates.
+	 *
+	 * It can also handle being invoked via a HTML form, in which
+	 * case the request parameters will be found in the PHP `$_POST`
+	 * superglobal, as normal. In this case the user is informed
+	 * about the result in a notification, and we fall through to the `get`
+	 * method for generating the HTML response to the request.
+	 *
+	 * The request parameters are:
+	 *
+	 *   - `action`: The action to perform (block, unblock or siteblock).
+	 *   - `author`: The author (channel) to block, either as an xchan hash or webbie.
+	 *   - `form_security_token`: CSRF token.
+	 *   - `item`: The item that the block is initiated from (unused at the moment).
+	 *
+	 * The `block` and `unblock` actions affect the block list for the channel invoking
+	 * the actions. The `siteblock` action affects the site wide block list, and is
+	 * only available to site administrators.
+	 */
+	public function post(): void {
+		$this->processPostRequest();
 
-				$author = $params['author'];
-				if (!$author) {
-					$this->error(400, 'Invalid xchan');
-				}
-
-				$author_xchan = xchan_fetch(['hash' => $author]);
-				if (!$author_xchan) {
-					$this->error(400, 'Unknown author');
-				}
-
-				$blocked = Config::Get('system', 'blacklisted_channels', '');
-				if (!in_array($author_xchan['hash'], $blocked)) {
-					$blocked[] = $author_xchan['hash'];
-					sort($blocked);
-					Config::Set('system', 'blacklisted_channels', $blocked);
-				}
-				$this->success($author_xchan['hash']);
-				break;
-
-			default:
-				$this->error(400, 'No action given');
+		if (!empty($this->error) && $this->is_json_request) {
+			http_status($this->error['status']);
+			json_return_and_die($this->error);
 		}
 	}
 
-	function get() {
-
-		if(! local_channel())
+	private function processPostRequest(): void {
+		if (!$this->validate_params()) {
 			return;
+		}
 
-		if(! Apps::addon_app_installed(local_channel(), 'superblock')) {
+		if (!$this->check_security_token($this->params['form_security_token'])) {
+			return;
+		}
+
+		$xchan = $this->findXChanFromAuthor($this->params['author']);
+		if (!$xchan) {
+			$this->error(400, t('Invalid or unknown channel'));
+			return;
+		}
+
+		$plugin = Plugin::getInstance($this->localChannel);
+
+		$msg = '';
+
+		switch ($this->params['action']) {
+			case 'block':
+				$plugin->blockChannel($xchan['hash']);
+				$msg = sprintf(t('blocked %s permanently'), $xchan['address']);
+				break;
+
+			case 'unblock':
+				$plugin->unblockChannel($xchan['hash']);
+				$msg = sprintf(t('removed %s from block list'), $xchan['address']);
+				break;
+
+			case 'siteblock':
+				$blocked = Config::Get('system', 'blacklisted_channels', []);
+				if (!in_array($xchan['hash'], $blocked)) {
+					$blocked[] = $xchan['hash'];
+					sort($blocked);
+					Config::Set('system', 'blacklisted_channels', $blocked);
+				}
+				$msg = sprintf(t('added %s to site block list'), $xchan['address']);
+				$this->success($msg);
+				break;
+
+			default:
+				$this->error(400, t('No action given'));
+				return;
+		}
+
+		if ($plugin->configChanged()) {
+			$plugin->save();
+			Libsync::build_sync_packet(local_channel(), [ 'config' ]);
+
+			$this->success($msg);
+		}
+	}
+
+	/**
+	 * Handle GET requests to the superblock endpoint.
+	 *
+	 * This also renders the result of a POST request with a HTML form payload.
+	 *
+	 * Renders a list of blocked channels, as well as actions for manipulating the
+	 * list.
+	 *
+	 * @return string	The rendered HTML of the request.
+	 */
+	function get(): string {
+		return $this->renderBlockList();
+	}
+
+	private function renderBlockList(): string {
+		$config_changed = false;
+
+		if (!$this->app_installed) {
 			//Do not display any associated widgets at this point
 			App::$pdl = '';
 			$papp = Apps::get_papp('Superblock');
 			return Apps::app_render($papp, 'module');
 		}
 
-		$words = get_pconfig(local_channel(),'system','blocked');
+		$plugin = Plugin::getInstance($this->localChannel);
+		$plugin->loadJavaScript();
 
-		//TODO: move this (config changes) to post()
-
-		if(array_key_exists('block',$_GET) && $_GET['block']) {
-			$r = q("select id from item where id = %d and author_xchan = '%s' limit 1",
-				intval($_GET['item']),
-				dbesc($_GET['block'])
-			);
-			if($r) {
-				if(strlen($words))
-					$words .= ',';
-				$words .= trim($_GET['block']);
-			}
-			$config_changed = true;
-		}
-
-		if(array_key_exists('unblock',$_GET) && $_GET['unblock']) {
-			if(check_form_security_token('superblock','sectok')) {
-				$newlist = [];
-				$list = explode(',',$words);
-				if($list) {
-					foreach($list as $li) {
-						if($li !== $_GET['unblock']) {
-							$newlist[] = $li;
-						}
-					}
-				}
-
-				$words = implode(',',$newlist);
-			}
-			$config_changed = true;
-		}
-
-		if($config_changed) {
-			set_pconfig(local_channel(),'system','blocked',$words);
-			Libsync::build_sync_packet(local_channel(), [ 'config' ]);
-
-			info( t('superblock settings updated') . EOL );
-		}
-
-		if(! $words)
-			$words = '';
-
-		$list = explode(',',$words);
+		$list = $plugin->getBlockedChannels();
 		stringify_array_elms($list,true);
 		$query_str = implode(',',$list);
 		if($query_str) {
 			$r = q("select * from xchan where xchan_hash in ( " . $query_str . " ) and xchan_hash != '' ");
 		}
-		else
+		else {
 			$r = [];
-
-		if($r) {
-			for($x = 0; $x < count($r); $x ++) {
-				$r[$x]['encoded_hash'] = urlencode($r[$x]['xchan_hash']);
-			}
 		}
 
 		$tpl = get_markup_template('superblock_list.tpl','addon/superblock');
 
-		$o = replace_macros($tpl, [
-			'$blocked' => t('Currently blocked'),
+		return replace_macros($tpl, [
+			'$title' => t('Your blocked channels'),
 			'$entries' => $r,
 			'$nothing' => (($r) ? '' : t('No channels currently blocked')),
 			'$token' => get_form_security_token('superblock'),
-			'$remove' => t('Remove')
+			'$remove' => t('Remove from blocklist'),
+			'$addBlockForm' => $this->renderAddBlockForm(),
 		]);
+	}
 
-		return $o;
-
+	private function renderAddBlockForm(): string {
+		$tpl = get_markup_template('superblock_add_block_form.tpl','addon/superblock');
+		return replace_macros($tpl, [
+			'$token' => get_form_security_token('superblock'),
+			'$authorInputField' => [
+				'author',						// name, id
+				t('Channel address (webbie):'),	// label
+			   	'',								// value
+				t('The address of the channel to block, typically like \'channel@example.com\'.'), // help text
+				'',								// additional label
+				'',								// additional attributes
+			],
+			'$blockChannelButtonText' => t('Block channel!'),
+			'$addNewEntryText' => t('Add new entry'),
+		]);
 	}
 
 	/**
@@ -163,15 +247,27 @@ class Superblock extends Controller {
 	 */
 	private function validate_access(): void {
 		if (!$this->localChannel) {
-			$this->error(403, 'Forbidden');
+			$this->error(401, 'Unauthorized');
 		}
 
-		if (!Apps::addon_app_installed($this->localChannel, 'superblock')) {
+		// Redirect POST requests to the APP description page if the APP is
+		// not installed
+		if ($this->request_method === 'POST' && !$this->app_installed) {
 			goaway('/superblock');
 		}
 	}
 
-	private function validate_params(): array {
+	/**
+	 * Validate and extract parameters for POST requests.
+	 *
+	 * The validated parameters are saved in the `$this->params` property.
+	 * Validates parameters passed in as either form params, or a JSON object.
+	 *
+	 * @sideeffect Modifies the `$params` property.
+	 *
+	 * @return bool `true` if the passed in params are valid, `false` otherwise.
+	 */
+	private function validate_params(): bool {
 		if ($this->is_json_request) {
 			$data = json_decode(file_get_contents('php://input'), true);
 		} else {
@@ -180,12 +276,12 @@ class Superblock extends Controller {
 
 		logger("Superblock POST: " . print_r($data, true), LOGGER_DEBUG);
 
-		return filter_var_array(
+		$this->params = filter_var_array(
 			$data,
 			[
 				'action' => [
 					'filter' => FILTER_VALIDATE_REGEXP,
-					'options' => ['regexp' => '/^siteblock$/']
+					'options' => ['regexp' => '/^(block|siteblock|unblock)$/']
 				],
 				'author' => [
 					'filter' => FILTER_DEFAULT,
@@ -196,46 +292,72 @@ class Superblock extends Controller {
 			],
 			true
 		);
+
+		if (empty($this->params['action'])) {
+			$this->error(400, t('no action specified'));
+			return false;
+		}
+
+		if (empty($this->params['author'])) {
+			$this->error(400, t('no channel specified'));
+			return false;
+		}
+
+		// Only admins can do a site block
+		if ($this->params['action'] === 'siteblock' && !is_site_admin()) {
+			$this->error(403, t('You do not have access to perform this operation'));
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
 	 * Function to wrap check_form_security_token, so we can verify the token
 	 * regardless of where it originates.
 	 *
-	 * **Note:** This function will only return if the token is valid.
-	 *
 	 * @param string $token		The token to check.
+	 *
+	 * @return `true` if the token is valid, `false` otherwise.
 	 */
-	private function check_security_token(string $token): void {
+	private function check_security_token(string $token): bool {
 		//
 		// Since `check_form_security_token` is hardcoded to only check the
 		// `$_REQUEST` superglobal for the token (a really bad idea!), we have
 		// to stuff our token into the superglobal to satisfy the call
 		//
+		// phpcs:disable Generic.PHP.DisallowRequestSuperglobal
 		$_REQUEST['form_security_token'] = $token;
 
 		if (!check_form_security_token('superblock')) {
-			$this->error(403, "Invalid or missing security token");
+			$this->error(403, t('Invalid or missing security token'));
+			return false;
 		}
+
+		return true;
+	}
+
+	private function findXChanFromAuthor(string $author): array|false {
+		$xchan = xchan_fetch(['hash' => $author]);
+
+		if (!$xchan) {
+			$xchan = xchan_fetch(['address' => $author]);
+		}
+
+		return $xchan;
 	}
 
 	/**
-	 * Return an error status for the request.
-	 *
-	 * If the request is an ajax request, a json object with `$message` is
-	 * returned. In any case the HTTP status code is set to `$status`.
-	 *
-	 * **Note:** This function will not return.
+	 * Convenience method to flag that the request should signal an error.
 	 *
 	 * @param int $status		The HTTP status code to return.
 	 * @param string $message	The error message, only used for ajax requests.
 	 */
 	private function error(int $status, string $message): void {
+		notice($message);
 		if ($this->is_json_request) {
 			http_status($status);
 			json_return_and_die([ 'status' => 'error', 'message' => $message ]);
-		} else {
-			http_status_exit($status);
 		}
 	}
 
@@ -249,13 +371,12 @@ class Superblock extends Controller {
 	 * **Note:** This function will not return if the request was a json
 	 * request.
 	 *
-	 * @param string $channel		The channel address that was blocked.
+	 * @param string $message		Success message for the calling user.
 	 */
-	private function success(string $channel): void {
-		$msg = t("{$channel} was added to the sitewide block list.");
-		info($msg);
+	private function success(string $message): void {
+		info($message);
 		if ($this->is_json_request) {
-			json_return_and_die([ 'status' => 'success', 'message' => $msg ]);
+			json_return_and_die([ 'status' => 'success', 'message' => $message ]);
 		}
 	}
 
