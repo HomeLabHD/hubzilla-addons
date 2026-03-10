@@ -1,0 +1,131 @@
+---
+xchan:
+  -
+    xchan_hash: YY1S7XHwfqtxZBr2WOZqe4PZ3dIeNqXbjwqzQuZsqx8qd9EcYHUuf8fOjxCQ7X5ZnR39P_c51VJRG8vMSxlaBg
+    xchan_guid: PWX-g8D1dtM0fTyY4p8SkPPQEjq-wQy0Dq6EphJiyDhR533arpeWuihyWDd8fws_2uhiblAT4710YMzjUzmR-w
+    xchan_guid_sig: sha256.b0THrmmL_hvaD-PF9GIw4FB9SBVsmtyI5Xt0aCf5Pq7XijYOmso1XGOykMk8NZEJul-XzeSCU36oUbXZuFR57wBd8ABL4w5fPdSgsee1TBenRRIMlIOSqZVBriowx0IPcQesDMf6KazPcGxprjvb_KtEk5PbY-Dc-bl1TRrenHTGxs6bXZYSLG1kkrSv77L5fUvNwj4CqdyKcG3EliwqDJxciJm9CzT9-CpqXhL8wuTL4IW6m-YZRNWy-ekzqY7mdt0r1fYJcgvCNqkLCVW63PHqI6LXtlNPxyx2Zoz6X_A76nB2B_J8ZpRLQHF-ZzO3RpeyV4nRjjyKUgPrk1ROy-jdjF2UO3Enr3XQO7m9jyoUQsYjU2aXpEuHUffSSCXtVfMFA0dyqUu3Wt7g2zWac3t-QfHWXqfwR-eOl_y6UnCS-ffNFetrUUToAeK5MXYxfkiZRUvn7uty8e2RK7aH54phci1Y9EGr-q9pmFgIkfsAsBy_SE8Pcj6u4NQ1sphm-jNLpeSCNYYneMX9KF9xvsWTbywye0s8si4BTtzj7k9ml1ITn50fT1b-IpigjETSMBkLm2daNLhkYp-bPYPeb5xOHj-zwuzje9R-fyoB528lfhFU6CG0CLcBcTyEZQWBqgt8sEZx7cfDXDCov-9F7rocDj5v0JIz1d-Eatp7Ano
+    xchan_pubkey: |
+      -----BEGIN PUBLIC KEY-----
+      MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAs4/WEfp0NM0uvirpZPAx
+      +Q0VRwBT5jrk60pav7BUtH6zu1+Ij7WgOFr8yxz4OJyDLID0jtn5jV6iV6IOFWRt
+      wuFbFX7jNQ8S7BdE6FaXSQwtD/flJbtOLPRE0GeQMp2eEtf5Na0Mq0K5SBuqrrfD
+      5Y7Z6YnCNd8VOAwE2ysB4heg9ZRkT7rkdmb6vmuMaevbQg+GSBMov81D2YqBQ3NG
+      t4onADdqZwn/0cKcEa9JnG/CAzCTHXxXWoW9p//35rnN7KH0/ou9SAdKHz19/Kuw
+      pxti7zTKjh/IXJ2SsCTFVeZXLSl0QIGb8yIi0XjIaHQ/O39Hq0dmwaP1/T453S2k
+      ED+7sMB6uT5NJnKHH53X7D9YMpkLZFRNI7OqzaUqe7xcOVh5Mi2jXdGwlOgLDrOz
+      TOH0kxZKrQfv7qJffSEPSrNaGXnOMf8c0Gnc+ltMr4tGfevnhN4IFbtcvaDnp2uX
+      WeYWm7vnnCO8I8awC4hwYc70VV5OiPWAQGIvdV9TQMb8IoU+QxEeBeotiEtemPOx
+      Ks6ZR+n0TO2YdRAtjwjeZQ5Dm6tUOCqWAa7X1YXpnmW5A73Ul4Ol1fGQ76r+jz6f
+      cujPdOLXL+cyP/KRQelVBJY81fjoii7UMOdg98EfozOdHrTXxsK/SA1yWnYTXzdv
+      GfMtsIhOPnZ1ub7JC2WJeuMCAwEAAQ==
+      -----END PUBLIC KEY-----
+    xchan_epubkey: z6MkwFxXJ3Mo1MdCPXvpBhgF8aFwHcMrETptKzns2nWp2sdF
+    xchan_photo_mimetype: image/jpeg
+    xchan_photo_l: https://hubzilla.ddev.site/photo/profile/l/2
+    xchan_photo_m: https://hubzilla.ddev.site/photo/profile/m/2
+    xchan_photo_s: https://hubzilla.ddev.site/photo/profile/s/2
+    xchan_addr: balle@hubzilla.ddev.site
+    xchan_url: https://hubzilla.ddev.site/channel/balle
+    xchan_connurl: https://hubzilla.ddev.site/poco/balle
+    xchan_follow: https://hubzilla.ddev.site/follow?f=&url=%s
+    xchan_connpage: ""
+    xchan_name: Balle Klorin
+    xchan_network: zot6
+    xchan_instance_url: ""
+    xchan_flags: 0
+    xchan_photo_date: "2026-02-26 15:16:18"
+    xchan_name_date: "2026-02-26 15:15:47"
+    xchan_updated: "0001-01-01 00:00:00"
+    xchan_hidden: 1
+    xchan_orphan: 0
+    xchan_censored: 0
+    xchan_selfcensored: 0
+    xchan_system: 0
+    xchan_pubforum: 0
+    xchan_deleted: 0
+  -
+    xchan_hash: iHaieXV4WeNWwp-8K3aI8gn3iZNtnSAWvTN8AIh2Yj7KGo0mbEjrgWVTmOjzC9i3Kvw770DZSbpbO5RNy7h6oQ
+    xchan_guid: GXhOFwpxVDdO95P7EIqlMYBnH5pmCS-71NAANvPII4dCVNeR_bdoocwlEy1hkrilg0uqH2WYVfw6oV6AWDqBuw
+    xchan_guid_sig: sha256.jGgYBegyz1fBELngcL3ydm6TMBuVZNTB19G7i52PeiFpJItTtMhir4xW67ucUOWWipJ3rdET-0T1Ky2sOy0uVjdcDaHJieolxDTvQO6dBt4qFEwEJ0LeF5Fx1xMEgHqRJ0-4v3yYBSaL0w9rqJfY-NHF0trdpjiV55GAb-AJHsd9ZjbSE6qBIQKsM2Qu8f-19kGT-8GOtF4U-Va_mNB56vDu7yGM7Bnwmrb9g-Q96qq9GVEo6JCgCtIpXjLyL0KYJSv7xOe9Dk20iFq0CBAsiWDQfybPSM2tTQudPwJEBv8PsUCjSROekgnnnBBM8ap3SYIEYzMJ6XNbkO1IFPsDvbhKQ1JmK8qXE1scBqTHzw-vFXX2jlCrUErXCB5PPxUcD7uTknw2FEkJ2Qyxh1X1QtAzffNhswbk4U0YbWLrIDlsx-M8qGm4M35t6sduyPCWmqtHx4T1QJrlggy-E9RSTm21eJAs_x4HYZeeMUfiKJBnwcGsdlOkJmSeAVCw3xPOpPzo03U6cc05dV6NWEcSMeRJ_SQ0XjkzU0d8OATouh7jSTDUzXthLZZ7bnIHvPCMlGorkXFdlsDUrKq-ZmRmXyvnRjLuLj0ncAZbKMBVxyhsrJjl_afFkUlHhsWY8hpf0dJ25dH2BiKCsWo6AxdRgdlQl9C4dyNK37pPklk1mMY
+    xchan_pubkey: |
+      -----BEGIN PUBLIC KEY-----
+      MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA0QskE74Qzj1LnIrggofJ
+      BgFt0/Vi6a/VKwWa+QmqlNm8xa1tmABMOG9g6rnrRX4Bx5XahZq43gRD7sb7N2pR
+      Q9GseGDRydNpARm4NYag/C6dZUq58ALb/MZgrx55z+zT0Y6oj9aJRqCOeERb8xvm
+      2mkNxI/IRlNfhH7oag5r3UmRaHqFOwUslQfAWt5SLlC9CqxW9nsxhXt507gwvy6w
+      adsQYb/3aXrEGQnu7DYvFWMtlsxZgQmWMeYyDdH+Ogk0cGkHKAhBGpzx423u47kT
+      YCyoMPihIN4VHhF+jfwN0vu83kNBXbm8xQENtPlREoA++SYDCJNzcP6BBEkKa89x
+      JrjBvcJXYSqh8GoJJaR3l/yLA/8F9LOt0bV6hB+ZkVN4M0UbpDUcmTyDl7ESXNAF
+      lAp6/Y2tWlUuGXNhpppwPScL769YbgeImW4lYgQawDuU1rgK9ecJJd8bCHrlqyzx
+      wiTnTZSGKr2IYZgMTpK5jxEplQyjQEDbh54LjJQhUFaABGCNTQqEpH102sUTjisY
+      4ZZ0HWt5vtW8tPR//eTLd8mrL2BLFTC6A35yFUs+PnM32xrYq0PCM176sh9hUn5f
+      Gm1GH7BjI+tTrTN5YxFLA5hYr+I9Pnd8mq22tgylpPLyuMKjbTf6pXlgu5xz8BFd
+      S2OgXYYoKEf2v0QtbdmN1QUCAwEAAQ==
+      -----END PUBLIC KEY-----
+    xchan_epubkey: z6MkmHnqySom3JWkfAxifWN6TKV42bGa1tfngcpCua2vHysP
+    xchan_photo_mimetype: image/jpeg
+    xchan_photo_l: https://hubzilla.ddev.site/photo/profile/l/3
+    xchan_photo_m: https://hubzilla.ddev.site/photo/profile/m/3
+    xchan_photo_s: https://hubzilla.ddev.site/photo/profile/s/3
+    xchan_addr: gorgon@hubzilla.ddev.site
+    xchan_url: https://hubzilla.ddev.site/channel/gorgon
+    xchan_connurl: https://hubzilla.ddev.site/poco/gorgon
+    xchan_follow: https://hubzilla.ddev.site/follow?f=&url=%s
+    xchan_connpage: ""
+    xchan_name: Gorgon Vaktmester
+    xchan_network: zot6
+    xchan_instance_url: ""
+    xchan_flags: 0
+    xchan_photo_date: "2026-03-08 21:29:28"
+    xchan_name_date: "2026-03-08 21:27:28"
+    xchan_updated: "0001-01-01 00:00:00"
+    xchan_hidden: 1
+    xchan_orphan: 0
+    xchan_censored: 0
+    xchan_selfcensored: 0
+    xchan_system: 0
+    xchan_pubforum: 0
+    xchan_deleted: 0
+  -
+    xchan_hash: WMlGrldALbJRPfyl9CgPF1Ixhsg-K2HAJ8Q3PxXwPZcMoe2bDWL88oEBJy3z8XkzJjrTxuyKR4oHkZubBvBoHw
+    xchan_guid: GrWl8pyeZ4nVzLwGYhyTErYYzqgea9Iys5WJXuMWPe84CkXDZOtPvMHGM073yTb8mJVvzaKPoC-3KXA0MOl5EQ
+    xchan_guid_sig: sha256.I3Z4qRragF7uyUuVzGKoPIGmHMrM9Xj45YAyAoxPkUiM93jKc1cDMpPv6UmMyt9cBBkcPXqQoLLRubbvM-mi7Jsmfz-r5n-BcCHb8JZMJ9ZtgvjFkXEijJArRe9ytbooESfmwqMWaW46jUHPAqtKp1qQzQJRoHPluMabX-2XcyovUb06NsoxBgB3i1FUnw-HAaNU-wUCcOc6Drhlr-BZp-0zCJxqvKDeXjgZnAjwncPSrcAGJwbsZWEVjRrmteS4pcRZU7EaRtdWsTwNXXTOBvP8zl4EgWJYBTVXaAk76SpjU5cNpiaIkurTbUl8n8SMSw6tDk8qCM0PWTqR7KdMcMxhZYQ9qjg1-1T1r7TtB6GOSY_Z9bphvy-SMTuc6bN3CJHVuFSZPId3nmIHqgc9MdbzJ5pwewL4vEPTPqLgHWDCrxKZJklMgLp56VaOkCDpUglPz_nO8RHrElL7KSko3LbOCNONwfb8wAVd2QXx8Uj4sCjHN9ntEN3bTXeU5pnbdbcrzTd9aBZuISe2RP-OyHi7cy45uoO8Upfqf1bkkGrE4obh2Og4_5Qy14Yi0Z_ubpzhxnDQhLRK9gH1dR3GSdNptpCX-U_49acQfD8bhdF1TtOZvHXrMpTRiUk0UXbn7tO9zmwYLFsfQa1A0bnfeONFlxBiVcvSqYIUOJq1WwI
+    xchan_pubkey: |
+      -----BEGIN PUBLIC KEY-----
+      MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAx4WCNYhCFWgvZDSICUvo
+      UJlXZzqggzaUGgMKMhwLvZ5SwXkOQ6RUncjIKLZbim/e2vo6OivPE2lFCfgimokJ
+      Koyo0q3UDZ/p07sebE7mHvE7owCt+sNO2HXbM0RHwXWzbRuz6f/P5x7qFRHzMO9a
+      41lYnW5brYbOcJi0ybjDbKqksBGpyuiI2s7APSspJDdsP5UeWhWcdNB+tqtPxuK/
+      OhaJ7rlyl3csj1Dlt2ZDM9cORyq5Wudu/VT46FW6p3hL2B6LdP3xdkg9+csp8cBp
+      sDy+axralO8MWrDRPM9Sl4XOjwbRYzDIwMoSIUkPeFn1pUWDpGF5+P+lnkuOLT+a
+      9gcHeW5gH9S06gtjMMh6I613wMkv5eD+xJ9Dl9tf/hOMWU/N8Tk/hBGbYwNzqoBW
+      T8W6toEQocRy9gplE7OGwoIukBYTXAuOn3DvN2byxuf8r1UXuyYZz6yPIt1R0QfV
+      HYO9ToZoeQZl5jn7YhNYEHp2vWd0/LGx4iny0dkyTUgWlZ+UtfbVacKFwCLL9d1H
+      yq2RH0mhNd7SAUFTGAMbDXtIIMLzlrhvCqG+V+XhK9Q8zjUJJVrB0PERxSh5Tg/H
+      Bp1X4EKW44qP/XIDmgEQCeQcUjrsL+X7QOO0WYulegU4wjo8ume1Gejou3OAEMRL
+      flSE/+n4EmzcA0q/Xpm7d/cCAwEAAQ==
+      -----END PUBLIC KEY-----
+    xchan_epubkey: z6MkhhSQCjSrgeYEq96CcwEN3ixtVajQwtkW998GHMFpMyFd
+    xchan_photo_mimetype: image/jpeg
+    xchan_photo_l: https://hubzilla.ddev.site/photo/profile/l/4
+    xchan_photo_m: https://hubzilla.ddev.site/photo/profile/m/4
+    xchan_photo_s: https://hubzilla.ddev.site/photo/profile/s/4
+    xchan_addr: pompel@hubzilla.ddev.site
+    xchan_url: https://hubzilla.ddev.site/channel/pompel
+    xchan_connurl: https://hubzilla.ddev.site/poco/pompel
+    xchan_follow: https://hubzilla.ddev.site/follow?f=&url=%s
+    xchan_connpage: ""
+    xchan_name: Pompel
+    xchan_network: zot6
+    xchan_instance_url: ""
+    xchan_flags: 0
+    xchan_photo_date: "2026-03-08 21:35:01"
+    xchan_name_date: "2026-03-08 21:32:38"
+    xchan_updated: "0001-01-01 00:00:00"
+    xchan_hidden: 1
+    xchan_orphan: 0
+    xchan_censored: 0
+    xchan_selfcensored: 0
+    xchan_system: 0
+    xchan_pubforum: 0
+    xchan_deleted: 0

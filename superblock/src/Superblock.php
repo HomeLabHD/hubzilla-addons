@@ -10,6 +10,21 @@ namespace Zotlabs\Addons\Superblock;
 
 use App;
 
+// array_find is defined in PHP 8.4 or higher, so for earlier PHP versions we
+// define it here.
+if (!function_exists('array_find')) {
+
+	function array_find(array $array, callable $callback): mixed {
+		foreach ($array as $key => $entry) {
+			if ($callback($entry, $key) === true) {
+				return $entry;
+			}
+		}
+
+		return null;
+	}
+}
+
 /**
  * Superblock addon class.
  *
@@ -162,7 +177,59 @@ class Superblock
 	}
 
 	public function filterItem(array &$item): bool {
-		return (isset($item['author_xchan']) && $this->blockList->match($item['author_xchan']))
-			|| (isset($item['owner_xchan']) && $this->blockList->match($item['owner_xchan']));
+		// Block item if author, or owner is blocked
+		if ((isset($item['author_xchan']) && $this->blockList->match($item['author_xchan']))
+			|| (isset($item['owner_xchan']) && $this->blockList->match($item['owner_xchan'])))
+		{
+			return true;
+		}
+
+		if (!empty($item['body'])) {
+			//
+			// If the post contains a reshare of a post by a channel we have blocked,
+			// we also want to block this post.
+			//
+			$num_shares = preg_match_all('/\[share\s+([^]]*)\]/s', $item['body'], $matches);
+			if ($num_shares > 0) {
+				//
+				// The first entry in the array is an array of the full matches.
+				// We're not interested in them, so we only check the second entry
+				// which contains an array of the captures from the regexp above.
+				//
+				return array_find($matches[1], fn ($m) => $this->filterShare($m)) !== null;
+			}
+		}
+
+		return false;
+	}
+
+	private function filterShare(string $attrs): bool {
+		if (preg_match("/profile='([^']*)'/s", $attrs, $match) > 0) {
+			$profile_url = $match[1];
+
+			if (!empty($profile_url)) {
+				return $this->filterByProfileUrl($profile_url);
+			}
+		}
+
+		return false;
+	}
+
+	private function filterByProfileUrl(string $profile_url): bool {
+		//
+		// We should ideally not have to query the db directly here, but core
+		// does not (yet) provide an API we can use to get the xchan entry from
+		// the URL.
+		//
+		$result = q('select xchan_hash from xchan where xchan_url=\'%s\'', dbesc($profile_url));
+		if ($result !== false) {
+			$xchan = array_find(
+				$result[0],
+				fn ($hash) => $this->blockList->match($hash));
+
+			return $xchan !== null;
+		}
+
+		return false;
 	}
 }

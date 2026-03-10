@@ -82,6 +82,48 @@ class SuperblockTest extends UnitTestCase {
 		}
 	}
 
+	/*
+	 * Blocked channels are visible through reshares
+	 *
+	 * Test to ensure that posts containing a reshare of a bost from a blocked
+	 * channel is itself blocked.
+	 *
+	 * Issue: https://framagit.org/hubzilla/addons/-/issues/121
+	 */
+	public function testBlockingReshares(): void {
+		$this->loadFixture(dirname(__DIR__) . '/fixtures/xchan.yml');
+
+		$author = $this->fixtures['xchan'][1];
+		$share_author = $this->fixtures['xchan'][2];
+
+		$args = [
+			'item' => [
+				'author_xchan' => $author['xchan_hash'],
+				'owner_xchan' => $author['xchan_hash'],
+				'body' => <<<BODY
+					[share author='{$share_author['xchan_name']}'
+						profile='{$share_author['xchan_url']}'
+						avatar='{$share_author['xchan_photo_s']}'
+						link='https://hubzilla.ddev.site/item/685e81c5-c8c3-444a-bbe4-ae6659d0dd41'
+						auth='true'
+						posted='2026-03-08 21:35:49'
+						message_id='https://hubzilla.ddev.site/item/685e81c5-c8c3-444a-bbe4-ae6659d0dd41'
+						quote='true'
+					]Hei og hå, her skal det reparares![/share]\r
+
+					Pompel er på hugget!
+					BODY
+			]
+		];
+
+		$plugin = Superblock::getInstance($this->channel['channel_id']);
+		$plugin->blockChannel($share_author['xchan_hash']);
+
+		call_hooks('stream_item', $args);
+
+		$this->assertTrue($args['item']['blocked']);
+	}
+
 	public function testFilterChildItems(): void {
 		$children_with_blocked_authors = array_map(
 			fn ($author) => [
