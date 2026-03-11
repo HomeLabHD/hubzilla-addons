@@ -157,7 +157,7 @@ class Wopi extends Controller {
 				killme();
 			}
 
-			http_status_exit(200, 'OK');
+			http_status_exit(400, 'Bad Request');
 		}
 
 		// Init redirect to WOPI client if applicable
