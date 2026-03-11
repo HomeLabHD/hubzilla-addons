@@ -152,7 +152,9 @@ class Wopi extends Controller {
 			}
 
 			if (argc() === 4 && argv(3) === 'contents') {
+				http_response_code(200);
 				echo file_get_contents($file['data']['content']);
+				killme();
 			}
 
 			http_status_exit(200, 'OK');
