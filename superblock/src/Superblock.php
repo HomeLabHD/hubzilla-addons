@@ -222,7 +222,7 @@ class Superblock
 		// the URL.
 		//
 		$result = q('select xchan_hash from xchan where xchan_url=\'%s\'', dbesc($profile_url));
-		if ($result !== false) {
+		if ($result) {
 			$xchan = array_find(
 				$result[0],
 				fn ($hash) => $this->blockList->match($hash));
