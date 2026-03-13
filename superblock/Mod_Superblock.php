@@ -57,7 +57,7 @@ class Superblock extends Controller {
 	public function __construct() {
 		$this->localChannel = local_channel();
 		$this->is_json_request =
-			$_SERVER['HTTP_CONTENT_TYPE'] === 'application/json';
+			isset($_SERVER['HTTP_CONTENT_TYPE']) && $_SERVER['HTTP_CONTENT_TYPE'] === 'application/json';
 
 		$this->request_method = $_SERVER['REQUEST_METHOD'];
 
