@@ -954,8 +954,14 @@ function diaspora_discover(&$b) {
 		// Some Friendica sites will have Diaspora disabled.
 		if($dfrn)
 			$network = 'friendica-over-diaspora';
+
 		if($hcard) {
-			$vcard = scrape_vcard($hcard);
+			$vcard = scrape_vcard($hcard, 'Diaspora/2');
+			if(!$vcard) {
+				logger('could not scrape vcard: ' . print_r($b,true));
+				return;
+			}
+
 			$vcard['nick'] = substr($webbie,0,strpos($webbie,'@'));
 			if(! $vcard['fn'])
 				$vcard['fn'] = $webbie;

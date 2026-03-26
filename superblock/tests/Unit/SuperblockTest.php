@@ -8,15 +8,21 @@
  * SPDX-License-Identifier: MIT
  */
 
-namespace Zotlabs\Addons\Superblock\Tests;
+namespace Zotlabs\Addons\Superblock\Tests\Unit;
 
+use App;
 use PHPUnit\Framework\Attributes\{Before, After};
+use Zotlabs\Addons\Superblock\Superblock;
+use Zotlabs\Addons\Superblock\Tests\Helpers;
 use Zotlabs\Lib\Apps;
 use Zotlabs\Lib\Config;
 use Zotlabs\Lib\PConfig;
 use Zotlabs\Tests\Unit\UnitTestCase;
 
 class SuperblockTest extends UnitTestCase {
+
+	use Helpers\PluginHelperTrait;
+
 	private array $channel = [];
 
 	private const BLOCKED_CHANNELS = [
@@ -32,20 +38,19 @@ class SuperblockTest extends UnitTestCase {
 
 	#[Before]
 	public function prepare_test(): void {
-		$this->channel = $this->fixtures['channel'][0];
-		$this->start_session();
+		$this->channel = $this->fixtures['channel'][1];
+		$this->startSession($this->channel);
 		$this->setup_channel();
-
-		install_plugin('superblock');
-		load_hooks();
 	}
 
-	#[After]
-	public function cleanup(): void {
-		unload_plugin('superblock');
+	public function testGetListOfBlockedChannels(): void {
+		$plugin = Superblock::getInstance($this->channel['channel_id']);
+		$list = $plugin->getBlockedChannels();
 
-		session_abort();
-		$_SESSION = [];
+		$this->assertIsArray($list);
+		$this->assertContains('blockeduser@somesite.test', $list);
+		$this->assertContains('evil@othersite.test', $list);
+		$this->assertContains('upyours@arse.test', $list);
 	}
 
 	public function testItemFromBlockedUserShouldBeBlocked(): void {
@@ -75,6 +80,88 @@ class SuperblockTest extends UnitTestCase {
 				$this->assertTrue($this->checkIfItemIsBlocked($author, $owner));
 			}
 		}
+	}
+
+	/*
+	 * Blocked channels are visible through reshares
+	 *
+	 * Test to ensure that posts containing a reshare of a bost from a blocked
+	 * channel is itself blocked.
+	 *
+	 * Issue: https://framagit.org/hubzilla/addons/-/issues/121
+	 */
+	public function testBlockingReshares(): void {
+		$this->loadFixture(dirname(__DIR__) . '/fixtures/xchan.yml');
+
+		$author = $this->fixtures['xchan'][1];
+		$share_author = $this->fixtures['xchan'][2];
+
+		$args = [
+			'item' => [
+				'author_xchan' => $author['xchan_hash'],
+				'owner_xchan' => $author['xchan_hash'],
+				'body' => <<<BODY
+					[share author='{$share_author['xchan_name']}'
+						profile='{$share_author['xchan_url']}'
+						avatar='{$share_author['xchan_photo_s']}'
+						link='https://hubzilla.ddev.site/item/685e81c5-c8c3-444a-bbe4-ae6659d0dd41'
+						auth='true'
+						posted='2026-03-08 21:35:49'
+						message_id='https://hubzilla.ddev.site/item/685e81c5-c8c3-444a-bbe4-ae6659d0dd41'
+						quote='true'
+					]Hei og hå, her skal det reparares![/share]\r
+
+					Pompel er på hugget!
+					BODY
+			]
+		];
+
+		$plugin = Superblock::getInstance($this->channel['channel_id']);
+		$plugin->blockChannel($share_author['xchan_hash']);
+
+		call_hooks('stream_item', $args);
+
+		$this->assertTrue($args['item']['blocked']);
+	}
+
+	/*
+	 * Test to make sure we're able to handle users with no xchan entry.
+	 *
+	 * These will not be blocked, but should also not cause errors in the addon.
+	 */
+	public function testReshareFromUnknownUserIsNotBlocked(): void {
+		$this->loadFixture(dirname(__DIR__) . '/fixtures/xchan.yml');
+
+		$author = $this->fixtures['xchan'][1];
+		$share_author = $this->fixtures['xchan'][2];
+
+		$args = [
+			'item' => [
+				'author_xchan' => $author['xchan_hash'],
+				'owner_xchan' => $author['xchan_hash'],
+				'body' => <<<BODY
+					[share author='Unknown User'
+						profile='https://someplace.test/@unknown'
+						avatar='https://someplace.test/photos/unkown.jpg'
+						link='https://hubzilla.ddev.site/item/685e81c5-c8c3-444a-bbe4-ae6659d0dd41'
+						auth='true'
+						posted='2026-03-08 21:35:49'
+						message_id='https://hubzilla.ddev.site/item/685e81c5-c8c3-444a-bbe4-ae6659d0dd41'
+						quote='true'
+					]Hei og hå, her skal det reparares![/share]\r
+
+					Pompel er på hugget!
+					BODY
+			]
+		];
+
+		$plugin = Superblock::getInstance($this->channel['channel_id']);
+		$plugin->blockChannel($share_author['xchan_hash']);
+
+		call_hooks('stream_item', $args);
+
+		$this->assertArrayNotHasKey('blocked', $args['item']);
+
 	}
 
 	public function testFilterChildItems(): void {
@@ -133,6 +220,18 @@ class SuperblockTest extends UnitTestCase {
 	private function shouldBlockedItem(array $item): bool {
 		return in_array($item['author_xchan'], self::BLOCKED_CHANNELS) ||
 			in_array($item['owner_xchan'], self::BLOCKED_CHANNELS);
+	}
+
+	public function testAddingNewBlock(): void {
+		$newBlock = 'anotherblockeduser@example.test';
+
+		$this->assertFalse($this->checkIfItemIsBlocked($newBlock, $newBlock));
+
+		$sb = Superblock::getInstance($this->channel['channel_id']);
+		$sb->blockChannel($newBlock);
+		$sb->save();
+
+		$this->assertTrue($this->checkIfItemIsBlocked($newBlock, $newBlock));
 	}
 
 	/**
@@ -197,6 +296,30 @@ class SuperblockTest extends UnitTestCase {
 
 		call_hooks('item_store', $item);
 		return isset($item['cancel']) ? $item['cancel'] : false;
+	}
+
+	/**
+	 * Superblock may be invoked for different channels in the same session.
+	 * Make sure we don't use the same blocklist for different channels.
+	 */
+	public function testDontUseSameBlocklistForDifferentChannels(): void {
+		$first = Superblock::getInstance($this->channel['channel_id']);
+		$other = Superblock::getInstance($this->channel['channel_id'] + 1);
+
+		$item = [
+			'uid' => $this->channel['channel_id'],
+			'item_wall' => true,
+			'author_xchan' => self::BLOCKED_CHANNELS[0],
+			'owner_xchan' => self::BLOCKED_CHANNELS[0],
+		];
+
+		$other->cancelItem($item);
+		$this->assertArrayNotHasKey('cancel', $item);
+
+		$first->cancelItem($item);
+
+		$this->assertArrayHasKey('cancel', $item);
+		$this->assertTrue($item['cancel']);
 	}
 
 	public function testPMFromBlockedUsersShouldBeBlocked(): void {
@@ -389,21 +512,72 @@ class SuperblockTest extends UnitTestCase {
 		}
 	}
 
-	private function start_session(): void {
-		session_start();
+	#[BackupStaticProperties(App::class)]
+	public function testAddingPhotoMenuForNonBlockedChannels(): void {
+		App::$data['superblock'] = self::BLOCKED_CHANNELS;
+		App::$channel['channel_hash'] = 'someone else';
+		App::$account = [ 'account_roles' => 0 ];
 
-		$_SESSION['authenticated'] = true;
-		$_SESSION['uid'] = $this->channel['channel_id'];
+		foreach (self::NONBLOCKED_CHANNELS as $author) {
+			$args = [
+				'item' => [ 'id' => 42, 'author_xchan' => $author ],
+				'menu' => [],
+			];
+
+			call_hooks('thread_author_menu', $args);
+
+			$this->assertArrayHasKey('menu', $args['menu'][0]);
+			$this->assertEquals('superblock', $args['menu'][0]['menu']);
+
+			$this->assertArrayHasKey('action', $args['menu'][0]);
+			$this->assertStringContainsString(
+				"superblockAjax('block', '{$author}', 42);",
+				$args['menu'][0]['action']
+			);
+		}
+	}
+
+	#[BackupStaticProperties(App::class)]
+	public function testDontAddPhotoMenuForBlockedChannels(): void {
+		App::$data['superblock'] = self::BLOCKED_CHANNELS;
+		App::$channel['channel_hash'] = 'someone else';
+
+		foreach (self::BLOCKED_CHANNELS as $author) {
+			$args = [
+				'item' => [ 'id' => 42, 'author_xchan' => $author ],
+				'menu' => [],
+			];
+
+			call_hooks('thread_author_menu', $args);
+
+			$this->assertEmpty($args['menu']);
+		}
+	}
+
+	#[BackupStaticProperties(App::class)]
+	public function testDontAddPhotoMenuForSelf(): void {
+		App::$data['superblock'] = self::BLOCKED_CHANNELS;
+		App::$channel['channel_hash'] = 'someone else';
+
+		foreach (self::NONBLOCKED_CHANNELS as $author) {
+			$args = [
+				'item' => [ 'id' => 42, 'author_xchan' => $author ],
+				'menu' => [],
+			];
+
+			App::$channel['channel_hash'] = $author;
+
+			call_hooks('thread_author_menu', $args);
+
+			$this->assertEmpty($args['menu']);
+		}
 	}
 
 	/**
 	 * Install the addon and set the blocklist.
 	 */
 	private function setup_channel(): void {
-		$app = Apps::parse_app_description(__DIR__ . '/../../superblock.apd', false, false);
-		$app['plugin'] = 'superblock';
-		Apps::app_install(0, $app);
-		Apps::app_install($this->channel['channel_id'], $app);
+		$this->installPluginApp($this->channel);
 
 		PConfig::Set(
 			$this->channel['channel_id'],

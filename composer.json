@@ -1,0 +1,50 @@
+{
+    "name": "zotlabs/hubzilla-addons",
+    "type": "application",
+    "description": "Official addons for the Hubzilla fediverse server",
+    "keywords": [
+        "addon",
+        "plugin",
+		"hubzilla"
+    ],
+    "homepage": "http://framagit.org/hubzilla/addons/",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mike Macgirvin",
+            "role": "founder"
+        },
+		{
+			"name": "Mario Vavti",
+			"role": "Lead Developer"
+		},
+		{
+			"name": "Harald Eilertsen",
+			"role": "Contributor"
+		}
+    ],
+    "support": {
+        "issues": "https://framagit.org/hubzilla/addons/issues",
+        "source": "https://framagit.org/hubzilla/addons/"
+    },
+    "require": {
+        "php": ">=8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Zotlabs\\Addons\\Superblock\\": "superblock/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Zotlabs\\Addons\\Superblock\\Tests\\": "superblock/tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "config": {
+		"vendor-dir": "addon_common/vendor",
+        "notify-on-install": false,
+        "optimize-autoloader": true
+    }
+}
+

@@ -1701,7 +1701,6 @@ class Diaspora_Receiver {
 		}
 
 		$post_type = (($parent_item['resource_type'] === 'photo') ? t('photo') : t('status'));
-		$links     = [['rel' => 'alternate', 'type' => 'text/html', 'href' => $item_author['plink']]];
 		$objtype   = (($parent_item['resource_type'] === 'photo') ? 'Image' : 'Note');
 		$object    = \Zotlabs\Lib\Activity::fetch_item(['id' => $thr_parent['mid']]);
 
