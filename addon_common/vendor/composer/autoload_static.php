@@ -10,6 +10,7 @@ class ComposerStaticInit68112c3d238e97818c4d5ad2d946142b
         'Z' =>
         array (
             'Zotlabs\\Addons\\Superblock\\' => 26,
+            'Zotlabs\\Addons\\SimpleNotes\\' => 27,
         ),
     );
 
@@ -18,10 +19,18 @@ class ComposerStaticInit68112c3d238e97818c4d5ad2d946142b
         array (
             0 => __DIR__ . '/../../..' . '/superblock/src',
         ),
+        'Zotlabs\\Addons\\SimpleNotes\\' =>
+        array (
+            0 => __DIR__ . '/../../..' . '/simplenotes/Lib',
+        ),
     );
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'Zotlabs\\Addons\\SimpleNotes\\ChecklistItem' => __DIR__ . '/../../..' . '/simplenotes/Lib/ChecklistItem.php',
+        'Zotlabs\\Addons\\SimpleNotes\\ChecklistNote' => __DIR__ . '/../../..' . '/simplenotes/Lib/ChecklistNote.php',
+        'Zotlabs\\Addons\\SimpleNotes\\SimpleNote' => __DIR__ . '/../../..' . '/simplenotes/Lib/SimpleNote.php',
+        'Zotlabs\\Addons\\SimpleNotes\\TextNote' => __DIR__ . '/../../..' . '/simplenotes/Lib/TextNote.php',
         'Zotlabs\\Addons\\Superblock\\ChannelBlockList' => __DIR__ . '/../../..' . '/superblock/src/ChannelBlockList.php',
         'Zotlabs\\Addons\\Superblock\\ConfigInterface' => __DIR__ . '/../../..' . '/superblock/src/ConfigInterface.php',
         'Zotlabs\\Addons\\Superblock\\PConfigAdapter' => __DIR__ . '/../../..' . '/superblock/src/PConfigAdapter.php',
