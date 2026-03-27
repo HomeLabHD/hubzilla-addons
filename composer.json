@@ -32,12 +32,14 @@
     },
     "autoload": {
         "psr-4": {
-            "Zotlabs\\Addons\\Superblock\\": "superblock/src/"
+            "Zotlabs\\Addons\\Superblock\\": "superblock/src/",
+            "Zotlabs\\Addons\\SimpleNotes\\": "simplenotes/Lib/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Zotlabs\\Addons\\Superblock\\Tests\\": "superblock/tests/"
+            "Zotlabs\\Addons\\Superblock\\Tests\\": "superblock/tests/",
+            "Zotlabs\\Addons\\SimpleNotes\\Tests\\": "simplenotes/tests/"
         }
     },
     "minimum-stability": "stable",

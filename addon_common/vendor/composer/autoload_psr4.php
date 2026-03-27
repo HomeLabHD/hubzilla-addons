@@ -7,4 +7,5 @@ $baseDir = dirname(dirname($vendorDir));
 
 return array(
     'Zotlabs\\Addons\\Superblock\\' => array($baseDir . '/superblock/src'),
+    'Zotlabs\\Addons\\SimpleNotes\\' => array($baseDir . '/simplenotes/Lib'),
 );

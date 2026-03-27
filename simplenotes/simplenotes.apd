@@ -1,0 +1,7 @@
+version: 1
+url: $baseurl/simplenotes, $baseurl/settings/simplenotes
+requires: local_channel
+name: Simple Notes
+photo: icon:sticky
+categories: Productivity
+desc: The Hubzilla counterpart to the [url=https://github.com/inventory69/simple-notes-sync]Simple Notes Sync[/url] app
