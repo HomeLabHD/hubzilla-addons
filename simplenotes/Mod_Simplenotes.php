@@ -110,7 +110,7 @@ class Simplenotes extends Controller {
 			$prepared['updated']['timestamp'] = $note_object->createdAt;
 			$prepared['updated']['date'] = date('Y-m-d H:i:s', $note_object->updatedAt/1000);
 			$prepared['created']['timestamp'] = $note_object->createdAt;
-			$prepared['created']['date'] = date('Y-m-d H:i:s', $note_object->cretatedAt/1000);
+			$prepared['created']['date'] = date('Y-m-d H:i:s', $note_object->createdAt/1000);
 			$prepared['type'] = escape_tags($note_object->noteType);
 
 			$items[] = $prepared;
