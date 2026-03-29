@@ -117,7 +117,7 @@ class Simplenotes extends Controller {
 			}
 
 			$prepared['content']['encoded'] = base64_encode($note_object->content);
-			$prepared['updated']['timestamp'] = $note_object->createdAt;
+			$prepared['updated']['timestamp'] = $note_object->updatedAt;
 			$prepared['updated']['date'] = date('Y-m-d H:i:s', $note_object->updatedAt/1000);
 			$prepared['created']['timestamp'] = $note_object->createdAt;
 			$prepared['created']['date'] = date('Y-m-d H:i:s', $note_object->createdAt/1000);
