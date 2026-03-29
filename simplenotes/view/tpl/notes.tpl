@@ -55,12 +55,6 @@
 	</div>
 </div>
 
-<style>
-	.note-content ul {
-		padding-left: 0;
-	}
-</style>
-
 <script src="addon/simplenotes/view/js/masonry/masonry.pkgd.min.js"></script>
 <script>
 	function utf8ToBase64(str) {

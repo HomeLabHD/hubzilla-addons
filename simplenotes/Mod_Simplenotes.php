@@ -9,6 +9,7 @@ use Zotlabs\Web\Controller;
 use Zotlabs\Storage\Directory;
 use Zotlabs\Storage\File;
 use Zotlabs\Storage\BasicAuth;
+use Michelf\Markdown;
 
 require_once __DIR__ . '/../addon_common/vendor/autoload.php';
 
@@ -105,7 +106,16 @@ class Simplenotes extends Controller {
 			$prepared['id'] = escape_tags($note_object->id);
 			$prepared['title']['parsed'] = escape_tags($note_object->title);
 			$prepared['title']['encoded'] = base64_encode($note_object->title);
-			$prepared['content']['parsed'] = bbcode(($note_object->noteType === 'CHECKLIST') ? '[checklist]' . str_replace('[ ]', '[]', $note_object->content) . '[/checklist]' : $note_object->content);
+
+			if ($note_object->noteType === 'CHECKLIST') {
+				$prepared['content']['parsed'] = str_replace(['[ ]', '[x]'], ['<input type="checkbox" disabled="disabled">', '<input type="checkbox" checked="checked" disabled="disabled">'], nl2br($note_object->content));
+			}
+			else {
+				$parser = new Markdown;
+				$parser->hard_wrap = true; // mimic the md behaviour of the companion app
+				$prepared['content']['parsed'] = $parser->transform($note_object->content);
+			}
+
 			$prepared['content']['encoded'] = base64_encode($note_object->content);
 			$prepared['updated']['timestamp'] = $note_object->createdAt;
 			$prepared['updated']['date'] = date('Y-m-d H:i:s', $note_object->updatedAt/1000);
