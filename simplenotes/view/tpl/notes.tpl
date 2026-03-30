@@ -1,6 +1,6 @@
 <div class="simplenotes_notes_container row">
 	{{foreach $items as $i}}
-	<div class="col-md-4 pb-4 simplenotes_note" data-id="{{$i.id}}" data-created="{{$i.created.timestamp}}" data-updated="{{$i.updated.timestamp}}" data-title="{{$i.title.encoded}}" data-content="{{$i.content.encoded}}" data-type="{{$i.type}}">
+	<div class="col-md-6 pb-4 simplenotes_note" data-id="{{$i.id}}" data-created="{{$i.created.timestamp}}" data-updated="{{$i.updated.timestamp}}" data-title="{{$i.title.encoded}}" data-content="{{$i.content.encoded}}" data-type="{{$i.type}}">
 		<div class="card {{if $i.type === 'TEXT'}}bg-warning-subtle text-warning-emphasis{{else}}bg-info-subtle text-info-emphasis{{/if}}">
 			<div class="card-body">
 				<div class="note-title h4">
