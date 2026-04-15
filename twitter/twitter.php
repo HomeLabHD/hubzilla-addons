@@ -595,7 +595,7 @@ function twitter_expand_entities($body, $item, $no_tags = false, $dontincludemed
 		}
 
 		foreach ($item->entities->user_mentions AS $mention) {
-			$url = "@[url=https://twitter.com/".rawurlencode($mention->screen_name)."]".$mention->screen_name."[/url]";
+			$url = "[url=https://twitter.com/".rawurlencode($mention->screen_name)."]@".$mention->screen_name."[/url]";
 			$tags_arr["@".$mention->screen_name] = $url;
 			$body = str_replace("@".$mention->screen_name, $url, $body);
 		}
@@ -620,7 +620,7 @@ function twitter_expand_entities($body, $item, $no_tags = false, $dontincludemed
 						continue;
 
 					$basetag = str_replace('_',' ',substr($tag,1));
-					$url = '#[url='.z_root().'/search?tag='.rawurlencode($basetag).']'.$basetag.'[/url]';
+					$url = '[url='.z_root().'/search?tag='.rawurlencode($basetag).']#'.$basetag.'[/url]';
 					$body = str_replace($tag,$url,$body);
 					$tags_arr["#".$basetag] = $url;
 					continue;
@@ -629,7 +629,7 @@ function twitter_expand_entities($body, $item, $no_tags = false, $dontincludemed
                 	                        continue;
 
 					$basetag = substr($tag,1);
-					$url = '@[url=https://twitter.com/'.rawurlencode($basetag).']'.$basetag.'[/url]';
+					$url = '[url=https://twitter.com/'.rawurlencode($basetag).']@'.$basetag.'[/url]';
 					$body = str_replace($tag,$url,$body);
 					$tags_arr["@".$basetag] = $url;
 				}

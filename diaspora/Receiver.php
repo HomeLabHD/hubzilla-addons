@@ -262,9 +262,7 @@ class Diaspora_Receiver {
 			}
 		}
 
-
 		$body = markdown_to_bb($this->get_body(), false, ['diaspora' => true]);
-
 
 		// photo could be a single photo or an array of photos.
 		// Turn singles into an array of one.
@@ -372,7 +370,7 @@ class Diaspora_Receiver {
 		}
 
 
-		$cnt = preg_match_all('/@\[url=(.*?)\](.*?)\[\/url\]/ism', $body, $matches, PREG_SET_ORDER);
+		$cnt = preg_match_all('/\[url=(.*?)\]@(.*?)\[\/url\]/ism', $body, $matches, PREG_SET_ORDER);
 		if ($cnt) {
 			foreach ($matches as $mtch) {
 				$datarray['term'][] = [
@@ -385,7 +383,7 @@ class Diaspora_Receiver {
 			}
 		}
 
-		$cnt = preg_match_all('/@\[zrl=(.*?)\](.*?)\[\/zrl\]/ism', $body, $matches, PREG_SET_ORDER);
+		$cnt = preg_match_all('/\[zrl=(.*?)\]@(.*?)\[\/zrl\]/ism', $body, $matches, PREG_SET_ORDER);
 		if ($cnt) {
 			foreach ($matches as $mtch) {
 				$datarray['term'][] = [
@@ -398,6 +396,7 @@ class Diaspora_Receiver {
 			}
 		}
 
+/* bang tags have been deprecated but might come back again
 		$cnt = preg_match_all('/\!\[url=(.*?)\](.*?)\[\/url\]/ism', $body, $matches, PREG_SET_ORDER);
 		if ($cnt) {
 			foreach ($matches as $mtch) {
@@ -423,7 +422,7 @@ class Diaspora_Receiver {
 				];
 			}
 		}
-
+*/
 
 		$plink = service_plink($xchan, $guid);
 
@@ -643,7 +642,7 @@ class Diaspora_Receiver {
 			}
 		}
 
-		$cnt = preg_match_all('/@\[url=(.*?)\](.*?)\[\/url\]/ism',$body,$matches,PREG_SET_ORDER);
+		$cnt = preg_match_all('/\[url=(.*?)\]@(.*?)\[\/url\]/ism',$body,$matches,PREG_SET_ORDER);
 		if($cnt) {
 			foreach($matches as $mtch) {
 				$datarray['term'][] = array(
@@ -656,7 +655,7 @@ class Diaspora_Receiver {
 			}
 		}
 
-		$cnt = preg_match_all('/@\[zrl=(.*?)\](.*?)\[\/zrl\]/ism',$body,$matches,PREG_SET_ORDER);
+		$cnt = preg_match_all('/\[zrl=(.*?)\]@(.*?)\[\/zrl\]/ism',$body,$matches,PREG_SET_ORDER);
 		if($cnt) {
 			foreach($matches as $mtch) {
 				$datarray['term'][] = array(
@@ -990,7 +989,7 @@ class Diaspora_Receiver {
 			}
 		}
 
-		$cnt = preg_match_all('/@\[url=(.*?)\](.*?)\[\/url\]/ism', $body, $matches, PREG_SET_ORDER);
+		$cnt = preg_match_all('/\[url=(.*?)\]@(.*?)\[\/url\]/ism', $body, $matches, PREG_SET_ORDER);
 		if ($cnt) {
 			foreach ($matches as $mtch) {
 				$datarray['term'][] = [
@@ -1003,7 +1002,7 @@ class Diaspora_Receiver {
 			}
 		}
 
-		$cnt = preg_match_all('/@\[zrl=(.*?)\](.*?)\[\/zrl\]/ism', $body, $matches, PREG_SET_ORDER);
+		$cnt = preg_match_all('/\[zrl=(.*?)\]@(.*?)\[\/zrl\]/ism', $body, $matches, PREG_SET_ORDER);
 		if ($cnt) {
 			foreach ($matches as $mtch) {
 				$datarray['term'][] = [
@@ -1235,7 +1234,7 @@ class Diaspora_Receiver {
 			}
 		}
 
-		$cnt = preg_match_all('/@\[url=(.*?)\](.*?)\[\/url\]/ism', $body, $matches, PREG_SET_ORDER);
+		$cnt = preg_match_all('/\[url=(.*?)\]@(.*?)\[\/url\]/ism', $body, $matches, PREG_SET_ORDER);
 		if ($cnt) {
 			foreach ($matches as $mtch) {
 				$datarray['term'][] = [
@@ -1248,7 +1247,7 @@ class Diaspora_Receiver {
 			}
 		}
 
-		$cnt = preg_match_all('/@\[zrl=(.*?)\](.*?)\[\/zrl\]/ism', $body, $matches, PREG_SET_ORDER);
+		$cnt = preg_match_all('/\[zrl=(.*?)\]@(.*?)\[\/zrl\]/ism', $body, $matches, PREG_SET_ORDER);
 		if ($cnt) {
 			foreach ($matches as $mtch) {
 				$datarray['term'][] = [
@@ -1381,7 +1380,7 @@ class Diaspora_Receiver {
 			}
 		}
 
-		$cnt = preg_match_all('/@\[url=(.*?)\](.*?)\[\/url\]/ism', $body, $matches, PREG_SET_ORDER);
+		$cnt = preg_match_all('/\[url=(.*?)\]@(.*?)\[\/url\]/ism', $body, $matches, PREG_SET_ORDER);
 		if ($cnt) {
 			foreach ($matches as $mtch) {
 				$datarray['term'][] = [
@@ -1394,7 +1393,7 @@ class Diaspora_Receiver {
 			}
 		}
 
-		$cnt = preg_match_all('/@\[zrl=(.*?)\](.*?)\[\/zrl\]/ism', $body, $matches, PREG_SET_ORDER);
+		$cnt = preg_match_all('/\[zrl=(.*?)\]@(.*?)\[\/zrl\]/ism', $body, $matches, PREG_SET_ORDER);
 		if ($cnt) {
 			foreach ($matches as $mtch) {
 				$datarray['term'][] = [
