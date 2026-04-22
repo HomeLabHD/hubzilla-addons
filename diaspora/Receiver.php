@@ -1025,7 +1025,7 @@ class Diaspora_Receiver {
 		$datarray['mid']        = z_root() . '/item/' . $guid;
 		$datarray['uuid']       = $guid;
 		$datarray['parent_mid'] = $parent_item['mid'];
-		$datarray['thr_parent'] = $thr_parent;
+		$datarray['thr_parent'] = z_root() . '/item/' . $thr_parent;
 
 		// use a URI for thr_parent if we have it
 
@@ -2266,7 +2266,7 @@ class Diaspora_Receiver {
 		$arr['parent_mid'] = $parent_item['mid'];
 
 		if($parent_item['uuid'] !== $parent_guid)
-			$arr['thr_parent'] = $parent_guid;
+			$arr['thr_parent'] = z_root() . '/activity/' . $parent_guid;
 
 		$arr['owner_xchan'] = $parent_item['owner_xchan'];
 		$arr['author_xchan'] = $person['xchan_hash'];
