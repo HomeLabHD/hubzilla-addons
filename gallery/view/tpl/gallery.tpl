@@ -36,7 +36,7 @@
 			pswp_init(items, album);
 		}
 
-		{{if ! $aj}}
+		{{if !$aj}}
 		$(document).on('click', '.init-gallery', function() {
 			album_id = $(this).data('aid');
 			album = $(this).data('album');
@@ -112,12 +112,15 @@
 			});
 		});
 
+
+		{{if $observer_url}}
 		if (album) {
 			let i;
 
 			for(i = 0; i < (items.length > 8 ? 8 : items.length); i++) {
 				share_str += '[zrl=' + encodeURIComponent(baseurl + '/gallery/' + {{$channel_nick}} + '/' + album + '?f=%23%26gid=1%26pid=' + (i+1)) + '][zmg]' + encodeURIComponent(items[i].src) + '[/zmg][/zrl]';
 			}
+
 			share_str += '[zrl=' + {{$observer_url}} + ']' + {{$observer_name}} + '[/zrl] shared [zrl=' + {{$channel_url}} + ']' + {{$channel_name}} + '[/zrl]\'s [zrl=' + encodeURIComponent(baseurl + '/gallery/' + {{$channel_nick}} + '/' + album) + ']album[/zrl] ' + encodeURIComponent(album) + ' (' + items.length + ' images)';
 
 			if (share_str) {
@@ -140,6 +143,7 @@
 				});
 			}
 		}
+		{{/if}}
 
 		lightbox.init();
 		lightbox.loadAndOpen(0);
