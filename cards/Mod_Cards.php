@@ -67,11 +67,11 @@ class Cards extends Controller {
 
 
 		$category = (($_REQUEST['cat']) ? escape_tags(trim($_REQUEST['cat'])) : '');
+		$sql_extra2 = '';
 
 		if($category) {
 			$sql_extra2 .= protect_sprintf(term_item_parent_query(App::$profile['profile_uid'], 'item', $category, TERM_CATEGORY));
 		}
-
 
 		$which = argv(1);
 
