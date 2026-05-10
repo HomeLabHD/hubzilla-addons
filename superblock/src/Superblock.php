@@ -215,7 +215,26 @@ class Superblock
 		return false;
 	}
 
+	/**
+	 * Check whether we should filter this profile URL.
+	 *
+	 * This function will return true if the given profile URL matches
+	 * a blocked profile either by xchan hash or xchan URL.
+	 *
+	 * @param string $profile_url
+	 *		The URL to check.
+	 *
+	 * @return bool
+	 *		True if the profile URL should be filtered, false otherwise.
+	 */
 	private function filterByProfileUrl(string $profile_url): bool {
+		//
+		// First check if the profile URL matches the xchan hash
+		//
+		if ($this->blockList->match($profile_url)) {
+			return true;
+		}
+
 		//
 		// We should ideally not have to query the db directly here, but core
 		// does not (yet) provide an API we can use to get the xchan entry from

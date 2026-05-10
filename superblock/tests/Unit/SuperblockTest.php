@@ -96,8 +96,11 @@ class SuperblockTest extends UnitTestCase {
 		$author = $this->fixtures['xchan'][1];
 		$share_author = $this->fixtures['xchan'][2];
 
-		$args = [
-			'item' => [
+		$plugin = Superblock::getInstance($this->channel['channel_id']);
+		$plugin->blockChannel($share_author['xchan_hash']);
+
+		$items = [
+			'reshare with blocked author' => [
 				'author_xchan' => $author['xchan_hash'],
 				'owner_xchan' => $author['xchan_hash'],
 				'body' => <<<BODY
@@ -113,15 +116,32 @@ class SuperblockTest extends UnitTestCase {
 
 					Pompel er på hugget!
 					BODY
-			]
+			],
+			'reshare with blocked author hash' => [
+				'author_xchan' => $author['xchan_hash'],
+				'owner_xchan' => $author['xchan_hash'],
+				'body' => <<<BODY
+					[share author='{$share_author['xchan_name']}'
+						profile='{$share_author['xchan_hash']}'
+						avatar='{$share_author['xchan_photo_s']}'
+						link='https://hubzilla.ddev.site/item/685e81c5-c8c3-444a-bbe4-ae6659d0dd41'
+						auth='true'
+						posted='2026-03-08 21:35:49'
+						message_id='https://hubzilla.ddev.site/item/685e81c5-c8c3-444a-bbe4-ae6659d0dd41'
+						quote='true'
+					]Hei og hå, her skal det reparares![/share]\r
+
+					Pompel er på hugget!
+					BODY
+			],
 		];
 
-		$plugin = Superblock::getInstance($this->channel['channel_id']);
-		$plugin->blockChannel($share_author['xchan_hash']);
+		foreach ($items as $descr => $item) {
+			$args = ['item' => $item];
+			call_hooks('stream_item', $args);
 
-		call_hooks('stream_item', $args);
-
-		$this->assertTrue($args['item']['blocked']);
+			$this->assertTrue($args['item']['blocked'], $descr);
+		}
 	}
 
 	/*
