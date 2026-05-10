@@ -11,7 +11,7 @@
 namespace Zotlabs\Addons\Superblock\Tests\Unit;
 
 use App;
-use PHPUnit\Framework\Attributes\{Before, After};
+use PHPUnit\Framework\Attributes\{BackupStaticProperties, Before, After};
 use Zotlabs\Addons\Superblock\Superblock;
 use Zotlabs\Addons\Superblock\Tests\Helpers;
 use Zotlabs\Lib\Apps;
