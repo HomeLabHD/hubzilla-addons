@@ -10,51 +10,52 @@
  * MinVErsion: 10.0
  */
 
-/**
- * This function uses some helper code in include/conversation; which handles filtering item authors.
- * Those function should ultimately be moved to this plugin.
- *
- */
-
 require_once __DIR__ . '/../addon_common/vendor/autoload.php';
 
 use Zotlabs\Addons\Superblock\Superblock;
 use Zotlabs\Lib\Apps;
+use Zotlabs\Extend\Hook;
 use Zotlabs\Extend\Route;
 
-function superblock_load() {
+/**
+ * Setup the addon when enabled.
+ *
+ * Called when the addon is enabled by the site administrator.
+ *
+ * Registers the hooks we want to listen to, and a route for
+ * the superblock user facing app page.
+ */
+function superblock_load(): void
+{
+	$hooks = [
+		'activity_widget' => 'superblock_activity_widget',
+		'api_format_items' => 'superblock_api_format_items',
+		'conversation_start' => 'superblock_conversation_start',
+		'directory_item' => 'superblock_directory_item',
+		'enotify_format' => 'superblock_enotify_format',
+		'enotify_store' => 'superblock_enotify_store',
+		'item_store' => 'superblock_item_store',
+		'messages_widget' => 'superblock_messages_widget',
+		'post_mail' => 'superblock_post_mail',
+		'stream_item' => 'superblock_stream_item',
+		'thread_author_menu' => 'superblock_item_photo_menu',
+	];
 
-	register_hook('conversation_start', 'addon/superblock/superblock.php', 'superblock_conversation_start');
-	register_hook('thread_author_menu', 'addon/superblock/superblock.php', 'superblock_item_photo_menu');
-	register_hook('enotify_store', 'addon/superblock/superblock.php', 'superblock_enotify_store');
-	register_hook('enotify_format', 'addon/superblock/superblock.php', 'superblock_enotify_format');
-	register_hook('messages_widget', 'addon/superblock/superblock.php', 'superblock_messages_widget');
-	register_hook('item_store', 'addon/superblock/superblock.php', 'superblock_item_store');
-	register_hook('directory_item', 'addon/superblock/superblock.php', 'superblock_directory_item');
-	register_hook('api_format_items', 'addon/superblock/superblock.php', 'superblock_api_format_items');
-	register_hook('stream_item', 'addon/superblock/superblock.php', 'superblock_stream_item');
-	register_hook('post_mail', 'addon/superblock/superblock.php', 'superblock_post_mail');
-	register_hook('activity_widget', 'addon/superblock/superblock.php', 'superblock_activity_widget');
+	Hook::register_array('addon/superblock/superblock.php', $hooks);
 	Route::register('addon/superblock/Mod_Superblock.php','superblock');
-
 }
 
 
-function superblock_unload() {
-
-	unregister_hook('conversation_start', 'addon/superblock/superblock.php', 'superblock_conversation_start');
-	unregister_hook('thread_author_menu', 'addon/superblock/superblock.php', 'superblock_item_photo_menu');
-	unregister_hook('enotify_store', 'addon/superblock/superblock.php', 'superblock_enotify_store');
-	unregister_hook('enotify_format', 'addon/superblock/superblock.php', 'superblock_enotify_format');
-	unregister_hook('messages_widget', 'addon/superblock/superblock.php', 'superblock_messages_widget');
-	unregister_hook('item_store', 'addon/superblock/superblock.php', 'superblock_item_store');
-	unregister_hook('directory_item', 'addon/superblock/superblock.php', 'superblock_directory_item');
-	unregister_hook('api_format_items', 'addon/superblock/superblock.php', 'superblock_api_format_items');
-	unregister_hook('stream_item', 'addon/superblock/superblock.php', 'superblock_stream_item');
-	unregister_hook('post_mail', 'addon/superblock/superblock.php', 'superblock_post_mail');
-	unregister_hook('activity_widget', 'addon/superblock/superblock.php', 'superblock_activity_widget');
+/**
+ * Unregister the addon.
+ *
+ * Called when the addon is disabled by the site administrator,
+ * and cleans up after the addon.
+ */
+function superblock_unload(): void
+{
+	Hook::unregister_by_file('addon/superblock/superblock.php');
 	Route::unregister('addon/superblock/Mod_Superblock.php','superblock');
-
 }
 
 function superblock_stream_item(&$b)
