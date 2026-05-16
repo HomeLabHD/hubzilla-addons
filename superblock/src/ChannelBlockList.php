@@ -41,8 +41,8 @@ class ChannelBlockList
 	 * @param string $channel   The channel to block, either as a webbie, url
 	 *                          or xchan hash.
 	 */
-	public function add(string $channel): void {
-		$this->list[] = new ChannelBlock($channel);
+	public function add(array $data): void {
+		$this->list[] = new ChannelBlock($data);
 		$this->dirty = true;
 	}
 
@@ -71,12 +71,12 @@ class ChannelBlockList
 		//
 		if (is_array($data)) {
 			$this->list = array_map(
-				fn (array $s) => new ChannelBlock($s['hash']),
+				fn (array $s) => new ChannelBlock($s),
 				$data
 			);
 		} else {
 			$this->list = array_map(
-				fn (string $s) => new ChannelBlock($s),
+				fn (string $s) => new ChannelBlock(['hash' => $s]),
 				array_filter(
 					explode(',', $data),
 					fn ($hash) => !empty(trim($hash))
@@ -86,18 +86,22 @@ class ChannelBlockList
 	}
 
 	/**
-	 * Check if a channel name matches the block list.
+	 * Check if a channel matches the block list.
 	 *
-	 * @param string $n		The channel name to match against the list.
+	 * @param string $hash
+	 *		The channel hash to match against the list.
 	 *
-	 * @return bool		`true` if the channel matches, `false` otherwise.
+	 * @return bool
+	 *		`true` if the channel matches, `false` otherwise.
 	 */
 	public function match(string $n): bool {
 		$trimmed = trim($n);
 
-		return !!array_find(
+		$channelBlock = array_find(
 			$this->list,
 		   	fn (ChannelBlock $cb) => $trimmed === $cb->hash);
+
+		return $channelBlock !== null && $channelBlock->validate();
 	}
 
 	/**

@@ -10,6 +10,9 @@
 
 namespace Zotlabs\Addons\Superblock\Tests\Unit;
 
+use DateTimeImmutable;
+use DateTimeInterface;
+use DateTimeZone;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Zotlabs\Addons\Superblock\ChannelBlock;
@@ -60,7 +63,7 @@ class ChannelBlockListTest extends TestCase
 		$blockList = new ChannelBlockList(43, $dummyConfig);
 		$this->assertFalse($blockList->isModified());
 
-		$blockList->add('gangster@scarface.test');
+		$blockList->add(['hash' => 'gangster@scarface.test']);
 
 		$this->assertTrue($blockList->isModified());
 		$this->assertTrue($blockList->match('gangster@scarface.test'));
@@ -96,6 +99,10 @@ class ChannelBlockListTest extends TestCase
 	 * testChannelBlockList function.
 	 */
 	public static function blockListProvider(): array {
+		$utc = new DateTimeZone('UTC');
+		$tomorrow = new DateTimeImmutable('tomorrow', $utc);
+		$yesterday = new DateTimeImmutable('yesterday', $utc);
+
 		return [
 			'hash should not match when no block list' => [
 				'blocked@example.test',
@@ -150,6 +157,29 @@ class ChannelBlockListTest extends TestCase
 				],
 				true,
 			],
+			'block not yet expired should match' => [
+				'blocked@example.test',
+				[
+					[ 'hash' => 'somechan@example.test' ],
+					[
+						'hash' => 'blocked@example.test',
+						'until' => $tomorrow->format(DateTimeInterface::ISO8601),
+					],
+				],
+				true,
+			],
+			'expired block should not match' => [
+				'blocked@example.test',
+				[
+					[ 'hash' => 'somechan@example.test' ],
+					[
+						'hash' => 'blocked@example.test',
+						'until' => $yesterday->format(DateTimeInterface::ISO8601),
+					],
+				],
+				false,
+			],
+
 		];
 	}
 }

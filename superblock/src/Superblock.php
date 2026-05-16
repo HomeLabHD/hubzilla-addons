@@ -100,7 +100,7 @@ class Superblock
 	}
 
 	public function blockChannel(string $channel): void {
-		$this->blockList->add($channel);
+		$this->blockList->add(['hash' => $channel]);
 	}
 
 	public function unblockChannel(string $channel): void {
