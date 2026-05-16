@@ -48,9 +48,9 @@ class SuperblockTest extends UnitTestCase {
 		$list = $plugin->getBlockedChannels();
 
 		$this->assertIsArray($list);
-		$this->assertContains('blockeduser@somesite.test', $list);
-		$this->assertContains('evil@othersite.test', $list);
-		$this->assertContains('upyours@arse.test', $list);
+		$this->assertNotNull(array_find($list, fn ($cb) => $cb->hash == 'blockeduser@somesite.test'));
+		$this->assertNotNull(array_find($list, fn ($cb) => $cb->hash == 'evil@othersite.test'));
+		$this->assertNotNull(array_find($list, fn ($cb) => $cb->hash == 'upyours@arse.test'));
 	}
 
 	public function testItemFromBlockedUserShouldBeBlocked(): void {

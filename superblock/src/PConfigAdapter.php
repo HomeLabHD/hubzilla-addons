@@ -25,7 +25,7 @@ class PConfigAdapter implements ConfigInterface
 		$data = PConfig::Get($channelId, self::FAMILY, self::KEY);
 
 		return array_map(
-			fn (string $s): string => trim($s),
+			fn (string $s) => new ChannelBlock(trim($s)),
 			explode(',', $data)
 		);
 	}
@@ -35,7 +35,7 @@ class PConfigAdapter implements ConfigInterface
 			$channelId,
 			self::FAMILY,
 			self::KEY,
-			implode(',', $blockList)
+			implode(',', array_map(fn ($cb) => $cb->hash, $blockList))
 		);
 	}
 }

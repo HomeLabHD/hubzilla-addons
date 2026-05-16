@@ -18,7 +18,7 @@ class ChannelBlockList
 	private $channelId;
 	private ConfigInterface $config;
 	private bool $dirty;
-	private $list = [];
+	private array $list = [];
 
 	/**
 	 * Initialize with the blocklist for the given channel.
@@ -42,12 +42,12 @@ class ChannelBlockList
 	 *                          or xchan hash.
 	 */
 	public function add(string $channel): void {
-		$this->list[] = $channel;
+		$this->list[] = new ChannelBlock($channel);
 		$this->dirty = true;
 	}
 
 	public function remove(string $channel): void {
-		$this->list = array_filter($this->list, fn($ch) => $ch !== $channel);
+		$this->list = array_filter($this->list, fn($ch) => $ch->hash !== $channel);
 		$this->dirty = true;
 	}
 
@@ -63,7 +63,8 @@ class ChannelBlockList
 	 * Loads the block list from the configuration of the channel.
 	 */
 	private function loadBlockList(): void {
-		$this->list = $this->config->getBlockedChannels($this->channelId);
+		$entries = $this->config->getBlockedChannels($this->channelId);
+		$this->list = array_filter($entries, fn ($cb) => !empty($cb->hash));
 	}
 
 	/**
@@ -75,7 +76,10 @@ class ChannelBlockList
 	 */
 	public function match(string $n): bool {
 		$trimmed = trim($n);
-		return !empty($trimmed) && in_array($trimmed, $this->list);
+
+		return !!array_find(
+			$this->list,
+		   	fn (ChannelBlock $cb) => $trimmed === $cb->hash);
 	}
 
 	/**

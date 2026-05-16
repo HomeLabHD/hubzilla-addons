@@ -12,6 +12,7 @@ namespace Zotlabs\Addons\Superblock\Tests\Unit;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Zotlabs\Addons\Superblock\ChannelBlock;
 use Zotlabs\Addons\Superblock\ChannelBlockList;
 use Zotlabs\Addons\Superblock\ConfigInterface;
 
@@ -30,7 +31,9 @@ class ChannelBlockListTest extends TestCase
 			public function __construct(private string $blocked) {}
 			public function getBlockedChannels(int $channelId): array {
 				return $channelId
-					? array_map(fn (string $s): string => trim($s), explode(',', $this->blocked))
+					? array_map(
+						fn (string $s) => new ChannelBlock($s),
+					   	explode(',', $this->blocked))
 					: [];
 			}
 			public function saveBlockedChannels(int $channelId, array $blockList): void {
@@ -73,7 +76,7 @@ class ChannelBlockListTest extends TestCase
 		$dummyConfig = new class() implements ConfigInterface {
 			public function __construct() {}
 			public function getBlockedChannels(int $channelId): array {
-				return ['gangster@scarface.test', 'lowlife@mob.test'];
+				return [new ChannelBlock('gangster@scarface.test'), new ChannelBlock('lowlife@mob.test')];
 			}
 			public function saveBlockedChannels(int $channelId, array $blockList): void {
 			}

@@ -197,8 +197,7 @@ class Superblock extends Controller {
 		$plugin->loadJavaScript();
 
 		$list = $plugin->getBlockedChannels();
-		stringify_array_elms($list,true);
-		$query_str = implode(',',$list);
+		$query_str = implode(',', array_map(fn ($cb) => "'" . dbesc($cb->hash) . "'", $list));
 		if($query_str) {
 			$r = q("select * from xchan where xchan_hash in ( " . $query_str . " ) and xchan_hash != '' ");
 		}
