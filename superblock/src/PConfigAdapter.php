@@ -21,13 +21,8 @@ class PConfigAdapter implements ConfigInterface
 	private const FAMILY = 'system';
 	private const KEY = 'blocked';
 
-	public function getBlockedChannels(int $channelId): array {
-		$data = PConfig::Get($channelId, self::FAMILY, self::KEY);
-
-		return array_map(
-			fn (string $s) => new ChannelBlock(trim($s)),
-			explode(',', $data)
-		);
+	public function getBlockedChannels(int $channelId): mixed {
+		return PConfig::Get($channelId, self::FAMILY, self::KEY);
 	}
 
 	public function saveBlockedChannels(int $channelId, array $blockList): void {
@@ -35,7 +30,7 @@ class PConfigAdapter implements ConfigInterface
 			$channelId,
 			self::FAMILY,
 			self::KEY,
-			implode(',', array_map(fn ($cb) => $cb->hash, $blockList))
+			implode(',', $blockList)
 		);
 	}
 }

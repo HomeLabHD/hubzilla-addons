@@ -23,10 +23,10 @@ interface ConfigInterface
 	 * @param int $channelId
 	 *		The id of the channel whose block to load.
 	 *
-	 * @return array<ChannelBlock>
-	 *		An arry of ChannelBlock objects.
+	 * @return string
+	 *		The raw block list as a string as persisted in the configuration.
 	 */
-	public function getBlockedChannels(int $channelId): array;
+	public function getBlockedChannels(int $channelId): mixed;
 
 	/**
 	 * Save the block list in the configuration for a given channel.
@@ -34,8 +34,8 @@ interface ConfigInterface
 	 * @param int $channelId
 	 *		The id of the channel whose blocklist should be saved to the
 	 *		configuration.
-	 * @param array<ChannelBlock> $blockList
-	 *		An array of channels to be blocked.
+	 * @param array $blockList
+	 *		An array of channel hashes to be blocked.
 	 */
 	public function saveBlockedChannels(int $channelId, array $blockList): void;
 }

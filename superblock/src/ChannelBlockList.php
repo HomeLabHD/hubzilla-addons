@@ -63,8 +63,26 @@ class ChannelBlockList
 	 * Loads the block list from the configuration of the channel.
 	 */
 	private function loadBlockList(): void {
-		$entries = $this->config->getBlockedChannels($this->channelId);
-		$this->list = array_filter($entries, fn ($cb) => !empty($cb->hash));
+		$data = $this->config->getBlockedChannels($this->channelId);
+
+		//
+		// We expect the config to return an array of key => value pairs, or a
+		// comma separated string of just channel hashes.
+		//
+		if (is_array($data)) {
+			$this->list = array_map(
+				fn (array $s) => new ChannelBlock($s['hash']),
+				$data
+			);
+		} else {
+			$this->list = array_map(
+				fn (string $s) => new ChannelBlock($s),
+				array_filter(
+					explode(',', $data),
+					fn ($hash) => !empty(trim($hash))
+				)
+			);
+		}
 	}
 
 	/**
@@ -89,7 +107,10 @@ class ChannelBlockList
 	 * passed in the constructor.
 	 */
 	public function save(): void {
-		$this->config->saveBlockedChannels($this->channelId, $this->list);
+		$this->config->saveBlockedChannels(
+			$this->channelId,
+		   	array_map(fn ($cb) => $cb->hash, $this->list));
+
 		$this->loadBlockList();
 	}
 }

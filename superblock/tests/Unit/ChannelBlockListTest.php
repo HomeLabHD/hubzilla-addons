@@ -21,20 +21,16 @@ require_once dirname(dirname(dirname(__DIR__))) . '/addon_common/vendor/autoload
 class ChannelBlockListTest extends TestCase
 {
 	#[DataProvider('blockListProvider')]
-	public function testChannelBlockList(string $hash, string|false $blocked, bool $result): void {
+	public function testChannelBlockList(string $hash, mixed $blocked, bool $result): void {
 
 		//
 		// Stub implementation of the ConfigInterface, so we can inject into
 		// the class under test to replace the dependency on PConfig.
 		//
 		$testConfig = new class($blocked) implements ConfigInterface {
-			public function __construct(private string $blocked) {}
-			public function getBlockedChannels(int $channelId): array {
-				return $channelId
-					? array_map(
-						fn (string $s) => new ChannelBlock($s),
-					   	explode(',', $this->blocked))
-					: [];
+			public function __construct(private mixed $blocked) {}
+			public function getBlockedChannels(int $channelId): mixed {
+				return $channelId ? $this->blocked : '';
 			}
 			public function saveBlockedChannels(int $channelId, array $blockList): void {
 			}
@@ -52,8 +48,10 @@ class ChannelBlockListTest extends TestCase
 		//
 		$dummyConfig = new class() implements ConfigInterface {
 			public function __construct() {}
-			public function getBlockedChannels(int $channelId): array {
-				return [];
+
+			// phpcs:disable Generic.CodeAnalysis.UnusedFunctionParameter
+			public function getBlockedChannels(int $channelId): string {
+				return '';
 			}
 			public function saveBlockedChannels(int $channelId, array $blockList): void {
 			}
@@ -75,8 +73,8 @@ class ChannelBlockListTest extends TestCase
 		//
 		$dummyConfig = new class() implements ConfigInterface {
 			public function __construct() {}
-			public function getBlockedChannels(int $channelId): array {
-				return [new ChannelBlock('gangster@scarface.test'), new ChannelBlock('lowlife@mob.test')];
+			public function getBlockedChannels(int $channelId): string {
+				return 'gangster@scarface.test,lowlife@mob.test';
 			}
 			public function saveBlockedChannels(int $channelId, array $blockList): void {
 			}
@@ -143,6 +141,14 @@ class ChannelBlockListTest extends TestCase
 				' ',
 				'',
 				false,
+			],
+			[
+				'blocked@example.test',
+				[
+					[ 'hash' => 'somechan@example.test' ],
+					[ 'hash' => 'blocked@example.test' ],
+				],
+				true,
 			],
 		];
 	}
