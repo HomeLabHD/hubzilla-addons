@@ -10,21 +10,6 @@ namespace Zotlabs\Addons\Superblock;
 
 use App;
 
-// array_find is defined in PHP 8.4 or higher, so for earlier PHP versions we
-// define it here.
-if (!function_exists('array_find')) {
-
-	function array_find(array $array, callable $callback): mixed {
-		foreach ($array as $key => $entry) {
-			if ($callback($entry, $key) === true) {
-				return $entry;
-			}
-		}
-
-		return null;
-	}
-}
-
 /**
  * Superblock addon class.
  *
