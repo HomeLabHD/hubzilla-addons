@@ -26,11 +26,6 @@ class PConfigAdapter implements ConfigInterface
 	}
 
 	public function saveBlockedChannels(int $channelId, array $blockList): void {
-		PConfig::Set(
-			$channelId,
-			self::FAMILY,
-			self::KEY,
-			implode(',', $blockList)
-		);
+		PConfig::Set($channelId, self::FAMILY, self::KEY, $blockList);
 	}
 }

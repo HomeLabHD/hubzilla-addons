@@ -19,4 +19,17 @@ class ChannelBlock
 	{
 		$this->hash = trim($hash);
 	}
+
+	/**
+	 * Returns an array representation of this ChannelBlock object.
+	 *
+	 * @return array
+	 *		An array with attributes as keys, and corresponding values.
+	 */
+	public function toArray(): array
+	{
+		return [
+			'hash' => $this->hash,
+		];
+	}
 }

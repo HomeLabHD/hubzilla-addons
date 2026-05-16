@@ -66,8 +66,8 @@ class ChannelBlockList
 		$data = $this->config->getBlockedChannels($this->channelId);
 
 		//
-		// We expect the config to return an array of key => value pairs, or a
-		// comma separated string of just channel hashes.
+		// We expect the config to return an array of key => value pairs, or an
+		// old style comma separated string of just channel hashes.
 		//
 		if (is_array($data)) {
 			$this->list = array_map(
@@ -109,7 +109,7 @@ class ChannelBlockList
 	public function save(): void {
 		$this->config->saveBlockedChannels(
 			$this->channelId,
-		   	array_map(fn ($cb) => $cb->hash, $this->list));
+		   	array_map(fn ($cb) => $cb->toArray(), $this->list));
 
 		$this->loadBlockList();
 	}
