@@ -97,52 +97,52 @@ class ChannelBlockListTest extends TestCase
 	 */
 	public static function blockListProvider(): array {
 		return [
-			[
+			'hash should not match when no block list' => [
 				'blocked@example.test',
 				false,
 				false,
 			],
-			[
+			'blocked hash should match' => [
 				'blocked@example.test',
 				'one@example.test,blocked@example.test,two@example.test,https://example.test/users/bot',
 				true,
 			],
-			[
+			'not blocked hash should not match' => [
 				'blocked@example.test',
 				'one@example.test,two@example.test,https://example.test/users/bot',
 				false,
 			],
-			[
+			'empty entries in old-style block list should be ignored' => [
 				'blocked@example.test',
 				',,,,',
 				false,
 			],
-			[
+			'whitespace in old-style block list should be ignored' => [
 				'blocked@example.test',
 				'one@example.test, blocked@example.test ,two@example.test,https://example.test/users/bot',
 				true,
 			],
-			[
+			'whitespace padding hash should be ignored' => [
 				' blocked@example.test ',
 				'one@example.test,blocked@example.test,two@example.test,https://example.test/users/bot',
 				true,
 			],
-			[
+			'empty hash should not match' => [
 				'',
 				'one@example.test,blocked@example.test,two@example.test,https://example.test/users/bot',
 				false,
 			],
-			[
+			'empty hash with whitespace should not match' => [
 				' ',
 				'one@example.test, ,blocked@example.test,two@example.test,https://example.test/users/bot',
 				false,
 			],
-			[
+			'empty hash with whitespave should not match empty block list' => [
 				' ',
 				'',
 				false,
 			],
-			[
+			'blocked hash should match new-style block list' => [
 				'blocked@example.test',
 				[
 					[ 'hash' => 'somechan@example.test' ],
