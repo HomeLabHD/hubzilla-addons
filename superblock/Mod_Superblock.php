@@ -56,10 +56,12 @@ class Superblock extends Controller {
 	 */
 	public function __construct() {
 		$this->localChannel = local_channel();
-		$this->is_json_request =
-			isset($_SERVER['HTTP_CONTENT_TYPE']) && $_SERVER['HTTP_CONTENT_TYPE'] === 'application/json';
-
 		$this->request_method = $_SERVER['REQUEST_METHOD'];
+		$this->is_json_request =
+			getBestSupportedMimeType('application/json') === 'application/json'
+			|| (isset($_SERVER['HTTP_CONTENT_TYPE']) && $_SERVER['HTTP_CONTENT_TYPE'] === 'application/json')
+			|| ($this->request_method === 'POST' && empty($_POST));
+
 
 		$this->app_installed = $this->localChannel
 			? Apps::addon_app_installed($this->localChannel, 'superblock')
