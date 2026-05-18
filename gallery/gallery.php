@@ -166,7 +166,7 @@ function gallery_prepare_body(&$arr) {
 		return;
 
 	$nodes = $xp->query('a/img/.. | div/img/..');
-	$id = $arr['item']['id'];
+	$id = $arr['item']['id'] ?? 0;
 	$i = 0;
 
 	$gallery_div = $dom->createElement('div');

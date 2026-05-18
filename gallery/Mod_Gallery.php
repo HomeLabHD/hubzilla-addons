@@ -22,13 +22,17 @@ class Gallery extends \Zotlabs\Web\Controller {
 
 			$channelx = channelx_by_nick($nick);
 
-			if(! $channelx)
+			if (!$channelx) {
 				return;
+			}
 
 			App::$data['channel'] = $channelx;
 
 			$observer = App::get_observer();
-			App::$data['observer'] = $observer;
+
+			if ($observer) {
+				App::$data['observer'] = $observer;
+			}
 
 			App::$page['htmlhead'] .= "<script> var profile_uid = " . ((App::$data['channel']) ? App::$data['channel']['channel_id'] : 0) . "; </script>" ;
 
@@ -67,9 +71,8 @@ class Gallery extends \Zotlabs\Web\Controller {
 		$json_album = '';
 		$album = '';
 
-		$photo = (($_GET['photo']) ? true : false);
+		$photo = ((!empty($_GET['photo'])) ? true : false);
 		if($photo) {
-
 			$ph = photo_factory('');
 			$phototypes = $ph->supportedTypes();
 
@@ -138,8 +141,8 @@ class Gallery extends \Zotlabs\Web\Controller {
 			'$channel_nick' => json_encode(App::$data['channel']['channel_address']),
 			'$channel_name' => json_encode(App::$data['channel']['channel_name']),
 			'$channel_url' => json_encode(App::$data['channel']['xchan_url']),
-			'$observer_name' => json_encode(App::$data['observer']['xchan_name']),
-			'$observer_url' => json_encode(App::$data['observer']['xchan_url']),
+			'$observer_name' => ((isset(App::$data['observer']['xchan_name'])) ? json_encode(App::$data['observer']['xchan_name']) : ''),
+			'$observer_url' => ((isset(App::$data['observer']['xchan_url'])) ? json_encode(App::$data['observer']['xchan_url']) : ''),
 			'$unsafe' => $unsafe,
 			'$json' => (($photo) ? $json_photo : $json_album),
 			'$aj' => $photo
