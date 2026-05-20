@@ -57,13 +57,15 @@
 				</div>
 				<div class="superblock-entry-actions">
 					<a href="{{$e.xchan_url}}" target="_blank">
-						<span class="bi bi-box-arrow-up-right" alt="(Open in new tab)"></span>
+						<span class="bi bi-box-arrow-up-right"
+							title="Go to {{$e.xchan_name}}'s channel (Opens in new tab)">
+						</span>
 					</a>
 					<form action="superblock" method="POST">
 						<input type="hidden" name="action" value="unblock">
 						<input type="hidden" name="author" value="{{$e.xchan_hash|escape}}">
 						<input type="hidden" name="form_security_token" value="{{$token}}">
-						<button type="submit" class="bi bi-trash" title="{{$remove}}" aria-label="{{$remove}}"></button>
+						<button type="submit" class="bi bi-trash" title="{{$remove}}"></button>
 					</form>
 				</div>
 			</div>
