@@ -11,7 +11,10 @@
 	padding: 0.5rem;
 }
 .superblock-entry-actions {
-	font-size: 220%;
+	display: flex;
+	gap: 0.3rem;
+	font-size: 150%;
+	align-items: center;
 }
 .superblock-entry-actions button {
 	border: none;
@@ -23,6 +26,9 @@
 }
 .superblock-entry-body {
 	flex: 2;
+}
+.superblock-channel-name {
+	font-weight: bold;
 }
 </style>
 <h3>{{$title}}</h3>
@@ -43,11 +49,16 @@
 				</a>
 				<div class="superblock-entry-body">
 					<div class="superblock-channel-name">{{$e.xchan_name}}</div>
-					<div class="superblock-channel-addr">
-						<a href="{{$e.xchan_url}}">{{$e.xchan_addr}}</a>
+					<div class="superblock-channel-meta">
+						<span class="superblock-channel-addr">
+							{{$e.xchan_addr}}
+						</span>
 					</div>
 				</div>
 				<div class="superblock-entry-actions">
+					<a href="{{$e.xchan_url}}" target="_blank">
+						<span class="bi bi-box-arrow-up-right" alt="(Open in new tab)"></span>
+					</a>
 					<form action="superblock" method="POST">
 						<input type="hidden" name="action" value="unblock">
 						<input type="hidden" name="author" value="{{$e.xchan_hash|escape}}">
