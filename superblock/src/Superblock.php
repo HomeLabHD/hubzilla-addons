@@ -122,6 +122,10 @@ class Superblock
 		$this->blockList->remove($channel);
 	}
 
+	public function isChannelBlocked(string $channel): bool {
+		return $this->blockList->match($channel);
+	}
+
 	public function configChanged(): bool {
 		return $this->blockList->isModified();
 	}

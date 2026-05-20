@@ -175,12 +175,6 @@ function superblock_conversation_start(&$b)
 
 	if ($channelId && Apps::addon_app_installed($channelId, 'superblock')) {
 		$plugin = Superblock::getInstance($channelId);
-
-		$words = get_pconfig(local_channel(),'system','blocked');
-		if ($words) {
-			App::$data['superblock'] = explode(',',$words);
-		}
-
 		$plugin->loadJavaScript();
 	}
 }
@@ -190,41 +184,33 @@ function superblock_item_photo_menu(&$b)
 	$channelId = local_channel();
 
 	if ($channelId && Apps::addon_app_installed(local_channel(), 'superblock')) {
-		$blocked = false;
 		$author = $b['item']['author_xchan'];
 		$item = $b['item']['id'];
 
-		if (App::$channel['channel_hash'] == $author)
+		if (App::$channel['channel_hash'] == $author) {
 			return;
-
-		if(!empty(App::$data['superblock'])) {
-			foreach(App::$data['superblock'] as $bloke) {
-				if(link_compare($bloke,$author)) {
-					$blocked = true;
-					break;
-				}
-			}
 		}
 
-		if($blocked)
-			return;
+		$plugin = Superblock::getInstance($channelId);
 
-		$b['menu'][] = [
-			'menu' => 'superblock',
-			'title' => t('Block Completely'),
-			'icon' => 'fw',
-			'action' => "superblockAjax('block', '{$author}', {$item}); return false;",
-			'href' => '#'
-		];
-
-		if (is_site_admin()) {
+		if (!$plugin->isChannelBlocked($author)) {
 			$b['menu'][] = [
-				'superblock_admin_block',
-				'title' => t('Block from site'),
+				'menu' => 'superblock',
+				'title' => t('Block Completely'),
 				'icon' => 'fw',
-				'action' => "superblockAjax('siteblock', '{$author}', {$item}); return false;",
-				'href' => '#',
+				'action' => "superblockAjax('block', '{$author}', {$item}); return false;",
+				'href' => '#'
 			];
+
+			if (is_site_admin()) {
+				$b['menu'][] = [
+					'superblock_admin_block',
+					'title' => t('Block from site'),
+					'icon' => 'fw',
+					'action' => "superblockAjax('siteblock', '{$author}', {$item}); return false;",
+					'href' => '#',
+				];
+			}
 		}
 	}
 }
