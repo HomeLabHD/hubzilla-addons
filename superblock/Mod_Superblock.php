@@ -10,6 +10,7 @@ namespace Zotlabs\Module;
 
 use App;
 use Zotlabs\Addons\Superblock\Superblock as Plugin;
+use Zotlabs\Addons\Superblock\Views\ChannelBlockEntry;
 use Zotlabs\Lib\Apps;
 use Zotlabs\Lib\Config;
 use Zotlabs\Lib\Libsync;
@@ -180,12 +181,6 @@ class Superblock extends Controller {
 	 * @return string	The rendered HTML of the request.
 	 */
 	function get(): string {
-		return $this->renderBlockList();
-	}
-
-	private function renderBlockList(): string {
-		$config_changed = false;
-
 		if (!$this->app_installed) {
 			//Do not display any associated widgets at this point
 			App::$pdl = '';
@@ -193,13 +188,26 @@ class Superblock extends Controller {
 			return Apps::app_render($papp, 'module');
 		}
 
+		return $this->renderBlockList();
+	}
+
+	private function renderBlockList(): string {
+		$config_changed = false;
+
 		$plugin = Plugin::getInstance($this->localChannel);
 		$plugin->loadJavaScript();
 
+		$token = get_form_security_token('superblock');
+
+		$entries = [];
 		$list = $plugin->getBlockedChannels();
 		$query_str = implode(',', array_map(fn ($cb) => "'" . dbesc($cb->hash) . "'", $list));
-		if($query_str) {
+		if ($query_str) {
 			$r = q("select * from xchan where xchan_hash in ( " . $query_str . " ) and xchan_hash != '' ");
+			foreach ($list as $cb) {
+				$xchan = array_find($r, fn ($xchan) => $xchan['xchan_hash'] === $cb->hash);
+				$entries[] = new ChannelBlockEntry($token, $cb, $xchan);
+			}
 		}
 		else {
 			$r = [];
@@ -209,10 +217,9 @@ class Superblock extends Controller {
 
 		return replace_macros($tpl, [
 			'$title' => t('Your blocked channels'),
-			'$entries' => $r,
-			'$nothing' => (($r) ? '' : t('No channels currently blocked')),
-			'$token' => get_form_security_token('superblock'),
-			'$remove' => t('Remove from blocklist'),
+			'$entries' => array_map(fn($e) => $e->render(), $entries),
+			'$token' => $token,
+			'$nothing' => t('No channels currently blocked'),
 			'$addBlockForm' => $this->renderAddBlockForm(),
 		]);
 	}

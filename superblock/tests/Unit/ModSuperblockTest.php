@@ -10,6 +10,8 @@
 namespace Zotlabs\Addons\Superblock\Tests\Unit;
 
 use App;
+use DateTimeImmutable;
+use DomDocument;
 use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Constraint\LogicalAnd;
@@ -72,6 +74,42 @@ class ModSuperblockTest extends TestCase {
 		$this->get('superblock');
 		foreach ($xchans as $xchan) {
 			$this->assertXChanIsListed($xchan);
+		}
+	}
+
+	public function testListExpirationDateOnTemporaryBlocks(): void {
+		$this->channel = $this->fixtures['channel'][1];
+		$this->startSession($this->channel);
+		$this->installPluginApp($this->channel);
+		$this->stubGetSecurityToken();
+
+		// With no blocked channels
+		$this->get('superblock');
+		$this->assertPageContains('No channels currently blocked');
+
+		$expiration = new DateTimeImmutable();
+
+		// Add some Blocked XChans
+		$xchans = self::createXChans();
+		foreach ($xchans as $xchan) {
+			$this->addXChan($xchan, true, $expiration->format(DateTimeImmutable::ISO8601));
+		}
+
+		$this->get('superblock');
+		foreach ($xchans as $xchan) {
+			$addr = preg_quote($xchan['xchan_addr']);
+			$res = preg_match(
+				"|<span[^>]*>\s*{$addr}\s*</span>\s*(.*)</div>|ms",
+				App::$page['content'],
+				$matches);
+
+			$this->assertNotFalse($res);
+			$this->assertEquals(1, $res);
+			$this->assertNotEmpty($matches, "no time expiration info present");
+			$entry = $matches[1];
+
+			$until = $expiration->format('Y-m-d');
+			$this->assertStringContainsString($until, $entry);
 		}
 	}
 
@@ -241,12 +279,14 @@ class ModSuperblockTest extends TestCase {
 	 * @param array $xchan	An array containing the xchan to add.
 	 * @param bool	$block	True if the xchan should be added to the block
 	 *                      list.
+	 * @param string|null $until
+	 *		Expiration date for block.
 	 */
-	private function addXChan(array $xchan, bool $block): void {
+	private function addXChan(array $xchan, bool $block, ?string $until = null): void {
 		xchan_store_lowlevel($xchan);
 		if ($block) {
 			$plugin = Superblock::getInstance($this->channel['channel_id']);
-			$plugin->blockChannel($xchan['xchan_hash']);
+			$plugin->blockChannel($xchan['xchan_hash'], $until);
 			$plugin->save();
 		}
 	}
@@ -514,6 +554,7 @@ class ModSuperblockTest extends TestCase {
 			->willReturn('very security');
 	}
 
+	// phpcs:disable Generic.PHP.DisallowRequestSuperglobal
 	private function stubCheckFormSecurityToken(): void {
 		$this->getFunctionMock('Zotlabs\Module', 'check_form_security_token')
 			->expects($this->any())
