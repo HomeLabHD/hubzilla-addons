@@ -30,6 +30,10 @@
 .superblock-channel-name {
 	font-weight: bold;
 }
+.superblock-form {
+	border: 1px solid var(--bs-secondary-color);
+	padding: 1em;
+}
 </style>
 <h3>{{$title}}</h3>
 

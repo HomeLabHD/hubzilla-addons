@@ -99,8 +99,11 @@ class Superblock
 		$this->blockList->save();
 	}
 
-	public function blockChannel(string $channel): void {
-		$this->blockList->add(['hash' => $channel]);
+	public function blockChannel(string $channel, ?string $until = null): void {
+		$this->blockList->add([
+			'hash' => $channel,
+			'until' => $until,
+		]);
 	}
 
 	public function unblockChannel(string $channel): void {

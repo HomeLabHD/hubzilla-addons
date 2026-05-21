@@ -136,7 +136,7 @@ class Superblock extends Controller {
 
 		switch ($this->params['action']) {
 			case 'block':
-				$plugin->blockChannel($xchan['hash']);
+				$plugin->blockChannel($xchan['hash'], $this->params['until']);
 				$msg = sprintf(t('blocked %s permanently'), $xchan['address']);
 				break;
 
@@ -229,6 +229,29 @@ class Superblock extends Controller {
 				'',								// additional label
 				'',								// additional attributes
 			],
+			'$expireInputField' => replace_macros(get_markup_template('field_duration.qmc.tpl'), [
+				'label' => t('Block this channel for'),
+				'help' => t('How long to block activities from this channel, leave as 0 to block forever.'),
+				'wrapper' => 'yes',
+				'qmc' => 'superblock_',
+				'field' => [
+					'name' => 'until',
+					'min' => 0,
+					'max' => 99,
+					'size' => 13,
+					'value' => 0,
+					'title' => t('Something....'),
+					'default' => 'years'
+				],
+				'rabot' => [
+					'mins' => 'Minute(s)',
+					'hours' => 'Hour(s)',
+					'days' => 'Day(s)',
+					'weeks' => 'Week(s)',
+					'months' => 'Month(s)',
+					'Years' => 'Years',
+				],
+			]),
 			'$blockChannelButtonText' => t('Block channel!'),
 			'$addNewEntryText' => t('Add new entry'),
 		]);
@@ -286,6 +309,13 @@ class Superblock extends Controller {
 				],
 				'author' => [
 					'filter' => FILTER_DEFAULT,
+				],
+				'until' => [
+					'filter' => FILTER_VALIDATE_REGEXP,
+					'options' => [
+						'regexp' => '/^\d{4}\-\d{2}-\d{2}$/',
+						'default' => null,
+					],
 				],
 				'form_security_token' => [
 					'filter' => FILTER_DEFAULT,
