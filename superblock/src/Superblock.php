@@ -9,6 +9,7 @@
 namespace Zotlabs\Addons\Superblock;
 
 use App;
+use DateTimeImmutable;
 
 /**
  * Superblock addon class.
@@ -99,7 +100,7 @@ class Superblock
 		$this->blockList->save();
 	}
 
-	public function blockChannel(string $channel, ?string $until = null): void {
+	public function blockChannel(string $channel, ?DateTimeImmutable $until = null): void {
 		$this->blockList->add([
 			'hash' => $channel,
 			'until' => $until,

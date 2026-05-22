@@ -163,7 +163,7 @@ class ChannelBlockListTest extends TestCase
 					[ 'hash' => 'somechan@example.test' ],
 					[
 						'hash' => 'blocked@example.test',
-						'until' => $tomorrow->format(DateTimeInterface::ISO8601),
+						'until' => $tomorrow,
 					],
 				],
 				true,
@@ -174,7 +174,7 @@ class ChannelBlockListTest extends TestCase
 					[ 'hash' => 'somechan@example.test' ],
 					[
 						'hash' => 'blocked@example.test',
-						'until' => $yesterday->format(DateTimeInterface::ISO8601),
+						'until' => $yesterday,
 					],
 				],
 				false,

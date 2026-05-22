@@ -39,9 +39,12 @@ class ChannelBlock
 	public function __construct(array $data)
 	{
 		$this->hash = trim($data['hash']);
-		if (!empty($data['until'])) {
-			$this->expire =
-				new DateTimeImmutable($data['until'], self::tz());
+		$expire = $data['until'] ?? null;
+
+		if ($expire) {
+			$this->expire = is_string($expire)
+				? new DateTimeImmutable($expire, self::tz())
+				: $expire;
 		} else {
 			$this->expire = null;
 		}

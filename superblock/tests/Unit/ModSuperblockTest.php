@@ -92,7 +92,7 @@ class ModSuperblockTest extends TestCase {
 		// Add some Blocked XChans
 		$xchans = self::createXChans();
 		foreach ($xchans as $xchan) {
-			$this->addXChan($xchan, true, $expiration->format(DateTimeImmutable::ISO8601));
+			$this->addXChan($xchan, true, $expiration);
 		}
 
 		$this->get('superblock');
@@ -279,10 +279,10 @@ class ModSuperblockTest extends TestCase {
 	 * @param array $xchan	An array containing the xchan to add.
 	 * @param bool	$block	True if the xchan should be added to the block
 	 *                      list.
-	 * @param string|null $until
+	 * @param DateTimeImmutable|null $until
 	 *		Expiration date for block.
 	 */
-	private function addXChan(array $xchan, bool $block, ?string $until = null): void {
+	private function addXChan(array $xchan, bool $block, ?DateTimeImmutable $until = null): void {
 		xchan_store_lowlevel($xchan);
 		if ($block) {
 			$plugin = Superblock::getInstance($this->channel['channel_id']);
