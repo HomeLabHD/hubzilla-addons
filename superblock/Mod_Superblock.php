@@ -9,6 +9,7 @@
 namespace Zotlabs\Module;
 
 use App;
+use DateTimeImmutable;
 use Zotlabs\Addons\Superblock\Superblock as Plugin;
 use Zotlabs\Addons\Superblock\Views\ChannelBlockEntry;
 use Zotlabs\Lib\Apps;
@@ -137,8 +138,21 @@ class Superblock extends Controller {
 
 		switch ($this->params['action']) {
 			case 'block':
-				$plugin->blockChannel($xchan['hash'], $this->params['until']);
-				$msg = sprintf(t('blocked %s permanently'), $xchan['address']);
+				$until = $this->getExpirationDate();
+				$plugin->blockChannel($xchan['hash'], $until);
+
+				if ($until) {
+					$msg = sprintf(
+						t('temporarily blocked %1$s until %2$s'),
+						$xchan['address'],
+						$until->format(DateTimeImmutable::ISO8601)
+					);
+				} else {
+					$msg = sprintf(
+						t('blocked %s permanently'),
+						$xchan['address']
+					);
+				}
 				break;
 
 			case 'unblock':
@@ -317,11 +331,18 @@ class Superblock extends Controller {
 				'author' => [
 					'filter' => FILTER_DEFAULT,
 				],
-				'until' => [
+				'superblock_until' => [
 					'filter' => FILTER_VALIDATE_REGEXP,
 					'options' => [
-						'regexp' => '/^\d{4}\-\d{2}-\d{2}$/',
-						'default' => null,
+						'regexp' => '/^(mins|hours|days|weeks|months|years)$/',
+					],
+				],
+				'superblock_untiln' => [
+					'filter' => FILTER_VALIDATE_INT,
+					'options' => [
+						'default' => 0,
+						'max_range' => 99,
+						'min_range' => 0,
 					],
 				],
 				'form_security_token' => [
@@ -383,6 +404,17 @@ class Superblock extends Controller {
 		}
 
 		return $xchan;
+	}
+
+	private function getExpirationDate(): ?DateTimeImmutable {
+		$amount = $this->params['superblock_untiln'] ?? 0;
+		$unit = $this->params['superblock_until'] ?? 0;
+
+		if ($unit && $amount) {
+			return new DateTimeImmutable("{$amount} {$unit}");
+		}
+
+		return null;
 	}
 
 	/**

@@ -132,7 +132,7 @@ class ModSuperblockTest extends TestCase {
 		   	App::$page['htmlhead']);
 	}
 
-	public function testRenderAddChannelBLockForm(): void {
+	public function testRenderAddChannelBlockForm(): void {
 		$this->channel = $this->fixtures['channel'][1];
 		$this->startSession($this->channel);
 		$this->installPluginApp($this->channel);
@@ -143,7 +143,7 @@ class ModSuperblockTest extends TestCase {
 
 		// Verify and extract the form element
 		$this->assertEquals(1, preg_match(
-			'/<form\s+name="superblock-add-channel-block"[^>]*>(.*)<\/form>/s',
+			'/<form.+name="superblock-add-channel-block"[^>]*>(.*)<\/form>/sm',
 			App::$page['content'],
 			$form)
 		);
