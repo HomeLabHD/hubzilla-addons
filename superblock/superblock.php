@@ -2,7 +2,7 @@
 /**
  * Name: Superblock
  * Description: Block and manage a block list of channels you don't want to see again.
- * Version: 3.0
+ * Version: 3.0.1
  * Author: Mike Macgirvin
  * Author: Harald Eilertsen
  * Maintainer: Mike Macgirvin <mike@macgirvin.com>
