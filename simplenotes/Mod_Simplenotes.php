@@ -93,6 +93,10 @@ class Simplenotes extends Controller {
 				continue;
 			}
 
+			if ($file->data['filename'] === 'folders.json') {
+				continue;
+			}
+
 			$filename = $file->data['filename'];
 			$stream = $this->dir->getChild($filename)->get();
 			$note = json_decode(stream_get_contents($stream), true);
