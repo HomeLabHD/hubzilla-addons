@@ -57,6 +57,10 @@ class Simplenotes extends Controller {
 		}
 
 		try {
+			if (argv(1)) {
+				$simplenotes_path .= '/' . argv(1);
+			}
+
 			$this->dir = new Directory($channel['channel_address'] . '/' . $simplenotes_path, [], $this->auth);
 		} catch (\Exception $e) {
 			notice('Exception: ' . $e->getMessage());

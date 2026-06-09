@@ -219,7 +219,14 @@
 			// Prevent double click
 			simplenotesNoteSave.disabled = true;
 
-			fetch('/simplenotes', {
+			let path = '/simplenotes';
+			let folder = window.location.pathname.split('/')[2];
+
+			if (folder !== undefined) {
+				path = '/simplenotes/' + folder;
+			}
+
+			fetch(path, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
