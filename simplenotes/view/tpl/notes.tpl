@@ -9,7 +9,7 @@
 {{if  $folders}}
 <div class="pb-4">
 	{{foreach $folders as $f}}
-	<a href="simplenotes/{{$f}}" class="btn btn-outline-primary">{{$f}}</a>
+	<a href="simplenotes/{{$f}}" class="btn btn-outline-primary"><i class="bi bi-folder"></i> {{$f}}</a>
 	{{/foreach}}
 </div>
 {{/if}}
