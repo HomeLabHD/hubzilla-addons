@@ -64,7 +64,7 @@ class Simplenotes extends Controller {
 			$this->dir = new Directory($channel['channel_address'] . '/' . $simplenotes_path, [], $this->auth);
 		} catch (\Exception $e) {
 			notice('Exception: ' . $e->getMessage());
-			goaway('settings/simplenotes');
+			goaway(z_root() . '/settings/simplenotes');
 		}
 	}
 
