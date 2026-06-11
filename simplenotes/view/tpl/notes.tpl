@@ -1,3 +1,19 @@
+{{if  $active_folder}}
+<div class="pb-4">
+	<h3>
+		<a href="simplenotes"><i class="bi bi-arrow-left"></i></a> {{$active_folder}}
+	</h3>
+</div>
+{{/if}}
+
+{{if  $folders}}
+<div class="pb-4">
+	{{foreach $folders as $f}}
+	<a href="simplenotes/{{$f}}" class="btn btn-outline-primary">{{$f}}</a>
+	{{/foreach}}
+</div>
+{{/if}}
+
 <div class="simplenotes_notes_container row">
 	{{foreach $items as $i}}
 	<div class="col-md-6 pb-4 simplenotes_note" data-id="{{$i.id}}" data-created="{{$i.created.timestamp}}" data-updated="{{$i.updated.timestamp}}" data-title="{{$i.title.encoded}}" data-content="{{$i.content.encoded}}" data-type="{{$i.type}}">

@@ -91,8 +91,14 @@ class Simplenotes extends Controller {
 		}
 
 		$notes = [];
+		$folders = [];
 
 		foreach($files as $file)  {
+			if ($file->data['is_dir']) {
+				$folders[] = $file->data['filename'];
+			}
+
+
 			if ($file->data['filetype'] !== 'application/json') {
 				continue;
 			}
@@ -137,6 +143,8 @@ class Simplenotes extends Controller {
 
 		return replace_macros(get_markup_template('notes.tpl', 'addon/simplenotes'), [
 			'$items' => $items,
+			'$folders' => $folders,
+			'$active_folder' => argv(1) ?? '',
 			'$strings' => [
 				'modal' => [
 					'title' => t('Simple Notes Editor'),
