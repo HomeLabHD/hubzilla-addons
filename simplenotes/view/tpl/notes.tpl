@@ -66,6 +66,12 @@
 						{{$strings.modal.delete}}
 					</label>
 				</div>
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="simplenotes-note-pin" id="simplenotes-note-pinned">
+					<label class="form-check-label" for="simplenotes-note-pinned">
+						{{$strings.modal.pinned}}
+					</label>
+				</div>
 				<button id="simplenotes-note-save" type="button" class="btn btn-primary">{{$strings.modal.submit}}</button>
 			</div>
 		</div>
@@ -164,7 +170,6 @@
 		let direction = 'desc';
 		let activeNoteId = null;
 		let activeNoteCreated = null;
-		let activeNotePinned = null;
 		let activeNoteType = null;
 		let activeChecklistSortOption = null;
 
@@ -172,6 +177,7 @@
 		const simplenotesNoteContent = document.getElementById('simplenotes-note-content');
 		const simplenotesNoteSave = document.getElementById('simplenotes-note-save');
 		const simplenotesNoteDelete = document.getElementById('simplenotes-note-delete');
+		const simplenotesNotePinned = document.getElementById('simplenotes-note-pinned');
 		const checklistSort = document.getElementById('simplenotes-checklist-sort');
 
 		const modal = document.getElementById('simplenotes-modal')
@@ -182,6 +188,7 @@
 		modal.addEventListener('hide.bs.modal', () => {
 			simplenotesNoteDelete.disabled = true;
 			simplenotesNoteDelete.checked = false;
+			simplenotesNotePinned.checked = false;
 			activeNoteId = null;
 			activeNoteCreated = null;
 			activeNoteType = null;
@@ -263,7 +270,7 @@
 					content: simplenotesNoteContent.value.replaceAll('[]', '[ ]'),
 					id: activeNoteId,
 					createdAt: activeNoteCreated,
-					isPinned: activeNotePinned,
+					isPinned: simplenotesNotePinned.checked,
 					noteType: activeNoteType,
 					checklistSortOption: activeChecklistSortOption,
 					delete: simplenotesNoteDelete.checked
@@ -289,7 +296,7 @@
 				const note = e.target.closest('.simplenotes_note');
 				activeNoteId = note.dataset.id;
 				activeNoteCreated = note.dataset.created;
-				activeNotePinned = note.dataset.pinned;
+				simplenotesNotePinned.checked = note.dataset.pinned;
 				simplenotesNoteTitle.value = base64ToUtf8(note.dataset.title);
 				simplenotesNoteContent.value = base64ToUtf8(note.dataset.content).replaceAll('[ ]', '[]');
 				simplenotesModal.show();

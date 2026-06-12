@@ -157,6 +157,7 @@ class Simplenotes extends Controller {
 						'checked_first' => t('Checked first')
 					],
 					'delete' => t('Delete note'),
+					'pinned' => t('Pin note'),
 					'submit' => t('Submit'),
 					'note' => [
 						'title' => t('Title'),
