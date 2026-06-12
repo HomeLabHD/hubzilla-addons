@@ -11,6 +11,7 @@ abstract class SimpleNote
 	public string $noteType;
 	public readonly int $createdAt;
 	public readonly int $updatedAt;
+	public readonly bool $isPinned;
 
 	public function __construct(array $data = [])
 	{
@@ -23,6 +24,7 @@ abstract class SimpleNote
 		$this->noteType = (string)($data['noteType'] ?? 'TEXT');
 		$this->createdAt = (int)($data['createdAt'] ?? $now);
 		$this->updatedAt = (int)($data['updatedAt'] ?? $now);
+		$this->isPinned = (bool)($data['isPinned'] ?? false);
 	}
 
 	abstract function normalize(): static;
@@ -49,6 +51,7 @@ abstract class SimpleNote
 			'noteType' => $this->noteType,
 			'createdAt' => $this->createdAt,
 			'updatedAt' => $this->updatedAt,
+			'isPinned' => $this->isPinned,
 		];
 	}
 }

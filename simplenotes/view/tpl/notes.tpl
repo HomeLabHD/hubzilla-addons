@@ -16,11 +16,12 @@
 
 <div class="simplenotes_notes_container row">
 	{{foreach $items as $i}}
-	<div class="col-md-6 pb-4 simplenotes_note" data-id="{{$i.id}}" data-created="{{$i.created.timestamp}}" data-updated="{{$i.updated.timestamp}}" data-title="{{$i.title.encoded}}" data-content="{{$i.content.encoded}}" data-type="{{$i.type}}">
+	<div class="col-md-6 pb-4 simplenotes_note" data-id="{{$i.id}}" data-created="{{$i.created.timestamp}}" data-updated="{{$i.updated.timestamp}}" data-title="{{$i.title.encoded}}" data-content="{{$i.content.encoded}}" data-type="{{$i.type}}" data-pinned="{{$i.pinned}}">
 		<div class="card {{if $i.type === 'TEXT'}}bg-warning-subtle text-warning-emphasis{{else}}bg-info-subtle text-info-emphasis{{/if}}">
 			<div class="card-body">
 				<div class="note-title h4">
 					<i class="bi bi-card-{{$i.type|lower}} pe-2"></i>
+					{{if $i.pinned}}<i class="bi bi-pin pe-2"></i>{{/if}}
 					{{$i.title.parsed}}
 				</div>
 				<hr>
@@ -30,7 +31,7 @@
 			</div>
 			<div class="card-footer d-flex justify-content-between">
 				<div class="autotime" title="{{$i.updated.date}}"></div>
-				<div class="cursor-pointer"><i class="bi bi-pencil simplenotes_note_edit"></i></div>
+				<div><i class="bi bi-pencil cursor-pointer simplenotes_note_edit"></i></div>
 			</div>
 		</div>
 	</div>
@@ -98,6 +99,15 @@
 		const multiplier = direction === 'asc' ? 1 : -1;
 
 		items.sort((a, b) => {
+
+			// Always keep pinned notes first
+			const aPinned = a.dataset.pinned === '1';
+			const bPinned = b.dataset.pinned === '1';
+
+			if (aPinned !== bPinned) {
+				return aPinned ? -1 : 1;
+			}
+
 			const aRaw = a.dataset[field] ?? '';
 			const bRaw = b.dataset[field] ?? '';
 
@@ -154,6 +164,7 @@
 		let direction = 'desc';
 		let activeNoteId = null;
 		let activeNoteCreated = null;
+		let activeNotePinned = null;
 		let activeNoteType = null;
 		let activeChecklistSortOption = null;
 
@@ -252,6 +263,7 @@
 					content: simplenotesNoteContent.value.replaceAll('[]', '[ ]'),
 					id: activeNoteId,
 					createdAt: activeNoteCreated,
+					isPinned: activeNotePinned,
 					noteType: activeNoteType,
 					checklistSortOption: activeChecklistSortOption,
 					delete: simplenotesNoteDelete.checked
@@ -277,6 +289,7 @@
 				const note = e.target.closest('.simplenotes_note');
 				activeNoteId = note.dataset.id;
 				activeNoteCreated = note.dataset.created;
+				activeNotePinned = note.dataset.pinned;
 				simplenotesNoteTitle.value = base64ToUtf8(note.dataset.title);
 				simplenotesNoteContent.value = base64ToUtf8(note.dataset.content).replaceAll('[ ]', '[]');
 				simplenotesModal.show();
