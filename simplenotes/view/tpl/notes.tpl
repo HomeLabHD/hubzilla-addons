@@ -16,8 +16,8 @@
 
 <div class="simplenotes_notes_container row">
 	{{foreach $items as $i}}
-	<div class="col-md-6 pb-4 simplenotes_note" data-id="{{$i.id}}" data-created="{{$i.created.timestamp}}" data-updated="{{$i.updated.timestamp}}" data-title="{{$i.title.encoded}}" data-content="{{$i.content.encoded}}" data-type="{{$i.type}}" data-pinned="{{$i.pinned}}">
-		<div class="card {{if $i.type === 'TEXT'}}bg-warning-subtle text-warning-emphasis{{else}}bg-info-subtle text-info-emphasis{{/if}}">
+	<div class="col-md-6 pb-4 simplenotes_note" data-id="{{$i.id}}" data-created="{{$i.created.timestamp}}" data-updated="{{$i.updated.timestamp}}" data-title="{{$i.title.encoded}}" data-content="{{$i.content.encoded}}" data-type="{{$i.type}}" data-pinned="{{$i.pinned}}" data-color="{{$i.color}}">
+		<div class="card{{if !$i.color}} {{if $i.type === 'TEXT'}}bg-warning-subtle text-warning-emphasis{{else}}bg-info-subtle text-info-emphasis{{/if}}{{/if}}"{{if $i.color}} style="background-color: {{$i.color}};"{{/if}}>
 			<div class="card-body">
 				<div class="note-title h4">
 					<i class="bi bi-card-{{$i.type|lower}} pe-2"></i>
@@ -171,6 +171,7 @@
 		let activeNoteId = null;
 		let activeNoteCreated = null;
 		let activeNoteType = null;
+		let activeNoteColor = null;
 		let activeChecklistSortOption = null;
 
 		const simplenotesNoteTitle = document.getElementById('simplenotes-note-title');
@@ -271,6 +272,7 @@
 					id: activeNoteId,
 					createdAt: activeNoteCreated,
 					isPinned: simplenotesNotePinned.checked,
+					color: activeNoteColor,
 					noteType: activeNoteType,
 					checklistSortOption: activeChecklistSortOption,
 					delete: simplenotesNoteDelete.checked
@@ -296,6 +298,7 @@
 				const note = e.target.closest('.simplenotes_note');
 				activeNoteId = note.dataset.id;
 				activeNoteCreated = note.dataset.created;
+				activeNoteColor= note.dataset.color;
 				simplenotesNotePinned.checked = note.dataset.pinned;
 				simplenotesNoteTitle.value = base64ToUtf8(note.dataset.title);
 				simplenotesNoteContent.value = base64ToUtf8(note.dataset.content).replaceAll('[ ]', '[]');

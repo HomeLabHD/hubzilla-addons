@@ -137,6 +137,7 @@ class Simplenotes extends Controller {
 			$prepared['created']['date'] = date('Y-m-d H:i:s', $note_object->createdAt/1000);
 			$prepared['type'] = escape_tags($note_object->noteType);
 			$prepared['pinned'] = $note_object->isPinned;
+			$prepared['color'] = $note_object->color;
 
 			$items[] = $prepared;
 			fclose($stream);

@@ -25,6 +25,7 @@ abstract class SimpleNote
 		$this->createdAt = (int)($data['createdAt'] ?? $now);
 		$this->updatedAt = (int)($data['updatedAt'] ?? $now);
 		$this->isPinned = (bool)($data['isPinned'] ?? false);
+		$this->color = (string)($data['color'] ?? '');
 	}
 
 	abstract function normalize(): static;
@@ -52,6 +53,7 @@ abstract class SimpleNote
 			'createdAt' => $this->createdAt,
 			'updatedAt' => $this->updatedAt,
 			'isPinned' => $this->isPinned,
+			'color' => $this->color,
 		];
 	}
 }
