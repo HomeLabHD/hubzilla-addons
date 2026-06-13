@@ -12,6 +12,7 @@ abstract class SimpleNote
 	public readonly int $createdAt;
 	public readonly int $updatedAt;
 	public readonly bool $isPinned;
+	public readonly string $color;
 
 	public function __construct(array $data = [])
 	{
