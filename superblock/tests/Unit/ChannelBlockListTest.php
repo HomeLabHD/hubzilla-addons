@@ -92,6 +92,53 @@ class ChannelBlockListTest extends TestCase
 		$this->assertFalse($blockList->match('gangster@scarface.test'));
 	}
 
+	public function testBlockingAlreadyBlockedChannelDoesNotAlterList(): void {
+		//
+		// Stub implementation of the ConfigInterface, so we can inject into
+		// the class under test to replace the dependency on PConfig.
+		//
+		$dummyConfig = new class() implements ConfigInterface {
+			public function __construct() {}
+			public function getBlockedChannels(int $channelId): string {
+				return 'gangster@scarface.test,lowlife@mob.test';
+			}
+			public function saveBlockedChannels(int $channelId, array $blockList): void {
+			}
+		};
+
+		$blockList = new ChannelBlockList(43, $dummyConfig);
+		$this->assertFalse($blockList->isModified());
+
+		$blockList->add(['hash' => 'gangster@scarface.test']);
+
+		$this->assertFalse($blockList->isModified());
+		$this->assertTrue($blockList->match('gangster@scarface.test'));
+	}
+
+	public function testUpdatingChannelBlock(): void {
+		//
+		// Stub implementation of the ConfigInterface, so we can inject into
+		// the class under test to replace the dependency on PConfig.
+		//
+		$dummyConfig = new class() implements ConfigInterface {
+			public function __construct() {}
+			public function getBlockedChannels(int $channelId): string {
+				return 'gangster@scarface.test,lowlife@mob.test';
+			}
+			public function saveBlockedChannels(int $channelId, array $blockList): void {
+			}
+		};
+
+		$blockList = new ChannelBlockList(43, $dummyConfig);
+		$this->assertFalse($blockList->isModified());
+
+		$date = new DateTimeImmutable("3 days");
+		$blockList->add(['hash' => 'gangster@scarface.test', 'until' => $date]);
+
+		$this->assertTrue($blockList->isModified());
+		$this->assertTrue($blockList->match('gangster@scarface.test'));
+	}
+
 	/*
 	 * DataProvider for testChannelBlockList
 	 *

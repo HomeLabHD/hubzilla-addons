@@ -38,11 +38,27 @@ class ChannelBlockList
 	/**
 	 * Add a channel to the block list.
 	 *
-	 * @param string $channel   The channel to block, either as a webbie, url
-	 *                          or xchan hash.
+	 * @param array $data
+	 *		An array identifying the channel to be blocked, and data about the
+	 *		block. @see ::Zotlabs::Addon::Superblock::ChannelBlock::__construct()
 	 */
 	public function add(array $data): void {
-		$this->list[] = new ChannelBlock($data);
+		$newEntry = new ChannelBlock($data);
+
+		// Is this channel already blocked?
+		$oldEntry = array_find($this->list, fn ($cb) => $cb->hash === $newEntry->hash);
+
+		if ($oldEntry === null) {
+			$this->list[] = new ChannelBlock($data);
+			$this->dirty = true;
+		} else if ($newEntry->expire != $oldEntry->expire) {
+			$this->update($newEntry);
+		}
+	}
+
+	public function update(ChannelBlock $cb): void {
+		$this->remove($cb->hash);
+		$this->list[] = $cb;
 		$this->dirty = true;
 	}
 
