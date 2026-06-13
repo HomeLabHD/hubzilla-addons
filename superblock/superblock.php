@@ -192,13 +192,14 @@ function superblock_item_photo_menu(&$b)
 		}
 
 		$plugin = Superblock::getInstance($channelId);
+		$security = $plugin->security_token;
 
 		if (!$plugin->isChannelBlocked($author)) {
 			$b['menu'][] = [
 				'menu' => 'superblock',
 				'title' => t('Block Completely'),
 				'icon' => 'fw',
-				'action' => "superblockAjax('block', '{$author}', {$item}); return false;",
+				'action' => "superblockAjax('block', '{$author}', {$item}, '{$security}'); return false;",
 				'href' => '#'
 			];
 
@@ -207,7 +208,7 @@ function superblock_item_photo_menu(&$b)
 					'superblock_admin_block',
 					'title' => t('Block from site'),
 					'icon' => 'fw',
-					'action' => "superblockAjax('siteblock', '{$author}', {$item}); return false;",
+					'action' => "superblockAjax('siteblock', '{$author}', {$item}, '{$security}'); return false;",
 					'href' => '#',
 				];
 			}

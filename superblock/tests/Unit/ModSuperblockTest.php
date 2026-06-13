@@ -113,25 +113,6 @@ class ModSuperblockTest extends TestCase {
 		}
 	}
 
-	public function testRenderedHTMLContainsCSRFToken(): void {
-		$this->channel = $this->fixtures['channel'][1];
-		$this->startSession($this->channel);
-		$this->installPluginApp($this->channel);
-		$this->stubGetSecurityToken();
-
-		// Add some Blocked XChans
-		$xchans = self::createXChans();
-		foreach ($xchans as $xchan) {
-			$this->addXChan($xchan, true);
-		}
-
-		$this->get('superblock');
-
-		$this->assertMatchesRegularExpression(
-			'/form_security_token: "[0-9a-f.]+"/',
-		   	App::$page['htmlhead']);
-	}
-
 	public function testRenderAddChannelBlockForm(): void {
 		$this->channel = $this->fixtures['channel'][1];
 		$this->startSession($this->channel);

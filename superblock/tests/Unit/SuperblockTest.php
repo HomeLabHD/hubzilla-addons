@@ -550,8 +550,10 @@ class SuperblockTest extends UnitTestCase {
 			$this->assertEquals('superblock', $args['menu'][0]['menu']);
 
 			$this->assertArrayHasKey('action', $args['menu'][0]);
+
+			$plugin = Superblock::getInstance($this->channel['channel_id']);
 			$this->assertStringContainsString(
-				"superblockAjax('block', '{$author}', 42);",
+				"superblockAjax('block', '{$author}', 42, '{$plugin->security_token}');",
 				$args['menu'][0]['action']
 			);
 		}
