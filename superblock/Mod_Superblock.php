@@ -202,6 +202,30 @@ class Superblock extends Controller {
 			return Apps::app_render($papp, 'module');
 		}
 
+		if (argc() > 1 && argv(1) === "submit") {
+			$author_hash = filter_input(INPUT_GET, 'author', FILTER_VALIDATE_REGEXP, [
+				'options' => [
+					'regexp' => '/[a-zA-Z0-9@:\/_-]+/',
+					'default' => null
+				]
+			]);
+
+			if (!$author_hash) {
+				notice('Regexp failed');
+			}
+
+			$author_xchan = xchan_fetch(['hash' => $author_hash]);
+
+			if ($author_xchan) {
+				$author = $author_xchan['address'];
+			} else {
+				notice("Invalid xchan hash: {$author_hash}");
+				$author = '';
+			}
+
+			return $this->renderAddBlockForm($author);
+		}
+
 		return $this->renderBlockList();
 	}
 
@@ -238,14 +262,14 @@ class Superblock extends Controller {
 		]);
 	}
 
-	private function renderAddBlockForm(): string {
+	private function renderAddBlockForm($author = ''): string {
 		$tpl = get_markup_template('superblock_add_block_form.tpl','addon/superblock');
 		return replace_macros($tpl, [
 			'$token' => get_form_security_token('superblock'),
 			'$authorInputField' => [
 				'author',						// name, id
 				t('Channel address (webbie):'),	// label
-			   	'',								// value
+			   	$author,						// value
 				t('The address of the channel to block, typically like \'channel@example.com\'.'), // help text
 				'',								// additional label
 				'',								// additional attributes

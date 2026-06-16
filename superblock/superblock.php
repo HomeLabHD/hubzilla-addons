@@ -203,6 +203,14 @@ function superblock_item_photo_menu(&$b)
 				'href' => '#'
 			];
 
+		    $b['menu'][] = [
+				'menu' => 'superblock_mute',
+				'title' => t('Block temporarily'),
+				'icon' => 'fw',
+				'action' => '',
+				'href' => z_root() . "/superblock/submit?author={$author}"
+			];
+
 			if (is_site_admin()) {
 				$b['menu'][] = [
 					'superblock_admin_block',
