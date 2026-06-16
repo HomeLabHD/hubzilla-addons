@@ -38,7 +38,9 @@
 <h3>{{$title}}</h3>
 
 {{if $addBlockForm}}
+<div class="add-entry-form">
 	{{$addBlockForm}}
+</div>
 {{/if}}
 
 {{if empty($entries)}}
