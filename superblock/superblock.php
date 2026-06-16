@@ -176,6 +176,8 @@ function superblock_conversation_start(&$b)
 	if ($channelId && Apps::addon_app_installed($channelId, 'superblock')) {
 		$plugin = Superblock::getInstance($channelId);
 		$plugin->loadJavaScript();
+
+		App::$page['content'] .= '<dialog id="superblockSubmitDialog"></dialog>';
 	}
 }
 
@@ -207,8 +209,8 @@ function superblock_item_photo_menu(&$b)
 				'menu' => 'superblock_mute',
 				'title' => t('Block temporarily'),
 				'icon' => 'fw',
-				'action' => '',
-				'href' => z_root() . "/superblock/submit?author={$author}"
+				'action' => "superblockPopupSubmitForm('${author}'); return false;",
+				'href' => "#"
 			];
 
 			if (is_site_admin()) {

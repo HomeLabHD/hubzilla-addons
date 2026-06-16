@@ -22,3 +22,12 @@ async function superblockAjax(action, author, item, security) {
 	});
 	body = await response.text();
 }
+
+async function superblockPopupSubmitForm(author) {
+	let dialog = document.getElementById('superblockSubmitDialog');
+	fetch(`superblock/submit?author=${author}`, { credentials: 'same-origin' })
+		.then(async (response) => {
+			dialog.innerHTML = await response.text();
+			dialog.showModal();
+		});
+}
