@@ -210,20 +210,14 @@ class Superblock extends Controller {
 				]
 			]);
 
-			if (!$author_hash) {
-				notice('Regexp failed');
-			}
-
-			$author_xchan = xchan_fetch(['hash' => $author_hash]);
-
-			if ($author_xchan) {
-				$author = $author_xchan['address'];
+			if ($author_hash) {
+				$author = $this->findXChanFromAuthor($author_hash);
 			} else {
-				notice("Invalid xchan hash: {$author_hash}");
 				$author = '';
 			}
 
-			return $this->renderAddBlockForm($author);
+			echo $this->renderAddBlockForm($author['address']);
+			killme();
 		}
 
 		return $this->renderBlockList();
