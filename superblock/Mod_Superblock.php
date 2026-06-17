@@ -54,6 +54,11 @@ class Superblock extends Controller {
 	private ?array $params = null;
 
 	/**
+	 * The Superblock Plugin instance for this request
+	 */
+	private Plugin $plugin;
+
+	/**
 	 * Default constructor to initialize the state of the controller.
 	 */
 	public function __construct() {
@@ -81,6 +86,8 @@ class Superblock extends Controller {
 		// functions, we can validate the acces once and for all here.
 		//
 		$this->validate_access();
+
+		$this->plugin = Plugin::getInstance($this->localChannel);
 	}
 
 	/**
@@ -226,13 +233,13 @@ class Superblock extends Controller {
 	private function renderBlockList(): string {
 		$config_changed = false;
 
-		$plugin = Plugin::getInstance($this->localChannel);
-		$plugin->loadJavaScript();
+		$this->plugin->loadJavaScript();
+		$this->plugin->loadStyleSheet();
 
 		$token = get_form_security_token('superblock');
 
 		$entries = [];
-		$list = $plugin->getBlockedChannels();
+		$list = $this->plugin->getBlockedChannels();
 		$query_str = implode(',', array_map(fn ($cb) => "'" . dbesc($cb->hash) . "'", $list));
 		if ($query_str) {
 			$r = q("select * from xchan where xchan_hash in ( " . $query_str . " ) and xchan_hash != '' ");
@@ -292,7 +299,7 @@ class Superblock extends Controller {
 				],
 			]),
 			'$blockChannelButtonText' => t('Block channel!'),
-			'$addNewEntryText' => t('Add new entry'),
+			'$title' => t('Superblock: Add new entry'),
 		]);
 	}
 

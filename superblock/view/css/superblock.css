@@ -1,0 +1,48 @@
+/*
+ * SPDX-FileCopyrightText: 2026 The Hubzilla Community
+ * SPDX-FileContributor: Harald Eilertsen <haraldei@anduin.net>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+.superblock-blocklist {
+	list-style-type: none;
+	padding: 0;
+}
+.superblock-blocked-entry {
+	display: flex;
+	gap: 1rem;
+	margin-bottom: 1rem;
+	background-color: var(--bs-secondary-bg);
+	padding: 0.5rem;
+}
+.superblock-entry-actions {
+	display: flex;
+	gap: 0.3rem;
+	font-size: 150%;
+	align-items: center;
+}
+.superblock-entry-actions button {
+	border: none;
+	background-color: var(--bs-secondary-bg);
+	color: var(--bs-link-color);
+}
+.superblock-entry-actions button:hover {
+	color: var(--bs-link-hover-color);
+}
+.superblock-entry-body {
+	flex: 2;
+}
+.superblock-channel-name {
+	font-weight: bold;
+}
+.superblock-dialog-header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+.superblock-form-actions {
+	display: flex;
+	flex-direction: column;
+}

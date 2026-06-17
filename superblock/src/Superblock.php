@@ -80,6 +80,10 @@ class Superblock
 		head_add_js('/addon/superblock/view/js/superblock.js');
 	}
 
+	public function loadStyleSheet(): void {
+		head_add_css('/addon/superblock/view/css/superblock.css');
+	}
+
 	public function save(): void {
 		$this->blockList->save();
 	}

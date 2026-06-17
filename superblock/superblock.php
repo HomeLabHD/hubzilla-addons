@@ -176,8 +176,9 @@ function superblock_conversation_start(&$b)
 	if ($channelId && Apps::addon_app_installed($channelId, 'superblock')) {
 		$plugin = Superblock::getInstance($channelId);
 		$plugin->loadJavaScript();
+		$plugin->loadStyleSheet();
 
-		App::$page['content'] .= '<dialog id="superblockSubmitDialog"></dialog>';
+		App::$page['content'] .= '<dialog id="superblockSubmitDialog" closedby="any"></dialog>';
 	}
 }
 
