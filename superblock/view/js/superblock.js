@@ -28,6 +28,12 @@ async function superblockPopupSubmitForm(author) {
 	fetch(`superblock/submit?author=${author}`, { credentials: 'same-origin' })
 		.then(async (response) => {
 			dialog.innerHTML = await response.text();
+
+			let btn_close = dialog.getElementsByClassName('btn-close')[0];
+			btn_close.addEventListener('click', () => {
+				dialog.close();
+			});
+
 			dialog.showModal();
 		});
 }
