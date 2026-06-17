@@ -23,6 +23,20 @@ async function superblockAjax(action, author, item, security) {
 	body = await response.text();
 }
 
+async function superblockSendFormData(form) {
+	const formData = new FormData(form);
+
+	try {
+		const response = await fetch('superblock', {
+			method: 'POST',
+			credentials: 'same-origin',
+			body: formData,
+		});
+	} catch (e) {
+		console.error(e);
+	}
+}
+
 async function superblockPopupSubmitForm(author) {
 	let dialog = document.getElementById('superblockSubmitDialog');
 	fetch(`superblock/submit?author=${author}`, { credentials: 'same-origin' })
@@ -31,6 +45,13 @@ async function superblockPopupSubmitForm(author) {
 
 			let btn_close = dialog.getElementsByClassName('btn-close')[0];
 			btn_close.addEventListener('click', () => {
+				dialog.close();
+			});
+
+			const form = dialog.getElementsByTagName('form')[0];
+			form.addEventListener('submit', (event) => {
+				event.preventDefault();
+				superblockSendFormData(form);
 				dialog.close();
 			});
 
