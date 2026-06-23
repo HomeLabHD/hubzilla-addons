@@ -92,18 +92,18 @@ class Simplenotes extends Controller {
 
 		$notes = [];
 		$folders = [];
+		$hidden_filenames =['folders.json', 'deletions.json'];
 
 		foreach($files as $file)  {
 			if ($file->data['is_dir']) {
 				$folders[] = $file->data['filename'];
 			}
 
-
 			if ($file->data['filetype'] !== 'application/json') {
 				continue;
 			}
 
-			if ($file->data['filename'] === 'folders.json') {
+			if (in_array($file->data['filename'], $hidden_filenames)) {
 				continue;
 			}
 
