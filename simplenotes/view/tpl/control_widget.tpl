@@ -64,3 +64,9 @@
 	</div>
 	<input type="text" id="textSearch" class="form-control" placeholder="{{$strings.filter.text}}">
 </div>
+
+<div class="widget">
+	<div class="d-grid gap-2">
+		<a href="simplenotes{{if $folder}}/{{$folder}}{{/if}}?trash=1"><i class="bi bi-trash"></i> {{$strings.view_trash}}</a>
+	</div>
+</div>

@@ -94,6 +94,9 @@ class Simplenotes extends Controller {
 		$folders = [];
 		$hidden_filenames =['folders.json', 'deletions.json'];
 
+		$trash_view = !empty($_GET['trash']);
+		$thirty_days_ago = (int)((microtime(true) - (30 * 24 * 60 * 60)) * 1000);
+
 		foreach($files as $file)  {
 			if ($file->data['is_dir']) {
 				$folders[] = $file->data['filename'];
@@ -112,10 +115,28 @@ class Simplenotes extends Controller {
 			$note = json_decode(stream_get_contents($stream), true);
 
 			if (!$note) {
+				fclose($stream);
 				continue;
 			}
 
 			$note_object = SimpleNote::fromArray($note);
+
+			// Remove trashed notes after 30 days
+			if ($note_object->trashedAt !== 0 && $note_object->trashedAt < $thirty_days_ago) {
+				$filename = $note_object->id . '.json';
+
+				if ($this->dir->childExists($filename)) {
+					$this->dir->getChild($filename)->delete();
+				}
+
+				fclose($stream);
+				continue;
+			}
+
+			if ($trash_view !== ($note_object->trashedAt !== 0)) {
+				fclose($stream);
+				continue;
+			}
 
 			$prepared['id'] = escape_tags($note_object->id);
 			$prepared['title']['parsed'] = escape_tags($note_object->title);
@@ -137,6 +158,7 @@ class Simplenotes extends Controller {
 			$prepared['created']['date'] = date('Y-m-d H:i:s', $note_object->createdAt/1000);
 			$prepared['type'] = escape_tags($note_object->noteType);
 			$prepared['pinned'] = $note_object->isPinned;
+			$prepared['trashed'] = $note_object->trashedAt;
 			$prepared['color'] = $note_object->color;
 
 			$items[] = $prepared;
@@ -146,6 +168,7 @@ class Simplenotes extends Controller {
 		return replace_macros(get_markup_template('notes.tpl', 'addon/simplenotes'), [
 			'$items' => $items,
 			'$folders' => $folders,
+			'$trash_view' => $trash_view,
 			'$active_folder' => argv(1) ?? '',
 			'$strings' => [
 				'modal' => [
@@ -157,14 +180,16 @@ class Simplenotes extends Controller {
 						'unchecked_first' => t('Unchecked first'),
 						'checked_first' => t('Checked first')
 					],
-					'delete' => t('Delete note'),
+					'delete' => $trash_view ? t('Delete note') : t('Trash note'),
 					'pinned' => t('Pin note'),
 					'submit' => t('Submit'),
 					'note' => [
 						'title' => t('Title'),
 						'content' => t('Content')
 					]
-				]
+				],
+				'trash' => t('Trash'),
+				'trash_alert' => t('Notes in trash will be permanently removed after 30 days!')
 			]
 		]);
 	}
@@ -192,13 +217,19 @@ class Simplenotes extends Controller {
 			$this->dir->getChild($filename)->delete();
 		}
 
-		if ($data['delete'] === true) {
-			json_return_and_die(['success' => true, 'message' => 'Note deleted!']);
+		if ($data['delete'] === 'soft') {
+			// Move to trash
+			$note_object->trashedAt = (int)(microtime(true) * 1000);
+		}
+
+		if ($data['delete'] === 'hard') {
+			// This is a hard delete from the trash
+			json_return_and_die(['success' => true, 'message' => t('Note deleted!')]);
 		}
 
 		$this->dir->createFile($filename, json_encode($note_object->toArray()));
 
-		json_return_and_die(['success' => true, 'message' => 'Note saved!']);
+		json_return_and_die(['success' => true, 'message' => $note_object->trashedAt ? t('Note trashed!') : t('Note saved!')]);
 	}
 
 }

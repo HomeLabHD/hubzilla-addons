@@ -18,7 +18,9 @@ class Simplenotes_control {
 		}
 
 		return replace_macros(get_markup_template('control_widget.tpl', 'addon/simplenotes'), [
+			'$folder' => argv(1) ?? '',
 			'$strings' => [
+				'view_trash' => t('View trash'),
 				'label' => t('Simple Notes'),
 				'new' => t('Add new note'),
 				'order' => [

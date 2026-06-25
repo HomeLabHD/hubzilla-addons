@@ -1,13 +1,27 @@
-{{if  $active_folder}}
-<div class="pb-4">
+{{if $active_folder}}
+<div class="mb-4">
 	<h3>
-		<a href="simplenotes"><i class="bi bi-arrow-left"></i></a> {{$active_folder}}
+		<a href="simplenotes"><i class="bi bi-arrow-left"></i></a> {{$active_folder}}{{if $trash_view}}/{{$strings.trash}}{{/if}}
 	</h3>
 </div>
 {{/if}}
 
-{{if  $folders}}
-<div class="pb-4">
+{{if $trash_view && !$active_folder}}
+<div class="mb-4">
+	<h3>
+		<a href="simplenotes"><i class="bi bi-arrow-left"></i></a> {{$strings.trash}}
+	</h3>
+</div>
+{{/if}}
+
+{{if $trash_view}}
+<div class="alert alert-danger mb-4">
+	{{$strings.trash_alert}}
+</div>
+{{/if}}
+
+{{if !$trash_view && $folders}}
+<div class="mb-4">
 	{{foreach $folders as $f}}
 	<a href="simplenotes/{{$f}}" class="btn btn-outline-primary"><i class="bi bi-folder"></i> {{$f}}</a>
 	{{/foreach}}
@@ -16,10 +30,11 @@
 
 <div class="simplenotes_notes_container row">
 	{{foreach $items as $i}}
-	<div class="col-md-6 pb-4 simplenotes_note" data-id="{{$i.id}}" data-created="{{$i.created.timestamp}}" data-updated="{{$i.updated.timestamp}}" data-title="{{$i.title.encoded}}" data-content="{{$i.content.encoded}}" data-type="{{$i.type}}" data-pinned="{{$i.pinned}}" data-color="{{$i.color}}">
+	<div class="col-md-6 mb-4 simplenotes_note" data-id="{{$i.id}}" data-created="{{$i.created.timestamp}}" data-updated="{{$i.updated.timestamp}}" data-title="{{$i.title.encoded}}" data-content="{{$i.content.encoded}}" data-type="{{$i.type}}" data-pinned="{{$i.pinned}}" data-color="{{$i.color}}">
 		<div class="card{{if !$i.color}} {{if $i.type === 'TEXT'}}bg-warning-subtle text-warning-emphasis{{else}}bg-info-subtle text-info-emphasis{{/if}}{{/if}}"{{if $i.color}} style="background-color: {{$i.color}};"{{/if}}>
 			<div class="card-body">
 				<div class="note-title h4">
+					{{if $i.trashed}}<i class="bi bi-trash pe-2"></i>{{/if}}
 					<i class="bi bi-card-{{$i.type|lower}} pe-2"></i>
 					{{if $i.pinned}}<i class="bi bi-pin pe-2"></i>{{/if}}
 					{{$i.title.parsed}}
@@ -31,7 +46,9 @@
 			</div>
 			<div class="card-footer d-flex justify-content-between">
 				<div class="autotime" title="{{$i.updated.date}}"></div>
-				<div><i class="bi bi-pencil cursor-pointer simplenotes_note_edit"></i></div>
+				<div>
+					<i class="bi bi-pencil cursor-pointer simplenotes_note_edit"></i>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -275,7 +292,7 @@
 					color: activeNoteColor,
 					noteType: activeNoteType,
 					checklistSortOption: activeChecklistSortOption,
-					delete: simplenotesNoteDelete.checked
+					delete: {{if $trash_view}}simplenotesNoteDelete.checked ? 'hard' : 0{{else}}simplenotesNoteDelete.checked ? 'soft' : 0{{/if}}
 				})
 			})
 			.then(response => response.json())  // Parse the JSON response
@@ -283,6 +300,8 @@
 				console.log(response);
 				if (response.success) {
 					toast(response.message, 'info');
+					// Get rid of arguments if there are any (e.g. editing a note in trash view)
+					window.location.search = '';
 					setTimeout(() => window.location.reload(), 700);
 				}
 

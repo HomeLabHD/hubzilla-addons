@@ -11,6 +11,7 @@ abstract class SimpleNote
 	public string $noteType;
 	public readonly int $createdAt;
 	public readonly int $updatedAt;
+	public int $trashedAt;
 	public readonly bool $isPinned;
 	public readonly string $color;
 
@@ -25,6 +26,7 @@ abstract class SimpleNote
 		$this->noteType = (string)($data['noteType'] ?? 'TEXT');
 		$this->createdAt = (int)($data['createdAt'] ?? $now);
 		$this->updatedAt = (int)($data['updatedAt'] ?? $now);
+		$this->trashedAt = (int)($data['trashedAt'] ?? 0);
 		$this->isPinned = (bool)($data['isPinned'] ?? false);
 		$this->color = (string)($data['color'] ?? '');
 	}
@@ -45,16 +47,29 @@ abstract class SimpleNote
 
 	public function toArray(): array
 	{
-		return [
+
+		$ret = [
 			'id' => $this->id,
 			'deviceId' => $this->deviceId,
 			'title' => $this->title,
 			'content' => $this->content,
 			'noteType' => $this->noteType,
 			'createdAt' => $this->createdAt,
-			'updatedAt' => $this->updatedAt,
-			'isPinned' => $this->isPinned,
-			'color' => $this->color,
+			'updatedAt' => $this->updatedAt
 		];
+
+		if ($this->trashedAt) {
+			$ret['trashedAt'] = $this->trashedAt;
+		}
+
+		if ($this->isPinned) {
+			$ret['isPinned'] = $this->isPinned;
+		}
+
+		if ($this->color) {
+			$ret['color'] = $this->color;
+		}
+
+		return $ret;
 	}
 }
