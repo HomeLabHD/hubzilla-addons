@@ -218,12 +218,13 @@ class Superblock extends Controller {
 			]);
 
 			if ($author_hash) {
-				$author = $this->findXChanFromAuthor($author_hash);
+				$xchan = $this->findXChanFromAuthor($author_hash);
+				$author = $chan['address'] ?? '';
 			} else {
 				$author = '';
 			}
 
-			echo $this->renderAddBlockForm($author['address']);
+			echo $this->renderAddBlockForm($author);
 			killme();
 		}
 
@@ -256,10 +257,10 @@ class Superblock extends Controller {
 
 		return replace_macros($tpl, [
 			'$title' => t('Your blocked channels'),
+			'$newEntry' => t('Add new block'),
 			'$entries' => array_map(fn($e) => $e->render(), $entries),
 			'$token' => $token,
 			'$nothing' => t('No channels currently blocked'),
-			'$addBlockForm' => $this->renderAddBlockForm(),
 		]);
 	}
 
