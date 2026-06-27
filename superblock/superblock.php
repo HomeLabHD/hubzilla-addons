@@ -182,13 +182,22 @@ function superblock_conversation_start(&$b)
 	}
 }
 
-function superblock_item_photo_menu(&$b)
+/**
+ * Add superblock menu items to the avatar menu of a post.
+ *
+ * @param array $args
+ *    Reference to an array containing the following fields:
+ *      - \e item - An array with the current item.
+ *      - \e mode - A string containing a mode (unused by superblock).
+ *      - \e menu - An array of menu items for this item.
+ */
+function superblock_item_photo_menu(array &$args): void
 {
 	$channelId = local_channel();
 
 	if ($channelId && Apps::addon_app_installed(local_channel(), 'superblock')) {
-		$author = $b['item']['author_xchan'];
-		$item = $b['item']['id'];
+		$author = $args['item']['author_xchan'];
+		$item = $args['item']['id'];
 
 		if (App::$channel['channel_hash'] == $author) {
 			return;
@@ -198,7 +207,7 @@ function superblock_item_photo_menu(&$b)
 		$security = $plugin->security_token;
 
 		if (!$plugin->isChannelBlocked($author)) {
-		    $b['menu'][] = [
+		    $args['menu'][] = [
 				'menu' => 'superblock_mute',
 				'title' => t('Mute or block channel…'),
 				'icon' => 'fw',
@@ -207,7 +216,7 @@ function superblock_item_photo_menu(&$b)
 			];
 
 			if (is_site_admin()) {
-				$b['menu'][] = [
+				$args['menu'][] = [
 					'superblock_admin_block',
 					'title' => t('Block from site'),
 					'icon' => 'fw',
