@@ -34,6 +34,24 @@ async function superblockSendFormData(form) {
 		});
 	} catch (e) {
 		console.error(e);
+		return false;
+	}
+
+	return true;
+}
+
+function superblockFilterThread(element, hash) {
+	for (const child of element.children) {
+		if (child.classList.contains('wall-item-outside-wrapper')) {
+			let nameLinkElement = child.querySelector('.wall-item-name-link');
+			let link = new URL(nameLinkElement.getAttribute('href'));
+			let nameHash = link.searchParams.get('hash');
+			if (nameHash == hash) {
+				// We hide the element instead of removing it from the DOM,
+				// to avoid modifying the NodeList
+				element.hidden = true;
+			}
+		}
 	}
 }
 
@@ -51,7 +69,12 @@ async function superblockPopupSubmitForm(author) {
 			const form = dialog.getElementsByTagName('form')[0];
 			form.addEventListener('submit', (event) => {
 				event.preventDefault();
-				superblockSendFormData(form);
+				if (superblockSendFormData(form)) {
+					const threads = Array.from(document.querySelectorAll('.thread-wrapper'));
+					for (const thread of threads) {
+						superblockFilterThread(thread, author);
+					}
+				}
 				dialog.close();
 			});
 
