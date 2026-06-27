@@ -198,17 +198,9 @@ function superblock_item_photo_menu(&$b)
 		$security = $plugin->security_token;
 
 		if (!$plugin->isChannelBlocked($author)) {
-			$b['menu'][] = [
-				'menu' => 'superblock',
-				'title' => t('Block Completely'),
-				'icon' => 'fw',
-				'action' => "superblockAjax('block', '{$author}', {$item}, '{$security}'); return false;",
-				'href' => '#'
-			];
-
 		    $b['menu'][] = [
 				'menu' => 'superblock_mute',
-				'title' => t('Block temporarily'),
+				'title' => t('Mute or block channel…'),
 				'icon' => 'fw',
 				'action' => "superblockPopupSubmitForm('${author}'); return false;",
 				'href' => "#"
