@@ -7,12 +7,12 @@
 
 .superblock-blocklist {
 	list-style-type: none;
-	padding: 0;
+	padding: 0 0.5rem;
 }
 .superblock-blocked-entry {
 	display: flex;
 	gap: 1rem;
-	margin-bottom: 1rem;
+	margin-bottom: 0.5rem;
 	background-color: var(--bs-secondary-bg);
 	padding: 0.5rem;
 }

@@ -19,16 +19,13 @@
 		</div>
 	</div>
 	<div class="superblock-entry-actions">
-		<a href="{{$entry->url}}" target="_blank">
-			<span class="bi bi-box-arrow-up-right"
-				title="{{$link_alt_text}}">
-			</span>
-		</a>
 		<form action="superblock" method="POST">
 			<input type="hidden" name="action" value="unblock">
 			<input type="hidden" name="author" value="{{$entry->hash|escape}}">
 			<input type="hidden" name="form_security_token" value="{{$entry->token}}">
-			<button type="submit" class="bi bi-trash" title="{{$remove}}"></button>
+			<button type="button" class="bi bi-box-arrow-up-right btn btn-dark" title="{{$link_alt_text}}" onclick="window.open('{{$entry->url}}', '_blank')"></button>
+			<button type="button" class="bi bi-pencil-square btn btn-dark" title="Edit" onclick="superblockPopupSubmitForm('{{$entry->hash|escape}}', false)"></button>
+			<button type="submit" class="bi bi-trash btn btn-danger" title="{{$remove}}"></button>
 		</form>
 	</div>
 </div>
