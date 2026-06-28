@@ -57,7 +57,7 @@ function superblockFilterThread(element, hash) {
 
 async function superblockPopupSubmitForm(author, reloadOnSubmit = false) {
 	let dialog = document.getElementById('superblockSubmitDialog');
-	fetch(`superblock/submit?author=${author}`, { credentials: 'same-origin' })
+	fetch(`superblock/add?author=${author}`, { credentials: 'same-origin' })
 		.then(async (response) => {
 			dialog.innerHTML = await response.text();
 

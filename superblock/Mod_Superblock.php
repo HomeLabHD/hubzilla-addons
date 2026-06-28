@@ -209,7 +209,7 @@ class Superblock extends Controller {
 			return Apps::app_render($papp, 'module');
 		}
 
-		if (argc() > 1 && argv(1) === "submit") {
+		if (argc() > 1 && argv(1) === "add") {
 			$author_hash = filter_input(INPUT_GET, 'author', FILTER_VALIDATE_REGEXP, [
 				'options' => [
 					'regexp' => '/[a-zA-Z0-9@:\/_-]+/',

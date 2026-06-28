@@ -118,25 +118,36 @@ class ModSuperblockTest extends TestCase {
 		$this->startSession($this->channel);
 		$this->installPluginApp($this->channel);
 		$this->stubGetSecurityToken();
+		$this->stub_killme();
 
-		// With no blocked channels
-		$this->get('superblock/add');
+		$this->assertTrue(ob_start());
 
-		// Verify and extract the form element
-		$this->assertEquals(1, preg_match(
-			'/<form.+name="superblock-add-channel-block"[^>]*>(.*)<\/form>/sm',
-			App::$page['content'],
-			$form)
-		);
+		try {
+			$this->get('superblock/add');
+		} catch (KillmeException $e) {
+			$content = ob_get_clean();
+			$this->assertNotEmpty($content);
 
-		// Check that the form contains the elements we want
-		$this->assertMatchesRegularExpression(
-			'/<input\s+class="form-control"\s+name="author"/',
-		   	$form[1]);
-		$this->assertStringContainsString('<input name="action" type="hidden" value="block"', $form[1]);
-		$this->AssertStringContainsString(
-			'<input name="form_security_token" type="hidden" value="very security"',
-		   	$form[1]);
+			// Verify and extract the form element
+			$this->assertEquals(1, preg_match(
+				'/<form.+name="superblock-add-channel-block"[^>]*>(.*)<\/form>/sm',
+				$content,
+				$form)
+			);
+
+			// Check that the form contains the elements we want
+			$this->assertMatchesRegularExpression(
+				'/<input\s+class="form-control"\s+name="author"/',
+				$form[1]);
+			$this->assertStringContainsString('<input name="action" type="hidden" value="block"', $form[1]);
+			$this->AssertStringContainsString(
+				'<input name="form_security_token" type="hidden" value="very security"',
+				$form[1]);
+
+			return;
+		}
+
+		$this->fail('Expected KillmeException');
 	}
 
 	/**
