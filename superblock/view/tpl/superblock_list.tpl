@@ -2,7 +2,7 @@
 <div class="generic-content-wrapper">
 	<div class="section-title-wrapper">
 		<div class="float-end">
-			<button class="btn btn-sm btn-success" onclick="superblockPopupSubmitForm('')">
+			<button class="btn btn-sm btn-success" onclick="superblockPopupSubmitForm('', false)">
 				<i class="bi bi-plus-lg"></i>
 				{{$newEntry}}
 			</button>

@@ -219,7 +219,7 @@ class Superblock extends Controller {
 
 			if ($author_hash) {
 				$xchan = $this->findXChanFromAuthor($author_hash);
-				$author = $chan['address'] ?? '';
+				$author = $xchan['address'] ?? '';
 			} else {
 				$author = '';
 			}

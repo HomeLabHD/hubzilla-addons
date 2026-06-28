@@ -553,7 +553,7 @@ class SuperblockTest extends UnitTestCase {
 
 			$plugin = Superblock::getInstance($this->channel['channel_id']);
 			$this->assertStringContainsString(
-				"superblockPopupSubmitForm('{$author}'); return false;",
+				"superblockPopupSubmitForm('{$author}', true); return false;",
 				$args['menu'][0]['action']
 			);
 		}

@@ -55,7 +55,7 @@ function superblockFilterThread(element, hash) {
 	}
 }
 
-async function superblockPopupSubmitForm(author) {
+async function superblockPopupSubmitForm(author, reloadOnSubmit = false) {
 	let dialog = document.getElementById('superblockSubmitDialog');
 	fetch(`superblock/submit?author=${author}`, { credentials: 'same-origin' })
 		.then(async (response) => {
@@ -66,17 +66,19 @@ async function superblockPopupSubmitForm(author) {
 				dialog.close();
 			});
 
-			const form = dialog.getElementsByTagName('form')[0];
-			form.addEventListener('submit', (event) => {
-				event.preventDefault();
-				if (superblockSendFormData(form)) {
-					const threads = Array.from(document.querySelectorAll('.thread-wrapper'));
-					for (const thread of threads) {
-						superblockFilterThread(thread, author);
+			if (reloadOnSubmit !== false) {
+				const form = dialog.getElementsByTagName('form')[0];
+				form.addEventListener('submit', (event) => {
+					event.preventDefault();
+					if (superblockSendFormData(form)) {
+						const threads = Array.from(document.querySelectorAll('.thread-wrapper'));
+						for (const thread of threads) {
+							superblockFilterThread(thread, author);
+						}
 					}
-				}
-				dialog.close();
-			});
+					dialog.close();
+				});
+			}
 
 			dialog.showModal();
 		});

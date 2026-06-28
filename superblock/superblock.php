@@ -211,7 +211,7 @@ function superblock_item_photo_menu(array &$args): void
 				'menu' => 'superblock_mute',
 				'title' => t('Mute or block channel…'),
 				'icon' => 'fw',
-				'action' => "superblockPopupSubmitForm('${author}'); return false;",
+				'action' => "superblockPopupSubmitForm('${author}', true); return false;",
 				'href' => "#"
 			];
 
