@@ -88,40 +88,18 @@ class NativeWiki {
 		];
 
 		$arr['obj_type'] = 'Document';
-		$arr['obj'] = [
-			'type'          => 'Document',
-			'name'          => $wiki['htmlName'],
-			'published'     => datetime_convert('UTC', 'UTC', $arr['created'], ATOM_TIME),
-			'attributedTo'  => channel_url($channel),
-			'id' => $mid,
-			'uuid' => $uuid,
-			'url' => [
-				[
-					'type'      => 'Link',
-					'name'      => $wiki['htmlName'],
-					'mediaType' => 'application/zip',
-					'href'      => z_root() . '/wiki/' . $channel['channel_address'] . '/download/wiki/' . $resource_id
-				],
-				[
-					'type'      => 'Link',
-					'name'      => $wiki['htmlName'],
-					'mediaType' => 'text/html',
-					'href'      => $wiki_url
-				]
-			],
-			'source'  => $arr['body'],
-			'content' => bbcode($arr['body'])
+
+		$arr['attach'][] = [
+			'type'     => 'application/zip',
+			'title'    => $wiki['htmlName'],
+			'href'     => z_root() . '/wiki/' . $channel['channel_address'] . '/download/wiki/' . $resource_id
 		];
 
-		$public = (($ac['allow_cid'] || $ac['allow_gid'] || $ac['deny_cid'] || $ac['deny_gid']) ? false : true);
-
-		if ($public) {
-			$arr['obj']['to'] = [ACTIVITY_PUBLIC_INBOX];
-			$arr['obj']['cc'] = [z_root() . '/followers/' . $channel['channel_address']];
-		}
-		else {
-			$arr['obj']['to'] = Activity::map_acl(array_merge($ac, ['item_private' => $arr['item_private']]));
-		}
+		$arr['attach'][] = [
+			'type'     => 'text/html',
+			'title'    => $wiki['htmlName'],
+			'href'     => $wiki_url
+		];
 
 		// Save the wiki name information using iconfig. This is shareable.
 		if(! set_iconfig($arr, 'wiki', 'rawName', $wiki['rawName'], true)) {
