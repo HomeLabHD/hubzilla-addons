@@ -209,25 +209,34 @@ class Superblock extends Controller {
 			return Apps::app_render($papp, 'module');
 		}
 
-		if (argc() > 1 && argv(1) === "add") {
-			$author_hash = filter_input(INPUT_GET, 'author', FILTER_VALIDATE_REGEXP, [
-				'options' => [
-					'regexp' => '/[a-zA-Z0-9@:\/_-]+/',
-					'default' => null
-				]
-			]);
+		if (argc() == 2) {
+		    if (argv(1) === "add") {
+				$author_hash = filter_input(INPUT_GET, 'author', FILTER_VALIDATE_REGEXP, [
+					'options' => [
+						'regexp' => '/[a-zA-Z0-9@:\/_-]+/',
+						'default' => null
+					]
+				]);
 
-			if ($author_hash) {
-				$xchan = $this->findXChanFromAuthor($author_hash);
-				$author = $xchan['address'] ?? '';
-			} else {
-				$author = '';
+				if ($author_hash) {
+					$xchan = $this->findXChanFromAuthor($author_hash);
+					$author = $xchan['address'] ?? '';
+				} else {
+					$author = '';
+				}
+
+				echo $this->renderAddBlockForm($author);
+				killme();
 			}
-
-			echo $this->renderAddBlockForm($author);
-			killme();
 		}
 
+		// Return page not found for all other paths not
+		// implemented.
+		if (argc() !== 1) {
+			http_status_exit(404);
+		}
+
+		// Return the block list for the addon base path
 		return $this->renderBlockList();
 	}
 
