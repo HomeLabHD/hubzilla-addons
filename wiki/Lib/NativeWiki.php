@@ -1,6 +1,7 @@
 <?php
 
 use Zotlabs\Lib\Libsync;
+use Zotlabs\Lib\Activity;
 use Zotlabs\Daemon\Master;
 
 define ( 'NWIKI_ITEM_RESOURCE_TYPE', 'nwiki' );
@@ -55,6 +56,8 @@ class NativeWiki {
 		$arr['uid'] = $channel['channel_id'];
 		$arr['mid'] = $mid;
 		$arr['parent_mid'] = $mid;
+		$arr['created'] = datetime_convert();
+		$arr['updated'] = datetime_convert();
 		$arr['item_hidden'] = $item_hidden;
 		$arr['resource_type'] = NWIKI_ITEM_RESOURCE_TYPE;
 		$arr['resource_id'] = $resource_id;
@@ -72,10 +75,47 @@ class NativeWiki {
 		$arr['item_thread_top'] = 1;
 		$arr['item_private'] = intval($acl->is_private());
 		$arr['verb'] = 'Create';
-		$arr['obj_type'] = 'Document';
-		$arr['body'] = '[table][tr][td][h1]New Wiki[/h1][/td][/tr][tr][td][zrl=' . $wiki_url . ']' . $wiki['htmlName'] . '[/zrl][/td][/tr][/table]';
+		$arr['body'] = '[table][tr][td][h4]New Wiki[/h4][/td][/tr][tr][td][zrl=' . $wiki_url . ']' . $wiki['htmlName'] . '[/zrl][/td][/tr][/table]';
 
 		$arr['public_policy'] = map_scope(\Zotlabs\Access\PermissionLimits::Get($channel['channel_id'],'view_wiki'),true);
+
+		$arr['tgt_type'] = 'Collection';
+		$arr['target'] = [
+			'id' => str_replace('/item/', '/conversation/', $mid),
+			'type' => 'Collection',
+			'attributedTo' => channel_url($channel),
+		];
+
+		$arr['obj_type'] = 'Document';
+		$arr['obj'] = [
+			'type'          => 'Document',
+			'name'          => $wiki['htmlName'],
+			'published'     => datetime_convert('UTC', 'UTC', $arr['created'], ATOM_TIME),
+			'attributedTo'  => channel_url($channel),
+			'id' => $mid,
+			'uuid' => $uuid,
+
+			'url' => [
+				[
+					'type'      => 'Link',
+					'name'      => $wiki['htmlName'],
+					'mediaType' => $wiki['mimeType'],
+					'href'      => $wiki_url
+				]
+			],
+			'source'  => $arr['body'],
+			'content' => bbcode($arr['body'])
+		];
+
+		$public = (($ac['allow_cid'] || $ac['allow_gid'] || $ac['deny_cid'] || $ac['deny_gid']) ? false : true);
+
+		if ($public) {
+			$arr['obj']['to'] = [ACTIVITY_PUBLIC_INBOX];
+			$arr['obj']['cc'] = [z_root() . '/followers/' . $channel['channel_address']];
+		}
+		else {
+			$arr['obj']['to'] = Activity::map_acl(array_merge($ac, ['item_private' => $arr['item_private']]));
+		}
 
 		// Save the wiki name information using iconfig. This is shareable.
 		if(! set_iconfig($arr, 'wiki', 'rawName', $wiki['rawName'], true)) {
