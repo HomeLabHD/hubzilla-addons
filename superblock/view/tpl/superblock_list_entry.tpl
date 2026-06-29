@@ -12,8 +12,7 @@
 			<span class="superblock-channel-expiration-date">
 				({{$until}}:
 				<time datetime="{{$entry->expire|date_format:"%Y-%m-%d"}}">
-					{{$entry->expire|date_format:"%Y-%m-%d %H:%M"}}
-				</time>)
+					{{$entry->expire|date_format:"%Y-%m-%d %H:%M"}}</time>)
 			</span>
 			{{/if}}
 		</div>

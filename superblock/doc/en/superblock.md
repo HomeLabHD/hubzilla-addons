@@ -1,14 +1,21 @@
 ## Superblock
 
-The Superblock app enables you to permanently block other channels from your
+The Superblock app enables you to block or "mute" other channels from your
 network stream, notifications, private messages and mentions. Once a channel
 is blocked, it should be virtually invisible to you.
+
+You can optionally set a duration for the block to make it temporary. After the
+given duration the block will expire, and posts from the channel will be
+visible again.
 
 ### Blocking channels from your network stream
 
 If you see a post or comment from someone you don't want to see anything from
 again in your streams, you can block them by clicking their avatar picture
-and selecint "Block completely".
+and select "Block or mute channel…".
+
+A dialog will pop up giving you the option to set a duration for the block. To
+make the block permanent, just leave the duration at 0.
 
 ### Manually adding channels to the block list
 
@@ -20,6 +27,11 @@ This allows you to proactively block channels even before you see any content fr
 them in your streams.
 
 Not that for now, only channels known to your hub can be blocked this way.
+
+### Editing a channel block
+
+If you wish to change the expiry time for a channel block, you can click the
+pencil icon next to the entry in the channel block list at [baseurl]/superblock.
 
 ### Unblocking a channel
 

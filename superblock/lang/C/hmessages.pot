@@ -1,0 +1,157 @@
+# ADDON superblock
+# Copyright (C) 
+# This file is distributed under the same license as the hubzilla superblock addon package.
+# 
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-29 16:34+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/Views/ChannelBlockEntry.php:43
+#, php-format
+msgid "Go to %1$s's channel (Opens in new tab)"
+msgstr ""
+
+#: src/Views/ChannelBlockEntry.php:44
+msgid "Remove from blocklist"
+msgstr ""
+
+#: src/Views/ChannelBlockEntry.php:45
+msgid "Until"
+msgstr ""
+
+#: superblock.php:212
+msgid "Mute or block channel…"
+msgstr ""
+
+#: superblock.php:221
+msgid "Block from site"
+msgstr ""
+
+#: Mod_Superblock.php:138
+msgid "Invalid or unknown channel"
+msgstr ""
+
+#: Mod_Superblock.php:153
+#, php-format
+msgid "temporarily blocked %1$s until %2$s"
+msgstr ""
+
+#: Mod_Superblock.php:159
+#, php-format
+msgid "blocked %s permanently"
+msgstr ""
+
+#: Mod_Superblock.php:167
+#, php-format
+msgid "removed %s from block list"
+msgstr ""
+
+#: Mod_Superblock.php:177
+#, php-format
+msgid "added %s to site block list"
+msgstr ""
+
+#: Mod_Superblock.php:182
+msgid "No action given"
+msgstr ""
+
+#: Mod_Superblock.php:226
+msgid "Missing or invalid channel"
+msgstr ""
+
+#: Mod_Superblock.php:272 Mod_Superblock.php:317
+msgid "Superblock"
+msgstr ""
+
+#: Mod_Superblock.php:273
+msgid "Your blocked channels"
+msgstr ""
+
+#: Mod_Superblock.php:274 Mod_Superblock.php:318
+msgid "Add new entry"
+msgstr ""
+
+#: Mod_Superblock.php:277
+msgid "No channels currently blocked"
+msgstr ""
+
+#: Mod_Superblock.php:287
+msgid "Channel address (webbie):"
+msgstr ""
+
+#: Mod_Superblock.php:289
+msgid ""
+"The address of the channel to block, typically like 'channel@example.com'."
+msgstr ""
+
+#: Mod_Superblock.php:294
+msgid "Block this channel for"
+msgstr ""
+
+#: Mod_Superblock.php:295
+msgid ""
+"How long to block activities from this channel, leave as 0 to block forever."
+msgstr ""
+
+#: Mod_Superblock.php:304
+msgid "Duration for which to block the channel"
+msgstr ""
+
+#: Mod_Superblock.php:308
+msgid "Minute(s)"
+msgstr ""
+
+#: Mod_Superblock.php:309
+msgid "Hour(s)"
+msgstr ""
+
+#: Mod_Superblock.php:310
+msgid "Day(s)"
+msgstr ""
+
+#: Mod_Superblock.php:311
+msgid "Week(s)"
+msgstr ""
+
+#: Mod_Superblock.php:312
+msgid "Month(s)"
+msgstr ""
+
+#: Mod_Superblock.php:313
+msgid "Years"
+msgstr ""
+
+#: Mod_Superblock.php:316
+msgid "Block channel!"
+msgstr ""
+
+#: Mod_Superblock.php:318
+msgid "Edit entry"
+msgstr ""
+
+#: Mod_Superblock.php:397
+msgid "no action specified"
+msgstr ""
+
+#: Mod_Superblock.php:402
+msgid "no channel specified"
+msgstr ""
+
+#: Mod_Superblock.php:408
+msgid "You do not have access to perform this operation"
+msgstr ""
+
+#: Mod_Superblock.php:433
+msgid "Invalid or missing security token"
+msgstr ""

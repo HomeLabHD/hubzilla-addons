@@ -42,7 +42,7 @@ class ChannelBlockEntry
 			'entry' => $this,
 			'link_alt_text' => sprintf(t('Go to %1$s\'s channel (Opens in new tab)'), $this->name),
 			'remove' => t('Remove from blocklist'),
-			'until' => t('Until:'),
+			'until' => t('Until'),
 		]);
 	}
 }
