@@ -256,6 +256,7 @@ class Superblock extends Controller {
 		$tpl = get_markup_template('superblock_list.tpl','addon/superblock');
 
 		return replace_macros($tpl, [
+			'$addonTitle' => t('Superblock'),
 			'$title' => t('Your blocked channels'),
 			'$newEntry' => t('Add new block'),
 			'$entries' => array_map(fn($e) => $e->render(), $entries),

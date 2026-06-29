@@ -1,4 +1,5 @@
 <dialog id="superblockSubmitDialog" closedby="any"></dialog>
+<h1>{{$addonTitle}}</h1>
 <div class="generic-content-wrapper">
 	<div class="section-title-wrapper">
 		<div class="float-end">
