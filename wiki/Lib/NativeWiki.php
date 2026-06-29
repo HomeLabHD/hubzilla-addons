@@ -47,6 +47,7 @@ class NativeWiki {
 
 		$ac = $acl->get();
 		$mid = z_root() . '/item/' . $uuid;
+		$dt = datetime_convert();
 
 		$arr = array();	// Initialize the array of parameters for the post
 		$item_hidden = ((intval($wiki['postVisible']) === 0) ? 1 : 0);
@@ -56,8 +57,8 @@ class NativeWiki {
 		$arr['uid'] = $channel['channel_id'];
 		$arr['mid'] = $mid;
 		$arr['parent_mid'] = $mid;
-		$arr['created'] = datetime_convert();
-		$arr['updated'] = datetime_convert();
+		$arr['created'] = $dt;
+		$arr['updated'] = $dt;
 		$arr['item_hidden'] = $item_hidden;
 		$arr['resource_type'] = NWIKI_ITEM_RESOURCE_TYPE;
 		$arr['resource_id'] = $resource_id;
@@ -94,12 +95,17 @@ class NativeWiki {
 			'attributedTo'  => channel_url($channel),
 			'id' => $mid,
 			'uuid' => $uuid,
-
 			'url' => [
 				[
 					'type'      => 'Link',
 					'name'      => $wiki['htmlName'],
-					'mediaType' => $wiki['mimeType'],
+					'mediaType' => 'application/zip',
+					'href'      => z_root() . '/wiki/' . $channel['channel_address'] . '/download/wiki/' . $resource_id
+				],
+				[
+					'type'      => 'Link',
+					'name'      => $wiki['htmlName'],
+					'mediaType' => 'text/html',
 					'href'      => $wiki_url
 				]
 			],
