@@ -1,5 +1,5 @@
 <div class="superblock-dialog-header">
-	<h4 class="superblock-dialog-title">{{$title}}</h4>
+	<h4 class="superblock-dialog-title">{{$addonTitle}}: {{$title}}</h4>
 	<button type="button" class="btn-close"></button>
 </div>
 <form class="superblock-form" name="superblock-add-channel-block" action="superblock" method="POST">

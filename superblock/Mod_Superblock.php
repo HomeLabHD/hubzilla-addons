@@ -210,7 +210,8 @@ class Superblock extends Controller {
 		}
 
 		if (argc() == 2) {
-		    if (argv(1) === "add") {
+			$subpath = argv(1);
+		    if ($subpath === "add" || $subpath === "edit") {
 				$author_hash = filter_input(INPUT_GET, 'author', FILTER_VALIDATE_REGEXP, [
 					'options' => [
 						'regexp' => '/[a-zA-Z0-9@:\/_-]+/',
@@ -221,11 +222,14 @@ class Superblock extends Controller {
 				if ($author_hash) {
 					$xchan = $this->findXChanFromAuthor($author_hash);
 					$author = $xchan['address'] ?? '';
+				} else if ($subpath === 'edit') {
+					notice(t('Missing or invalid channel'));
+					http_status_exit(400);
 				} else {
 					$author = '';
 				}
 
-				echo $this->renderAddBlockForm($author);
+				echo $this->renderAddBlockForm($author, $subpath == 'edit');
 				killme();
 			}
 		}
@@ -274,7 +278,7 @@ class Superblock extends Controller {
 		]);
 	}
 
-	private function renderAddBlockForm($author = ''): string {
+	private function renderAddBlockForm($author = '', $edit = 0): string {
 		$tpl = get_markup_template('superblock_add_block_form.tpl','addon/superblock');
 		return replace_macros($tpl, [
 			'$token' => get_form_security_token('superblock'),
@@ -310,7 +314,8 @@ class Superblock extends Controller {
 				],
 			]),
 			'$blockChannelButtonText' => t('Block channel!'),
-			'$title' => t('Superblock: Add new entry'),
+			'$addonTitle' => t('Superblock'),
+			'$title' => $edit ? t('Edit entry') : t('Add new entry'),
 		]);
 	}
 

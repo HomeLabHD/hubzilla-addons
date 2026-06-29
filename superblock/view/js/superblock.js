@@ -55,9 +55,15 @@ function superblockFilterThread(element, hash) {
 	}
 }
 
-async function superblockPopupSubmitForm(author, reloadOnSubmit = false) {
+async function superblockPopupSubmitForm(author, reloadOnSubmit = false, edit = false) {
 	let dialog = document.getElementById('superblockSubmitDialog');
-	fetch(`superblock/add?author=${author}`, { credentials: 'same-origin' })
+	let path = 'superblock/' + (edit ? 'edit' : 'add');
+
+	if (author !== '') {
+		path += `?author=${author}`;
+	}
+
+	fetch(path, { credentials: 'same-origin' })
 		.then(async (response) => {
 			dialog.innerHTML = await response.text();
 
