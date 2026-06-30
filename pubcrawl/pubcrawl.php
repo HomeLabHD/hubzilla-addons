@@ -236,48 +236,50 @@ function pubcrawl_encode_item(&$arr) {
 		$arr['encoded']['id'] = unparse_url($parsed);
 	}
 
-	$images = false;
-	$has_images = preg_match_all('/\[[zi]mg(.*?)\](.*?)\[/ism', $arr['item']['body'], $images, PREG_SET_ORDER);
 
-	if ($has_images) {
-		foreach ($images as $match) {
-			$img = [];
-			// handle Friendica/Hubzilla style img links with [img=$url]$alttext[/img]
-			if (strpos($match[1], '=http') === 0) {
-				$img[] = ['type' => 'Image', 'url' => substr($match[1], 1), 'name' => $match[2]];
-			} // preferred mechanism for adding alt text
-			elseif (strpos($match[1], 'alt=') !== false) {
-				$txt = str_replace('&quot;', '"', $match[1]);
-				$txt = substr($match[1], strpos($match[1], 'alt="') + 5, -1);
-				$img[] = ['type' => 'Image', 'url' => $match[2], 'name' => $txt];
-			} else {
-				$img[] = ['type' => 'Image', 'url' => $match[2]];
-			}
+	if (!in_array($arr['item']['obj_type'], ['Image', 'Audio', 'Video', 'Document'])) {
+		$images = false;
+		$has_images = preg_match_all('/\[[zi]mg(.*?)\](.*?)\[/ism', $arr['item']['body'], $images, PREG_SET_ORDER);
 
-			if (empty($arr['encoded']['attachment'])) {
-				$arr['encoded']['attachment'] = [];
-			}
-			$already_added = false;
-			if ($img) {
-				for ($pc = 0; $pc < count($arr['encoded']['attachment']); $pc++) {
-					// caution: image attachments use url and links use href, and our own links will be 'attach' links based on the image href
-					// We could alternatively supply the correct attachment info when item is saved, but by replacing here we will pick up
-					// any "per-post" or manual changes to the image alt-text before sending.
-
-					if ((isset($arr['encoded']['attachment'][$pc]['href']) && strpos($img[0]['url'], str_replace('/attach/', '/photo/', $arr['encoded']['attachment'][$pc]['href'])) !== false) || (isset($arr['encoded']['attachment'][$pc]['url']) && $arr['encoded']['attachment'][$pc]['url'] === $img[0]['url'])) {
-						// if it's already there, replace it with our alt-text aware version
-						$arr['encoded']['attachment'] = array_merge($arr['encoded']['attachment'][$pc], $img[0]);
-						$already_added = true;
-					}
+		if ($has_images) {
+			foreach ($images as $match) {
+				$img = [];
+				// handle Friendica/Hubzilla style img links with [img=$url]$alttext[/img]
+				if (strpos($match[1], '=http') === 0) {
+					$img[] = ['type' => 'Image', 'url' => substr($match[1], 1), 'name' => $match[2]];
+				} // preferred mechanism for adding alt text
+				elseif (strpos($match[1], 'alt=') !== false) {
+					$txt = str_replace('&quot;', '"', $match[1]);
+					$txt = substr($match[1], strpos($match[1], 'alt="') + 5, -1);
+					$img[] = ['type' => 'Image', 'url' => $match[2], 'name' => $txt];
+				} else {
+					$img[] = ['type' => 'Image', 'url' => $match[2]];
 				}
-				if (!$already_added) {
-					// add it
-					$arr['encoded']['attachment'] = array_merge($arr['encoded']['attachment'], $img);
+
+				if (empty($arr['encoded']['attachment'])) {
+					$arr['encoded']['attachment'] = [];
+				}
+				$already_added = false;
+				if ($img) {
+					for ($pc = 0; $pc < count($arr['encoded']['attachment']); $pc++) {
+						// caution: image attachments use url and links use href, and our own links will be 'attach' links based on the image href
+						// We could alternatively supply the correct attachment info when item is saved, but by replacing here we will pick up
+						// any "per-post" or manual changes to the image alt-text before sending.
+
+						if ((isset($arr['encoded']['attachment'][$pc]['href']) && strpos($img[0]['url'], str_replace('/attach/', '/photo/', $arr['encoded']['attachment'][$pc]['href'])) !== false) || (isset($arr['encoded']['attachment'][$pc]['url']) && $arr['encoded']['attachment'][$pc]['url'] === $img[0]['url'])) {
+							// if it's already there, replace it with our alt-text aware version
+							$arr['encoded']['attachment'] = array_merge($arr['encoded']['attachment'][$pc], $img[0]);
+							$already_added = true;
+						}
+					}
+					if (!$already_added) {
+						// add it
+						$arr['encoded']['attachment'] = array_merge($arr['encoded']['attachment'], $img);
+					}
 				}
 			}
 		}
 	}
-
 	pubcrawl_encode_addressing($arr);
 
 }
