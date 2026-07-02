@@ -248,10 +248,8 @@ function pubcrawl_encode_item(&$arr) {
 				if (strpos($match[1], '=http') === 0) {
 					$img[] = ['type' => 'Image', 'url' => substr($match[1], 1), 'name' => $match[2]];
 				} // preferred mechanism for adding alt text
-				elseif (strpos($match[1], 'alt=') !== false) {
-					$txt = str_replace('&quot;', '"', $match[1]);
-					$txt = substr($match[1], strpos($match[1], 'alt="') + 5, -1);
-					$img[] = ['type' => 'Image', 'url' => $match[2], 'name' => $txt];
+				elseif (preg_match('/alt=(?:["\']|&quot;)(.*?)(?:["\']|&quot;)/', $match[1], $alt)) {
+					$img[] = ['type' => 'Image', 'url' => $match[2], 'name' => $alt[1]];
 				} else {
 					$img[] = ['type' => 'Image', 'url' => $match[2]];
 				}
