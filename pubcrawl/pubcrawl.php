@@ -238,48 +238,71 @@ function pubcrawl_encode_item(&$arr) {
 
 
 	if (!in_array($arr['item']['obj_type'], ['Image', 'Audio', 'Video', 'Document'])) {
-		$images = false;
-		$has_images = preg_match_all('/\[[zi]mg(.*?)\](.*?)\[/ism', $arr['item']['body'], $images, PREG_SET_ORDER);
-
-		if ($has_images) {
-			foreach ($images as $match) {
-				$img = [];
-				// handle Friendica/Hubzilla style img links with [img=$url]$alttext[/img]
-				if (strpos($match[1], '=http') === 0) {
-					$img[] = ['type' => 'Image', 'url' => substr($match[1], 1), 'name' => $match[2]];
-				} // preferred mechanism for adding alt text
-				elseif (preg_match('/alt=(?:["\']|&quot;)(.*?)(?:["\']|&quot;)/', $match[1], $alt)) {
-					$img[] = ['type' => 'Image', 'url' => $match[2], 'name' => $alt[1]];
-				} else {
-					$img[] = ['type' => 'Image', 'url' => $match[2]];
-				}
-
-				if (empty($arr['encoded']['attachment'])) {
-					$arr['encoded']['attachment'] = [];
-				}
-				$already_added = false;
-				if ($img) {
-					for ($pc = 0; $pc < count($arr['encoded']['attachment']); $pc++) {
-						// caution: image attachments use url and links use href, and our own links will be 'attach' links based on the image href
-						// We could alternatively supply the correct attachment info when item is saved, but by replacing here we will pick up
-						// any "per-post" or manual changes to the image alt-text before sending.
-
-						if ((isset($arr['encoded']['attachment'][$pc]['href']) && strpos($img[0]['url'], str_replace('/attach/', '/photo/', $arr['encoded']['attachment'][$pc]['href'])) !== false) || (isset($arr['encoded']['attachment'][$pc]['url']) && $arr['encoded']['attachment'][$pc]['url'] === $img[0]['url'])) {
-							// if it's already there, replace it with our alt-text aware version
-							$arr['encoded']['attachment'] = array_merge($arr['encoded']['attachment'][$pc], $img[0]);
-							$already_added = true;
-						}
-					}
-					if (!$already_added) {
-						// add it
-						$arr['encoded']['attachment'] = array_merge($arr['encoded']['attachment'], $img);
-					}
-				}
-			}
+		$image_attachments = pubcrawl_encode_image_attachment($arr['item']);
+		if ($image_attachments) {
+			$arr['encoded']['attachment'] = $arr['encoded']['attachment'] ?? [];
+			$arr['encoded']['attachment'] = array_merge($arr['encoded']['attachment'], $image_attachments);
 		}
 	}
-	pubcrawl_encode_addressing($arr);
 
+	pubcrawl_encode_addressing($arr);
+}
+
+function pubcrawl_encode_image_attachment($item) {
+	if (!preg_match_all('/\[(img|zmg)(.*?)\](.*?)\[\/\1\]/ism', $item['body'], $images, PREG_SET_ORDER)) {
+		return [];
+	}
+
+	$attachments = [];
+
+	foreach ($images as $match) {
+		// Handle Friendica/Hubzilla style [img=$url]alt text[/img]
+		if (strpos($match[2], '=http') === 0) {
+			$img = [
+				'type' => 'Image',
+				'url'  => substr($match[2], 1),
+				'name' => $match[3],
+			];
+		}
+		// Preferred mechanism for alt text.
+		elseif (preg_match('/alt=(?:["\']|&quot;)(.*?)(?:["\']|&quot;)/ism', $match[2], $alt)) {
+			$img = [
+				'type' => 'Image',
+				'url'  => $match[3],
+				'name' => $alt[1],
+			];
+		}
+		else {
+			$img = [
+				'type' => 'Image',
+				'url'  => $match[3],
+			];
+		}
+
+		$already_added = false;
+
+		foreach ($attachments  as $pc => $attachment) {
+			// Image attachments use "url" while links use "href". Our own image
+			// links are "attach" URLs whereas the BBCode references the "photo"
+			// URL, so normalize before comparing.
+			$matches = (isset($attachment['href']) && strpos($img['url'], str_replace('/attach/', '/photo/', $attachment['href'])) !== false) ||
+				(isset($attachment['url']) && $attachment['url'] === $img['url']);
+
+			if ($matches) {
+				// Replace with the alt-text aware version while preserving any
+				// additional attachment properties.
+				$arr['encoded']['attachment'][$pc] = array_merge($attachment, $img);
+				$already_added = true;
+				break;
+			}
+		}
+
+		if (!$already_added) {
+			$attachments[] = $img;
+		}
+	}
+
+	return $attachments;
 }
 
 function pubcrawl_encode_activity(&$arr) {
@@ -297,10 +320,7 @@ function pubcrawl_encode_activity(&$arr) {
 		$arr['encoded']['id'] = unparse_url($parsed);
 	}
 
-
-
 	pubcrawl_encode_addressing($arr);
-
 }
 
 
