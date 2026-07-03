@@ -277,6 +277,17 @@ function pubcrawl_encode_image_attachment($item) {
 				'type' => 'Image',
 				'url'  => $match[3],
 			];
+
+		}
+
+		if (!isset(App::$cache['getimagesize'][$img['url']])) {
+			App::$cache['getimagesize'][$img['url']] = getimagesize($img['url']) ?? [];
+		}
+
+		if (App::$cache['getimagesize'][$img['url']]) {
+			$img['mediaType'] = App::$cache['getimagesize'][$img['url']]['mime'] ?? null;
+			$img['width'] = App::$cache['getimagesize'][$img['url']][0] ?? null;
+			$img['height'] = App::$cache['getimagesize'][$img['url']][1] ?? null;
 		}
 
 		$already_added = false;
