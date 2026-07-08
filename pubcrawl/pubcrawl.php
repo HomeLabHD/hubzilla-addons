@@ -164,6 +164,14 @@ function pubcrawl_encode_person(&$arr) {
 			'publicKeyMultibase' => $ed25519publicKey,
 		];
 
+		$rsaPublicKey = (new Multibase())->rsaPublicKey($arr['xchan']['channel_pubkey']);
+		$arr['encoded']['assertionMethod'][] = [
+			'id' => channel_url($arr['xchan']),
+			'type' => 'Multikey',
+			'controller' => channel_url($arr['xchan']),
+			'publicKeyMultibase' => $rsaPublicKey
+		];
+
 		// map other nomadic identities linked with this channel
 		$locations = [];
 		$locs      = Libzot::encode_locations($arr['xchan']);
