@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-10 22:43+0200\n"
+"POT-Creation-Date: 2026-07-10 23:00+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,11 +22,15 @@ msgstr ""
 msgid "Go to %1$s's channel (Opens in new tab)"
 msgstr ""
 
-#: src/Views/ChannelBlockEntry.php:44
-msgid "Remove from blocklist"
+#: src/Views/ChannelBlockEntry.php:44 Mod_Superblock.php:318
+msgid "Edit entry"
 msgstr ""
 
 #: src/Views/ChannelBlockEntry.php:45
+msgid "Remove from blocklist"
+msgstr ""
+
+#: src/Views/ChannelBlockEntry.php:46
 msgid "Until"
 msgstr ""
 
@@ -126,10 +130,6 @@ msgstr ""
 
 #: Mod_Superblock.php:316
 msgid "Block channel!"
-msgstr ""
-
-#: Mod_Superblock.php:318
-msgid "Edit entry"
 msgstr ""
 
 #: Mod_Superblock.php:397

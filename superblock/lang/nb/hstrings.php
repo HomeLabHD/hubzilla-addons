@@ -2,6 +2,7 @@
 
 ;
 App::$strings["Go to %1\$s's channel (Opens in new tab)"] = "Besøk %1\$s sin kanal (Åpner i ny fane)";
+App::$strings["Edit entry"] = "Rediger oppføring";
 App::$strings["Remove from blocklist"] = "Fjern blokkering";
 App::$strings["Until"] = "Til";
 App::$strings["Invalid or unknown channel"] = "Ugyldig eller ukjent kanal";
@@ -27,7 +28,6 @@ App::$strings["Week(s)"] = "Uke(r)";
 App::$strings["Month(s)"] = "Måned(er)";
 App::$strings["Years"] = "År";
 App::$strings["Block channel!"] = "Blokker kanal!";
-App::$strings["Edit entry"] = "Rediger oppføring";
 App::$strings["no action specified"] = "ingen handling oppgitt";
 App::$strings["no channel specified"] = "ingen kanal oppgitt";
 App::$strings["You do not have access to perform this operation"] = "Du har ikke tilgang til å utføre denne operasjonen";

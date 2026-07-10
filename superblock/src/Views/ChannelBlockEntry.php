@@ -41,6 +41,7 @@ class ChannelBlockEntry
 		return replace_macros($tpl, [
 			'entry' => $this,
 			'link_alt_text' => sprintf(t('Go to %1$s\'s channel (Opens in new tab)'), $this->name),
+			'edit' => t('Edit entry'),
 			'remove' => t('Remove from blocklist'),
 			'until' => t('Until'),
 		]);

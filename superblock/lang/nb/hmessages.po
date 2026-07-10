@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-10 22:43+0200\n"
-"PO-Revision-Date: 2026-07-10 22:48+0200\n"
+"POT-Creation-Date: 2026-07-10 23:00+0200\n"
+"PO-Revision-Date: 2026-07-10 23:01+0200\n"
 "Last-Translator: Harald Eilertsen\n"
 "Language-Team: Hubzilla Norwegian Translation Team\n"
 "Language: nb\n"
@@ -23,11 +23,15 @@ msgstr ""
 msgid "Go to %1$s's channel (Opens in new tab)"
 msgstr "Besøk %1$s sin kanal (Åpner i ny fane)"
 
-#: src/Views/ChannelBlockEntry.php:44
+#: src/Views/ChannelBlockEntry.php:44 Mod_Superblock.php:318
+msgid "Edit entry"
+msgstr "Rediger oppføring"
+
+#: src/Views/ChannelBlockEntry.php:45
 msgid "Remove from blocklist"
 msgstr "Fjern blokkering"
 
-#: src/Views/ChannelBlockEntry.php:45
+#: src/Views/ChannelBlockEntry.php:46
 msgid "Until"
 msgstr "Til"
 
@@ -132,10 +136,6 @@ msgstr "År"
 #: Mod_Superblock.php:316
 msgid "Block channel!"
 msgstr "Blokker kanal!"
-
-#: Mod_Superblock.php:318
-msgid "Edit entry"
-msgstr "Rediger oppføring"
 
 #: Mod_Superblock.php:397
 msgid "no action specified"
