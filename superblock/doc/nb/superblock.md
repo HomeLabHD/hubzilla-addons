@@ -12,11 +12,11 @@ deg.
 
 Når du ser et innlegg eller en kommentar fra noen du ikke vil se noe mer til i
 en av strømmene dine, kan du blokkere dem ved å klikke på profilbildet til den
-aktuelle kanalen i innlegget, og velge "Ignorer eller blokker kanal…".
+aktuelle kanalen i innlegget, og velge "Blokker kanal…".
 
-En dialog vil vises, hvor du får muligheten til å angi hvor lenge du vil
-blokkeringen skal vare. Ønsker du at blokkeringen skal være permanent, lar du
-bare verdien bli værende på 0.
+En dialog hvor du får muligheten til å angi hvor lenge du vil blokkeringen skal
+vare vil vises. Ønsker du at blokkeringen skal være permanent, lar du bare
+verdien bli værende på 0.
 
 ### Blokkere kanaler manuelt
 
@@ -45,6 +45,6 @@ klikk på søppelbøtten til høyre for oppføringen du vil fjerne.
 
 Nettstedets administrator kan blokkere en kanal for hele nettstedet ved å
 klikke på profilbildet til kanalen som skal blokkeres i nettverksstrømmen og så
-velge "Blokker fra nettstedet."
+velge "Blokkér fra nettstedet."
 
 Dette valget er kun tilgjengelig for nettstedets administratorer.

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-29 16:34+0200\n"
+"POT-Creation-Date: 2026-07-10 22:43+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,14 +28,6 @@ msgstr ""
 
 #: src/Views/ChannelBlockEntry.php:45
 msgid "Until"
-msgstr ""
-
-#: superblock.php:212
-msgid "Mute or block channel…"
-msgstr ""
-
-#: superblock.php:221
-msgid "Block from site"
 msgstr ""
 
 #: Mod_Superblock.php:138
@@ -154,4 +146,12 @@ msgstr ""
 
 #: Mod_Superblock.php:433
 msgid "Invalid or missing security token"
+msgstr ""
+
+#: superblock.php:212
+msgid "Block channel…"
+msgstr ""
+
+#: superblock.php:221
+msgid "Block from site"
 msgstr ""

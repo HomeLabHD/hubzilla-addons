@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-29 16:34+0200\n"
-"PO-Revision-Date: 2026-06-29 16:37+0200\n"
+"POT-Creation-Date: 2026-07-10 22:43+0200\n"
+"PO-Revision-Date: 2026-07-10 22:48+0200\n"
 "Last-Translator: Harald Eilertsen\n"
 "Language-Team: Hubzilla Norwegian Translation Team\n"
 "Language: nb\n"
@@ -30,14 +30,6 @@ msgstr "Fjern blokkering"
 #: src/Views/ChannelBlockEntry.php:45
 msgid "Until"
 msgstr "Til"
-
-#: superblock.php:212
-msgid "Mute or block channel…"
-msgstr "Ignorer eller blokker kanal…"
-
-#: superblock.php:221
-msgid "Block from site"
-msgstr "Blokker fra nettstedet"
 
 #: Mod_Superblock.php:138
 msgid "Invalid or unknown channel"
@@ -73,7 +65,7 @@ msgstr "Manglende eller ugyldig kanal"
 
 #: Mod_Superblock.php:272 Mod_Superblock.php:317
 msgid "Superblock"
-msgstr ""
+msgstr "Superblock"
 
 #: Mod_Superblock.php:273
 msgid "Your blocked channels"
@@ -160,6 +152,17 @@ msgstr "Du har ikke tilgang til å utføre denne operasjonen"
 #: Mod_Superblock.php:433
 msgid "Invalid or missing security token"
 msgstr "Ugyldig eller manglende sikkerhetskode"
+
+#: superblock.php:212
+msgid "Block channel…"
+msgstr "Blokker kanal…"
+
+#: superblock.php:221
+msgid "Block from site"
+msgstr "Blokker fra nettstedet"
+
+#~ msgid "Mute or block channel…"
+#~ msgstr "Ignorer eller blokker kanal…"
 
 #~ msgid "Something...."
 #~ msgstr "Noe...."

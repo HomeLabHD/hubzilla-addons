@@ -209,7 +209,7 @@ function superblock_item_photo_menu(array &$args): void
 		if (!$plugin->isChannelBlocked($author)) {
 		    $args['menu'][] = [
 				'menu' => 'superblock_mute',
-				'title' => t('Mute or block channel…'),
+				'title' => t('Block channel…'),
 				'icon' => 'fw',
 				'action' => "superblockPopupSubmitForm('${author}', true); return false;",
 				'href' => "#"
