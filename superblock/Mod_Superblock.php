@@ -9,7 +9,9 @@
 namespace Zotlabs\Module;
 
 use App;
+use DateTimeImmutable;
 use Zotlabs\Addons\Superblock\Superblock as Plugin;
+use Zotlabs\Addons\Superblock\Views\ChannelBlockEntry;
 use Zotlabs\Lib\Apps;
 use Zotlabs\Lib\Config;
 use Zotlabs\Lib\Libsync;
@@ -52,6 +54,11 @@ class Superblock extends Controller {
 	private ?array $params = null;
 
 	/**
+	 * The Superblock Plugin instance for this request
+	 */
+	private Plugin $plugin;
+
+	/**
 	 * Default constructor to initialize the state of the controller.
 	 */
 	public function __construct() {
@@ -79,6 +86,8 @@ class Superblock extends Controller {
 		// functions, we can validate the acces once and for all here.
 		//
 		$this->validate_access();
+
+		$this->plugin = Plugin::getInstance($this->localChannel);
 	}
 
 	/**
@@ -136,8 +145,21 @@ class Superblock extends Controller {
 
 		switch ($this->params['action']) {
 			case 'block':
-				$plugin->blockChannel($xchan['hash']);
-				$msg = sprintf(t('blocked %s permanently'), $xchan['address']);
+				$until = $this->getExpirationDate();
+				$plugin->blockChannel($xchan['hash'], $until);
+
+				if ($until) {
+					$msg = sprintf(
+						t('temporarily blocked %1$s until %2$s'),
+						$xchan['address'],
+						$until->format(DateTimeImmutable::ISO8601)
+					);
+				} else {
+					$msg = sprintf(
+						t('blocked %s permanently'),
+						$xchan['address']
+					);
+				}
 				break;
 
 			case 'unblock':
@@ -180,12 +202,6 @@ class Superblock extends Controller {
 	 * @return string	The rendered HTML of the request.
 	 */
 	function get(): string {
-		return $this->renderBlockList();
-	}
-
-	private function renderBlockList(): string {
-		$config_changed = false;
-
 		if (!$this->app_installed) {
 			//Do not display any associated widgets at this point
 			App::$pdl = '';
@@ -193,14 +209,58 @@ class Superblock extends Controller {
 			return Apps::app_render($papp, 'module');
 		}
 
-		$plugin = Plugin::getInstance($this->localChannel);
-		$plugin->loadJavaScript();
+		if (argc() == 2) {
+			$subpath = argv(1);
+		    if ($subpath === "add" || $subpath === "edit") {
+				$author_hash = filter_input(INPUT_GET, 'author', FILTER_VALIDATE_REGEXP, [
+					'options' => [
+						'regexp' => '/[a-zA-Z0-9@:\/_-]+/',
+						'default' => null
+					]
+				]);
 
-		$list = $plugin->getBlockedChannels();
-		stringify_array_elms($list,true);
-		$query_str = implode(',',$list);
-		if($query_str) {
+				if ($author_hash) {
+					$xchan = $this->findXChanFromAuthor($author_hash);
+					$author = $xchan['address'] ?? '';
+				} else if ($subpath === 'edit') {
+					notice(t('Missing or invalid channel'));
+					http_status_exit(400);
+				} else {
+					$author = '';
+				}
+
+				echo $this->renderAddBlockForm($author, $subpath == 'edit');
+				killme();
+			}
+		}
+
+		// Return page not found for all other paths not
+		// implemented.
+		if (argc() !== 1) {
+			http_status_exit(404);
+		}
+
+		// Return the block list for the addon base path
+		return $this->renderBlockList();
+	}
+
+	private function renderBlockList(): string {
+		$config_changed = false;
+
+		$this->plugin->loadJavaScript();
+		$this->plugin->loadStyleSheet();
+
+		$token = get_form_security_token('superblock');
+
+		$entries = [];
+		$list = $this->plugin->getBlockedChannels();
+		$query_str = implode(',', array_map(fn ($cb) => "'" . dbesc($cb->hash) . "'", $list));
+		if ($query_str) {
 			$r = q("select * from xchan where xchan_hash in ( " . $query_str . " ) and xchan_hash != '' ");
+			foreach ($list as $cb) {
+				$xchan = array_find($r, fn ($xchan) => $xchan['xchan_hash'] === $cb->hash);
+				$entries[] = new ChannelBlockEntry($token, $cb, $xchan);
+			}
 		}
 		else {
 			$r = [];
@@ -209,29 +269,53 @@ class Superblock extends Controller {
 		$tpl = get_markup_template('superblock_list.tpl','addon/superblock');
 
 		return replace_macros($tpl, [
+			'$addonTitle' => t('Superblock'),
 			'$title' => t('Your blocked channels'),
-			'$entries' => $r,
-			'$nothing' => (($r) ? '' : t('No channels currently blocked')),
-			'$token' => get_form_security_token('superblock'),
-			'$remove' => t('Remove from blocklist'),
-			'$addBlockForm' => $this->renderAddBlockForm(),
+			'$newEntry' => t('Add new entry'),
+			'$entries' => array_map(fn($e) => $e->render(), $entries),
+			'$token' => $token,
+			'$nothing' => t('No channels currently blocked'),
 		]);
 	}
 
-	private function renderAddBlockForm(): string {
+	private function renderAddBlockForm($author = '', $edit = 0): string {
 		$tpl = get_markup_template('superblock_add_block_form.tpl','addon/superblock');
 		return replace_macros($tpl, [
 			'$token' => get_form_security_token('superblock'),
 			'$authorInputField' => [
 				'author',						// name, id
 				t('Channel address (webbie):'),	// label
-			   	'',								// value
+			   	$author,						// value
 				t('The address of the channel to block, typically like \'channel@example.com\'.'), // help text
 				'',								// additional label
 				'',								// additional attributes
 			],
+			'$expireInputField' => replace_macros(get_markup_template('field_duration.qmc.tpl'), [
+				'label' => t('Block this channel for'),
+				'help' => t('How long to block activities from this channel, leave as 0 to block forever.'),
+				'wrapper' => 'yes',
+				'qmc' => 'superblock_',
+				'field' => [
+					'name' => 'until',
+					'min' => 0,
+					'max' => 99,
+					'size' => 13,
+					'value' => 0,
+					'title' => t('Duration for which to block the channel'),
+					'default' => 'years'
+				],
+				'rabot' => [
+					'mins' => t('Minute(s)'),
+					'hours' => t('Hour(s)'),
+					'days' => t('Day(s)'),
+					'weeks' => t('Week(s)'),
+					'months' => t('Month(s)'),
+					'Years' => t('Years'),
+				],
+			]),
 			'$blockChannelButtonText' => t('Block channel!'),
-			'$addNewEntryText' => t('Add new entry'),
+			'$addonTitle' => t('Superblock'),
+			'$title' => $edit ? t('Edit entry') : t('Add new entry'),
 		]);
 	}
 
@@ -287,6 +371,20 @@ class Superblock extends Controller {
 				],
 				'author' => [
 					'filter' => FILTER_DEFAULT,
+				],
+				'superblock_until' => [
+					'filter' => FILTER_VALIDATE_REGEXP,
+					'options' => [
+						'regexp' => '/^(mins|hours|days|weeks|months|years)$/',
+					],
+				],
+				'superblock_untiln' => [
+					'filter' => FILTER_VALIDATE_INT,
+					'options' => [
+						'default' => 0,
+						'max_range' => 99,
+						'min_range' => 0,
+					],
 				],
 				'form_security_token' => [
 					'filter' => FILTER_DEFAULT,
@@ -347,6 +445,17 @@ class Superblock extends Controller {
 		}
 
 		return $xchan;
+	}
+
+	private function getExpirationDate(): ?DateTimeImmutable {
+		$amount = $this->params['superblock_untiln'] ?? 0;
+		$unit = $this->params['superblock_until'] ?? 0;
+
+		if ($unit && $amount) {
+			return new DateTimeImmutable("{$amount} {$unit}");
+		}
+
+		return null;
 	}
 
 	/**

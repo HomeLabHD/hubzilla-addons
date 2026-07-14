@@ -48,9 +48,9 @@ class SuperblockTest extends UnitTestCase {
 		$list = $plugin->getBlockedChannels();
 
 		$this->assertIsArray($list);
-		$this->assertContains('blockeduser@somesite.test', $list);
-		$this->assertContains('evil@othersite.test', $list);
-		$this->assertContains('upyours@arse.test', $list);
+		$this->assertNotNull(array_find($list, fn ($cb) => $cb->hash == 'blockeduser@somesite.test'));
+		$this->assertNotNull(array_find($list, fn ($cb) => $cb->hash == 'evil@othersite.test'));
+		$this->assertNotNull(array_find($list, fn ($cb) => $cb->hash == 'upyours@arse.test'));
 	}
 
 	public function testItemFromBlockedUserShouldBeBlocked(): void {
@@ -547,11 +547,13 @@ class SuperblockTest extends UnitTestCase {
 			call_hooks('thread_author_menu', $args);
 
 			$this->assertArrayHasKey('menu', $args['menu'][0]);
-			$this->assertEquals('superblock', $args['menu'][0]['menu']);
+			$this->assertEquals('superblock_mute', $args['menu'][0]['menu']);
 
 			$this->assertArrayHasKey('action', $args['menu'][0]);
+
+			$plugin = Superblock::getInstance($this->channel['channel_id']);
 			$this->assertStringContainsString(
-				"superblockAjax('block', '{$author}', 42);",
+				"superblockPopupSubmitForm('{$author}', true); return false;",
 				$args['menu'][0]['action']
 			);
 		}

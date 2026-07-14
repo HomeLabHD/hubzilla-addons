@@ -10,6 +10,8 @@
 namespace Zotlabs\Addons\Superblock\Tests\Unit;
 
 use App;
+use DateTimeImmutable;
+use DomDocument;
 use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Constraint\LogicalAnd;
@@ -75,49 +77,77 @@ class ModSuperblockTest extends TestCase {
 		}
 	}
 
-	public function testRenderedHTMLContainsCSRFToken(): void {
-		$this->channel = $this->fixtures['channel'][1];
-		$this->startSession($this->channel);
-		$this->installPluginApp($this->channel);
-		$this->stubGetSecurityToken();
-
-		// Add some Blocked XChans
-		$xchans = self::createXChans();
-		foreach ($xchans as $xchan) {
-			$this->addXChan($xchan, true);
-		}
-
-		$this->get('superblock');
-
-		$this->assertMatchesRegularExpression(
-			'/form_security_token: "[0-9a-f.]+"/',
-		   	App::$page['htmlhead']);
-	}
-
-	public function testRenderAddChannelBLockForm(): void {
+	public function testListExpirationDateOnTemporaryBlocks(): void {
 		$this->channel = $this->fixtures['channel'][1];
 		$this->startSession($this->channel);
 		$this->installPluginApp($this->channel);
 		$this->stubGetSecurityToken();
 
 		// With no blocked channels
-		$this->get('superblock/add');
+		$this->get('superblock');
+		$this->assertPageContains('No channels currently blocked');
 
-		// Verify and extract the form element
-		$this->assertEquals(1, preg_match(
-			'/<form\s+name="superblock-add-channel-block"[^>]*>(.*)<\/form>/s',
-			App::$page['content'],
-			$form)
-		);
+		$expiration = new DateTimeImmutable();
 
-		// Check that the form contains the elements we want
-		$this->assertMatchesRegularExpression(
-			'/<input\s+class="form-control"\s+name="author"/',
-		   	$form[1]);
-		$this->assertStringContainsString('<input name="action" type="hidden" value="block"', $form[1]);
-		$this->AssertStringContainsString(
-			'<input name="form_security_token" type="hidden" value="very security"',
-		   	$form[1]);
+		// Add some Blocked XChans
+		$xchans = self::createXChans();
+		foreach ($xchans as $xchan) {
+			$this->addXChan($xchan, true, $expiration);
+		}
+
+		$this->get('superblock');
+		foreach ($xchans as $xchan) {
+			$addr = preg_quote($xchan['xchan_addr']);
+			$res = preg_match(
+				"|<span[^>]*>\s*{$addr}\s*</span>\s*(.*)</div>|ms",
+				App::$page['content'],
+				$matches);
+
+			$this->assertNotFalse($res);
+			$this->assertEquals(1, $res);
+			$this->assertNotEmpty($matches, "no time expiration info present");
+			$entry = $matches[1];
+
+			$until = $expiration->format('Y-m-d');
+			$this->assertStringContainsString($until, $entry);
+		}
+	}
+
+	public function testRenderAddChannelBlockForm(): void {
+		$this->channel = $this->fixtures['channel'][1];
+		$this->startSession($this->channel);
+		$this->installPluginApp($this->channel);
+		$this->stubGetSecurityToken();
+		$this->stub_killme();
+
+		$this->assertTrue(ob_start());
+
+		try {
+			$this->get('superblock/add');
+		} catch (KillmeException $e) {
+			$content = ob_get_clean();
+			$this->assertNotEmpty($content);
+
+			// Verify and extract the form element
+			$this->assertEquals(1, preg_match(
+				'/<form.+name="superblock-add-channel-block"[^>]*>(.*)<\/form>/sm',
+				$content,
+				$form)
+			);
+
+			// Check that the form contains the elements we want
+			$this->assertMatchesRegularExpression(
+				'/<input\s+class="form-control"\s+name="author"/',
+				$form[1]);
+			$this->assertStringContainsString('<input name="action" type="hidden" value="block"', $form[1]);
+			$this->AssertStringContainsString(
+				'<input name="form_security_token" type="hidden" value="very security"',
+				$form[1]);
+
+			return;
+		}
+
+		$this->fail('Expected KillmeException');
 	}
 
 	/**
@@ -241,12 +271,14 @@ class ModSuperblockTest extends TestCase {
 	 * @param array $xchan	An array containing the xchan to add.
 	 * @param bool	$block	True if the xchan should be added to the block
 	 *                      list.
+	 * @param DateTimeImmutable|null $until
+	 *		Expiration date for block.
 	 */
-	private function addXChan(array $xchan, bool $block): void {
+	private function addXChan(array $xchan, bool $block, ?DateTimeImmutable $until = null): void {
 		xchan_store_lowlevel($xchan);
 		if ($block) {
 			$plugin = Superblock::getInstance($this->channel['channel_id']);
-			$plugin->blockChannel($xchan['xchan_hash']);
+			$plugin->blockChannel($xchan['xchan_hash'], $until);
 			$plugin->save();
 		}
 	}
@@ -514,6 +546,7 @@ class ModSuperblockTest extends TestCase {
 			->willReturn('very security');
 	}
 
+	// phpcs:disable Generic.PHP.DisallowRequestSuperglobal
 	private function stubCheckFormSecurityToken(): void {
 		$this->getFunctionMock('Zotlabs\Module', 'check_form_security_token')
 			->expects($this->any())

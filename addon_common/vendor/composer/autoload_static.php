@@ -31,10 +31,12 @@ class ComposerStaticInit68112c3d238e97818c4d5ad2d946142b
         'Zotlabs\\Addons\\SimpleNotes\\ChecklistNote' => __DIR__ . '/../../..' . '/simplenotes/Lib/ChecklistNote.php',
         'Zotlabs\\Addons\\SimpleNotes\\SimpleNote' => __DIR__ . '/../../..' . '/simplenotes/Lib/SimpleNote.php',
         'Zotlabs\\Addons\\SimpleNotes\\TextNote' => __DIR__ . '/../../..' . '/simplenotes/Lib/TextNote.php',
+        'Zotlabs\\Addons\\Superblock\\ChannelBlock' => __DIR__ . '/../../..' . '/superblock/src/ChannelBlock.php',
         'Zotlabs\\Addons\\Superblock\\ChannelBlockList' => __DIR__ . '/../../..' . '/superblock/src/ChannelBlockList.php',
         'Zotlabs\\Addons\\Superblock\\ConfigInterface' => __DIR__ . '/../../..' . '/superblock/src/ConfigInterface.php',
         'Zotlabs\\Addons\\Superblock\\PConfigAdapter' => __DIR__ . '/../../..' . '/superblock/src/PConfigAdapter.php',
         'Zotlabs\\Addons\\Superblock\\Superblock' => __DIR__ . '/../../..' . '/superblock/src/Superblock.php',
+        'Zotlabs\\Addons\\Superblock\\Views\\ChannelBlockEntry' => __DIR__ . '/../../..' . '/superblock/src/Views/ChannelBlockEntry.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

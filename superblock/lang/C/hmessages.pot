@@ -1,7 +1,7 @@
 # ADDON superblock
-# Copyright (C) 2012 - 2026 The Hubzlla Community
+# Copyright (C) 
 # This file is distributed under the same license as the hubzilla superblock addon package.
-#
+# 
 #
 #, fuzzy
 msgid ""
@@ -9,160 +9,149 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-10 23:00+0200\n"
-"PO-Revision-Date: 2026-07-10 23:01+0200\n"
-"Last-Translator: Harald Eilertsen\n"
-"Language-Team: Hubzilla Norwegian Translation Team\n"
-"Language: nb\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 3.9\n"
 
 #: src/Views/ChannelBlockEntry.php:43
 #, php-format
 msgid "Go to %1$s's channel (Opens in new tab)"
-msgstr "Besøk %1$s sin kanal (Åpner i ny fane)"
+msgstr ""
 
 #: src/Views/ChannelBlockEntry.php:44 Mod_Superblock.php:318
 msgid "Edit entry"
-msgstr "Rediger oppføring"
+msgstr ""
 
 #: src/Views/ChannelBlockEntry.php:45
 msgid "Remove from blocklist"
-msgstr "Fjern blokkering"
+msgstr ""
 
 #: src/Views/ChannelBlockEntry.php:46
 msgid "Until"
-msgstr "Til"
+msgstr ""
 
 #: Mod_Superblock.php:138
 msgid "Invalid or unknown channel"
-msgstr "Ugyldig eller ukjent kanal"
+msgstr ""
 
 #: Mod_Superblock.php:153
 #, php-format
 msgid "temporarily blocked %1$s until %2$s"
-msgstr "blokkerte %1$s midlertidig, til %2$s"
+msgstr ""
 
 #: Mod_Superblock.php:159
 #, php-format
 msgid "blocked %s permanently"
-msgstr "blokkerte %s permanent"
+msgstr ""
 
 #: Mod_Superblock.php:167
 #, php-format
 msgid "removed %s from block list"
-msgstr "opphevet blokkering av %s"
+msgstr ""
 
 #: Mod_Superblock.php:177
 #, php-format
 msgid "added %s to site block list"
-msgstr "la %s til i nettstedets blokkliste"
+msgstr ""
 
 #: Mod_Superblock.php:182
 msgid "No action given"
-msgstr "Ingen handling oppgitt"
+msgstr ""
 
 #: Mod_Superblock.php:226
 msgid "Missing or invalid channel"
-msgstr "Manglende eller ugyldig kanal"
+msgstr ""
 
 #: Mod_Superblock.php:272 Mod_Superblock.php:317
 msgid "Superblock"
-msgstr "Superblock"
+msgstr ""
 
 #: Mod_Superblock.php:273
 msgid "Your blocked channels"
-msgstr "Dine blokkerte kanaler"
+msgstr ""
 
 #: Mod_Superblock.php:274 Mod_Superblock.php:318
 msgid "Add new entry"
-msgstr "Legg til ny oppføring"
+msgstr ""
 
 #: Mod_Superblock.php:277
 msgid "No channels currently blocked"
-msgstr "Ingen kanaler er blokkerte i øyeblikket"
+msgstr ""
 
 #: Mod_Superblock.php:287
 msgid "Channel address (webbie):"
-msgstr "Kanaladdresse (webbie):"
+msgstr ""
 
 #: Mod_Superblock.php:289
 msgid ""
 "The address of the channel to block, typically like 'channel@example.com'."
 msgstr ""
-"Adressen til kanalen som skal blokkeres, vanligvis noe a'la "
-"'kanal@exempel.com'."
 
 #: Mod_Superblock.php:294
 msgid "Block this channel for"
-msgstr "Blokker denne kanalen i"
+msgstr ""
 
 #: Mod_Superblock.php:295
 msgid ""
 "How long to block activities from this channel, leave as 0 to block forever."
 msgstr ""
-"Hvor lenge aktiviteter fra denne kanalen skal blokkeres. Velg 0 for å "
-"blokkere for alltid."
 
 #: Mod_Superblock.php:304
 msgid "Duration for which to block the channel"
-msgstr "Tidsrom kanalen skal blokkeres i"
+msgstr ""
 
 #: Mod_Superblock.php:308
 msgid "Minute(s)"
-msgstr "Minutt(er)"
+msgstr ""
 
 #: Mod_Superblock.php:309
 msgid "Hour(s)"
-msgstr "Time(r)"
+msgstr ""
 
 #: Mod_Superblock.php:310
 msgid "Day(s)"
-msgstr "Dag(er)"
+msgstr ""
 
 #: Mod_Superblock.php:311
 msgid "Week(s)"
-msgstr "Uke(r)"
+msgstr ""
 
 #: Mod_Superblock.php:312
 msgid "Month(s)"
-msgstr "Måned(er)"
+msgstr ""
 
 #: Mod_Superblock.php:313
 msgid "Years"
-msgstr "År"
+msgstr ""
 
 #: Mod_Superblock.php:316
 msgid "Block channel!"
-msgstr "Blokker kanal!"
+msgstr ""
 
 #: Mod_Superblock.php:397
 msgid "no action specified"
-msgstr "ingen handling oppgitt"
+msgstr ""
 
 #: Mod_Superblock.php:402
 msgid "no channel specified"
-msgstr "ingen kanal oppgitt"
+msgstr ""
 
 #: Mod_Superblock.php:408
 msgid "You do not have access to perform this operation"
-msgstr "Du har ikke tilgang til å utføre denne operasjonen"
+msgstr ""
 
 #: Mod_Superblock.php:433
 msgid "Invalid or missing security token"
-msgstr "Ugyldig eller manglende sikkerhetskode"
+msgstr ""
 
 #: superblock.php:212
 msgid "Block channel…"
-msgstr "Blokker kanal…"
+msgstr ""
 
 #: superblock.php:221
 msgid "Block from site"
-msgstr "Blokker fra nettstedet"
-
-#~ msgid "Mute or block channel…"
-#~ msgstr "Ignorer eller blokker kanal…"
-
-#~ msgid "Something...."
-#~ msgstr "Noe...."
+msgstr ""
