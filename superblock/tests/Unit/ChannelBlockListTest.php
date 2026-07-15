@@ -44,6 +44,27 @@ class ChannelBlockListTest extends TestCase
 		$this->assertEquals($result, $blockList->match($hash));
 	}
 
+	public function testChannelBlockListWithNoConfiguredList(): void {
+		//
+		// Stub implementation of the ConfigInterface, so we can inject into
+		// the class under test to replace the dependency on PConfig.
+		//
+		$testConfig = new class() implements ConfigInterface {
+			public function getBlockedChannels(int $channelId): mixed {
+				$channelId = 42;
+				return false;
+			}
+			public function saveBlockedChannels(int $channelId, array $blockList): void {
+			}
+		};
+
+		$blockList = new ChannelBlockList(42, $testConfig);
+
+		$entries = $blockList->getEntries();
+		$this->assertIsArray($entries);
+		$this->assertEmpty($entries);
+	}
+
 	public function testAddChannelToBLockListMarksItDirty(): void {
 		//
 		// Stub implementation of the ConfigInterface, so we can inject into

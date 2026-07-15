@@ -254,12 +254,14 @@ class Superblock extends Controller {
 
 		$entries = [];
 		$list = $this->plugin->getBlockedChannels();
-		$query_str = implode(',', array_map(fn ($cb) => "'" . dbesc($cb->hash) . "'", $list));
-		if ($query_str) {
+		if (!empty($list)) {
+			$query_str = implode(',', array_map(fn ($cb) => "'" . dbesc($cb->hash) . "'", $list));
 			$r = q("select * from xchan where xchan_hash in ( " . $query_str . " ) and xchan_hash != '' ");
 			foreach ($list as $cb) {
 				$xchan = array_find($r, fn ($xchan) => $xchan['xchan_hash'] === $cb->hash);
-				$entries[] = new ChannelBlockEntry($token, $cb, $xchan);
+				if (!empty($xchan)) {
+					$entries[] = new ChannelBlockEntry($token, $cb, $xchan);
+				}
 			}
 		}
 		else {
