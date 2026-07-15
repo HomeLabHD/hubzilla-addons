@@ -365,15 +365,10 @@ function diaspora_webfinger(&$b) {
 	$b['result']['properties']['http://purl.org/zot/federation'] .= ',diaspora';
 
 	// Diaspora requires a salmon link.
-	// Use this *only* if the gnusoc plugin is not installed and enabled
-
-	if((! in_array('gnusoc',\App::$plugins)) || (! Apps::addon_app_installed($b['channel']['channel_id'], 'gnusoc'))) {
-		$b['result']['links'][] = [
-			'rel'  => 'salmon',
-			'href' => z_root() . '/receive/users/' . $b['channel']['channel_guid'] . str_replace('.','',App::get_hostname())
-		];
-	}
-
+	$b['result']['links'][] = [
+		'rel'  => 'salmon',
+		'href' => z_root() . '/receive/users/' . $b['channel']['channel_guid'] . str_replace('.','',App::get_hostname())
+	];
 }
 
 
@@ -886,47 +881,6 @@ function diaspora_discover(&$b) {
 		}
 	}
 
-/*
-
-	if(! ($diaspora && $diaspora_base)) {
-		$x = false;
-	}
-
-	if(! $x) {
-		$x = old_webfinger($webbie);
-	}
-
-	if($x) {
-		logger('old_webfinger: ' . print_r($x,true));
-		foreach($x as $link) {
-			if(is_array($link)) {
-				if($link['@attributes']['rel'] === NAMESPACE_DFRN)
-					$dfrn = escape_tags(unamp($link['@attributes']['href']));
-				if($link['@attributes']['rel'] === 'http://microformats.org/profile/hcard')
-					$hcard = escape_tags(unamp($link['@attributes']['href']));
-				if($link['@attributes']['rel'] === 'http://webfinger.net/rel/profile-page')
-					$profile = escape_tags(unamp($link['@attributes']['href']));
-				if($link['@attributes']['rel'] === 'http://joindiaspora.com/seed_location') {
-					$diaspora_base = escape_tags(unamp($link['@attributes']['href']));
-					$diaspora = true;
-				}
-
-				if($link['@attributes']['rel'] === 'http://joindiaspora.com/guid') {
-					$diaspora_guid = escape_tags(unamp($link['@attributes']['href']));
-					$diaspora = true;
-				}
-				if($link['@attributes']['rel'] === 'diaspora-public-key') {
-					$diaspora_key = escape_tags(base64_decode(unamp($link['@attributes']['href'])));
-					if(strstr($diaspora_key,'RSA '))
-						$pubkey = Keyutils::rsaToPem($diaspora_key);
-					else
-						$pubkey = $diaspora_key;
-					$diaspora = true;
-				}
-			}
-		}
-	}
-*/
 	if($diaspora && $diaspora_base) {
 
 		if($diaspora_guid)
@@ -1137,7 +1091,6 @@ function diaspora_post_local(&$item) {
 
 		$meta = (($conv) ? $conv : $message);
 
-	//	IConfig::Set($item, 'diaspora', 'fields', $meta);
 		ObjCache::Set($item['mid'], $meta, 'diaspora');
 
 		return;
@@ -1595,37 +1548,6 @@ function diaspora_queue_deliver(&$b) {
 				dbesc($outq['outq_hash'])
 			);
 			Queue::remove($outq['outq_hash']);
-
-			// server is responding - see if anything else is going to this destination and is piled up
-			// and try to send some more. We're relying on the fact that do_delivery() results in an
-			// immediate delivery otherwise we could get into a queue loop.
-
-/* this is handled in Queue::remove now
-
-			if(! $immediate) {
-				$x = q("select outq_hash from outq where outq_posturl = '%s' and outq_delivered = 0",
-					dbesc($outq['outq_posturl'])
-				);
-
-				$piled_up = array();
-				if($x) {
-					foreach($x as $xx) {
-						 $piled_up[] = $xx['outq_hash'];
-					}
-				}
-				if($piled_up) {
-
-					// add a pre-deliver interval, this should not be necessary
-
-					//$interval = ((get_config('system','delivery_interval') !== false)
-						//? intval(get_config('system','delivery_interval')) : 2 );
-					//if($interval)
-						//@time_sleep_until(microtime(true) + (float) $interval);
-
-					do_delivery($piled_up,true);
-				}
-			}
-*/
 		}
 		elseif ($result['return_code'] >= 400 && $result['return_code'] < 500) {
 			q("update dreport set dreport_result = '%s', dreport_time = '%s' where dreport_queue = '%s'",
