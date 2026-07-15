@@ -36,9 +36,6 @@ function pubcrawl_load() {
 		'module_loaded'              => 'pubcrawl_load_module',
 		'webfinger'                  => 'pubcrawl_webfinger',
 		'actor_refetch'              => 'pubcrawl_actor_refetch',
-	//	'follow_mod_init'            => 'pubcrawl_follow_mod_init',
-	//	'thing_mod_init'             => 'pubcrawl_thing_mod_init',
-	//	'locs_mod_init'              => 'pubcrawl_locs_mod_init',
 		'follow_allow'               => 'pubcrawl_follow_allow',
 		'discover_channel_webfinger' => 'pubcrawl_discover_channel_webfinger',
 		'permissions_create'         => 'pubcrawl_permissions_create',
@@ -587,16 +584,6 @@ function pubcrawl_load_module(&$b) {
 		$b['controller'] = new Inbox();
 		$b['installed']  = true;
 	}
-	//if ($b['module'] === 'outbox') {
-	//require_once('addon/pubcrawl/Mod_Outbox.php');
-	//$b['controller'] = new \Zotlabs\Module\Outbox();
-	//$b['installed']  = true;
-	//}
-	if ($b['module'] === 'nullbox') {
-		require_once('addon/pubcrawl/Mod_Nullbox.php');
-		$b['controller'] = new Nullbox();
-		$b['installed']  = true;
-	}
 	if ($b['module'] === 'ap_probe') {
 		require_once('addon/pubcrawl/Mod_Ap_probe.php');
 		$b['controller'] = new Ap_probe();
@@ -933,7 +920,6 @@ function pubcrawl_notifier_hub(&$arr) {
 	}
 
 	return;
-
 }
 
 
@@ -1173,191 +1159,6 @@ function pubcrawl_permissions_accept(&$x) {
 }
 
 
-function pubcrawl_thing_mod_init($x) {
-
-	// deprecated
-	return;
-/*
-	if (ActivityStreams::is_as_request()) {
-		$item_id = argv(1);
-		if (!$item_id)
-			return;
-
-		$r = q("select * from obj where obj_type = %d and obj_obj = '%s' limit 1",
-			intval(TERM_OBJ_THING),
-			dbesc($item_id)
-		);
-
-		if (!$r)
-			return;
-
-		$chan = channelx_by_n($r[0]['obj_channel']);
-
-		if (!$chan)
-			http_status_exit(404, 'Not found');
-
-		$x = array_merge(['@context' => [
-			ACTIVITYSTREAMS_JSONLD_REV,
-			'https://w3id.org/security/v1',
-			z_root() . ZOT_APSCHEMA_REV
-		]],
-			[
-				'type' => 'Object',
-				'id'   => z_root() . '/thing/' . $r[0]['obj_obj'],
-				'name' => $r[0]['obj_term']
-			]
-		);
-
-		if ($r[0]['obj_image'])
-			$x['image'] = $r[0]['obj_image'];
-
-
-		$headers                     = [];
-		$headers['Content-Type']     = 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"';
-
-		$proof = (new JcsEddsa2022)->sign($x, $chan);
-		$signature = LDSignatures::sign($x, $chan);
-
-		$x['proof'] = $proof;
-		$x['signature'] = $signature;
-
-		$ret                         = json_encode($x, JSON_UNESCAPED_SLASHES);
-		$headers['Date']             = datetime_convert('UTC', 'UTC', 'now', 'D, d M Y H:i:s \\G\\M\\T');
-		$headers['Digest']           = HTTPSig::generate_digest_header($ret);
-		$headers['(request-target)'] = strtolower($_SERVER['REQUEST_METHOD']) . ' ' . $_SERVER['REQUEST_URI'];
-
-		$h = HTTPSig::create_sig($headers, $chan['channel_prvkey'], channel_url($chan));
-		HTTPSig::set_headers($h);
-		echo $ret;
-		killme();
-	}
-*/
-}
-
-
-function pubcrawl_locs_mod_init($x) {
-
-	// deprecated
-	return;
-/*
-	if (ActivityStreams::is_as_request()) {
-		$channel_address = argv(1);
-		if (!$channel_address)
-			return;
-
-		$chan = channelx_by_nick($channel_address);
-
-		if (!$chan)
-			http_status_exit(404, 'Not found');
-
-		$x = array_merge(['@context' => [
-			ACTIVITYSTREAMS_JSONLD_REV,
-			'https://w3id.org/security/v1',
-			z_root() . ZOT_APSCHEMA_REV
-		]],
-			[
-				'type' => 'nomadicHubs',
-				'id'   => z_root() . '/locs/' . $chan['channel_address']
-			]
-		);
-
-		$locs = zot_encode_locations($chan);
-		if ($locs) {
-			$x['nomadicLocations'] = [];
-			foreach ($locs as $loc) {
-				$x['nomadicLocations'][] = [
-					'id'              => $loc['url'] . '/locs/' . substr($loc['address'], 0, strpos($loc['address'], '@')),
-					'type'            => 'nomadicLocation',
-					'locationAddress' => 'acct:' . $loc['address'],
-					'locationPrimary' => (boolean)$loc['primary'],
-					'locationDeleted' => (boolean)$loc['deleted']
-				];
-			}
-		}
-
-		$headers                     = [];
-		$headers['Content-Type']     = 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"';
-
-		$proof = (new JcsEddsa2022)->sign($x, $chan);
-		$signature = LDSignatures::sign($x, $chan);
-
-		$x['proof'] = $proof;
-		$x['signature'] = $signature;
-
-		$ret                         = json_encode($x, JSON_UNESCAPED_SLASHES);
-		$headers['Date']             = datetime_convert('UTC', 'UTC', 'now', 'D, d M Y H:i:s \\G\\M\\T');
-		$headers['Digest']           = HTTPSig::generate_digest_header($ret);
-		$headers['(request-target)'] = strtolower($_SERVER['REQUEST_METHOD']) . ' ' . $_SERVER['REQUEST_URI'];
-
-		$h = HTTPSig::create_sig($headers, $chan['channel_prvkey'], channel_url($chan));
-		HTTPSig::set_headers($h);
-		echo $ret;
-		killme();
-	}
-*/
-}
-
-
-function pubcrawl_follow_mod_init($x) {
-	// deprecated
-	return;
-/*
-	if (ActivityStreams::is_as_request() && argc() == 2) {
-		$abook_id = intval(argv(1));
-		if (!$abook_id)
-			return;
-		$r = q("select * from abook left join xchan on abook_xchan = xchan_hash where abook_id = %d",
-			intval($abook_id)
-		);
-		if (!$r)
-			return;
-
-		$chan = channelx_by_n($r[0]['abook_channel']);
-
-		if (!$chan)
-			http_status_exit(404, 'Not found');
-
-		$actor = $chan['xchan_url']; //asencode_person($chan);
-		if (!$actor)
-			http_status_exit(404, 'Not found');
-
-
-		$x = array_merge(['@context' => [
-			ACTIVITYSTREAMS_JSONLD_REV,
-			'https://w3id.org/security/v1',
-			z_root() . ZOT_APSCHEMA_REV
-		]],
-			[
-				'id'     => z_root() . '/follow/' . $r[0]['abook_id'] . '#follow',
-				'type'   => 'Follow',
-				'actor'  => $actor,
-				'object' => $r[0]['xchan_url']
-			]);
-
-
-		$headers                     = [];
-		$headers['Content-Type']     = 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"';
-
-		$proof = (new JcsEddsa2022)->sign($x, $chan);
-		$signature = LDSignatures::sign($x, $chan);
-
-		$x['proof'] = $proof;
-		$x['signature'] = $signature;
-
-		$ret                         = json_encode($x, JSON_UNESCAPED_SLASHES);
-		$headers['Date']             = datetime_convert('UTC', 'UTC', 'now', 'D, d M Y H:i:s \\G\\M\\T');
-		$headers['Digest']           = HTTPSig::generate_digest_header($ret);
-		$headers['(request-target)'] = strtolower($_SERVER['REQUEST_METHOD']) . ' ' . $_SERVER['REQUEST_URI'];
-
-		$h = HTTPSig::create_sig($headers, $chan['channel_prvkey'], channel_url($chan));
-		HTTPSig::set_headers($h);
-		echo $ret;
-		killme();
-	}
-*/
-}
-
-
 function pubcrawl_queue_deliver(&$b) {
 
 	$outq      = $b['outq'];
@@ -1400,29 +1201,6 @@ function pubcrawl_queue_deliver(&$b) {
 			);
 
 			Queue::remove($outq['outq_hash']);
-
-			// server is responding - see if anything else is going to this destination and is piled up
-			// and try to send some more. We're relying on the fact that do_delivery() results in an
-			// immediate delivery otherwise we could get into a queue loop.
-
-/* this is handled in Queue::remove now
-
-			if (!$immediate) {
-				$x = q("select outq_hash from outq where outq_posturl = '%s' and outq_delivered = 0",
-					dbesc($outq['outq_posturl'])
-				);
-
-				$piled_up = [];
-				if ($x) {
-					foreach ($x as $xx) {
-						$piled_up[] = $xx['outq_hash'];
-					}
-				}
-				if ($piled_up) {
-					do_delivery($piled_up, true);
-				}
-			}
-*/
 		}
 		elseif ($result['return_code'] >= 400 && $result['return_code'] < 500) {
 			q("update dreport set dreport_result = '%s', dreport_time = '%s' where dreport_queue = '%s'",
