@@ -63,7 +63,7 @@ function qrator_content() {
 $header = t('QR Generator');
 $prompt = t('Enter some text');
 
-$o .= <<< EOT
+$o = <<< EOT
 <h2>$header</h2>
 
 <div>$prompt</div>
