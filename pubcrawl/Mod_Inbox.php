@@ -356,7 +356,9 @@ class Inbox extends Controller {
 
 				// if this is a comment - deliver to everybody who owns the parent
 
-				if ($AS->parent_id && $AS->parent_id !== $AS->obj['id']) {
+
+
+				if ($AS->parent_id && $AS->parent_id !== $AS->objprop('id', $AS->obj)) {
 					// this is a comment - deliver to everybody who owns the parent
 					$owners = q("SELECT * from channel where channel_id in ( SELECT uid from item where mid = '%s' ) ",
 						dbesc($AS->parent_id)
