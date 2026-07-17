@@ -200,6 +200,9 @@ class Wiki extends Controller {
 
 		}
 
+		$mimeType = '';
+		$content = '';
+
 		switch(argc()) {
 			case 2:
 				$wikis = NativeWiki::listwikis($owner, get_observer_hash());
@@ -368,7 +371,7 @@ class Wiki extends Controller {
 		));
 
 		$types = [ 'text/bbcode' => t('BBcode'), 'text/markdown' => t('Markdown'), 'text/plain' => 'Text' ];
-		$currenttype = $types[$mimeType];
+		$currenttype = $mimeType ? $types[$mimeType] : '';
 
 		$placeholder = t('Short description of your changes (optional)');
 
@@ -410,8 +413,9 @@ class Wiki extends Controller {
 			'$history_lbl' => t('History')
 		));
 
-		if($p['pageMimeType'] === 'text/markdown')
+		if (isset($p['pageMimeType']) && $p['pageMimeType'] === 'text/markdown') {
 			head_add_js('/library/ace/ace.js');	// Ace Code Editor
+		}
 
 		return $o;
 	}
@@ -880,33 +884,22 @@ class Wiki extends Controller {
 
 		$c = channelx_by_nick(argv(1));
 		$w = NativeWiki::exists_by_name($c['channel_id'],NativeWiki::name_decode(argv(2)));
-		$arr = array(
-			'resource_id' => $w['resource_id'],
-			'channel_id' => $c['channel_id'],
-			'channel_address' => $c['channel_address'],
-			'refresh' => false
-		);
 
 		$can_create = perm_is_allowed(\App::$profile['uid'],get_observer_hash(),'write_wiki');
-
 		$can_delete = ((local_channel() && (local_channel() == \App::$profile['uid'])) ? true : false);
-                $pageName = NativeWiki::name_decode(escape_tags(argv(3)));
+		$pageName = NativeWiki::name_decode(escape_tags(argv(3)));
 
-		$wikiname = $w['urlName'];
-    $tpl = get_markup_template('wiki_page_not_found.tpl') ?: get_markup_template('wiki_page_not_found.tpl', 'addon/wiki');
+		$tpl = get_markup_template('wiki_page_not_found.tpl') ?: get_markup_template('wiki_page_not_found.tpl', 'addon/wiki');
 		return replace_macros($tpl, array(
-				'$resource_id' => $arr['resource_id'],
-				'$channel_address' => $arr['channel_address'],
-				'$wikiname' => $wikiname,
+				'$resource_id' => $w['resource_id'],
+				'$channel_address' => $c['channel_address'],
 				'$canadd' => $can_create,
 				'$candel' => $can_delete,
 				'$addnew' => t('Add new page'),
-				'$typelock' => $typelock,
-				'$lockedtype' => $w['mimeType'],
-				'$mimetype' => mimetype_select(0,$w['mimeType'],
+				'$mimetype' => mimetype_select(0, 'text/markdown',
 					[ 'text/markdown' => t('Markdown'), 'text/bbcode' => t('BBcode'), 'text/plain' => t('Text') ]),
 				'$pageName' => array('missingPageName', 'Create Page' , $pageName),
-				'$refresh' => $arr['refresh'],
+				'$refresh' => false,
 				'$options' => t('Options'),
 				'$submit' => t('Submit')
 		));

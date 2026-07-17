@@ -1,7 +1,9 @@
 <div class="generic-content-wrapper">
 	<div class="section-title-wrapper">
 		<div class="float-end">
+			{{if $typename}}
 			<span class="text-muted wiki-typename">[{{$typename}}]&nbsp;</span>
+			{{/if}}
 			{{if $showPageControls}}
 			<div id="page-tools" class="btn-group" style="display: none;">
 				<button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
