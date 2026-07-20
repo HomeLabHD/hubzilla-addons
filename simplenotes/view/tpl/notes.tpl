@@ -14,13 +14,21 @@
 </div>
 {{/if}}
 
+{{if $archive_view && !$active_folder}}
+<div class="mb-4">
+	<h3>
+		<a href="simplenotes"><i class="bi bi-arrow-left"></i></a> {{$strings.archive}}
+	</h3>
+</div>
+{{/if}}
+
 {{if $trash_view}}
 <div class="alert alert-danger mb-4">
 	{{$strings.trash_alert}}
 </div>
 {{/if}}
 
-{{if !$trash_view && $folders}}
+{{if !$trash_view && !$archive_view && $folders}}
 <div class="mb-4">
 	{{foreach $folders as $f}}
 	<a href="simplenotes/{{$f}}" class="btn btn-outline-primary"><i class="bi bi-folder"></i> {{$f}}</a>
@@ -35,6 +43,7 @@
 			<div class="card-body">
 				<div class="note-title h4">
 					{{if $i.trashed}}<i class="bi bi-trash pe-2"></i>{{/if}}
+					{{if $i.archived}}<i class="bi bi-archive pe-2"></i>{{/if}}
 					<i class="bi bi-card-{{$i.type|lower}} pe-2"></i>
 					{{if $i.pinned}}<i class="bi bi-pin pe-2"></i>{{/if}}
 					{{$i.title.parsed}}
@@ -81,6 +90,12 @@
 					<input class="form-check-input" type="checkbox" name="simplenotes-note-delete" id="simplenotes-note-delete" disabled>
 					<label class="form-check-label" for="simplenotes-note-delete">
 						{{$strings.modal.delete}}
+					</label>
+				</div>
+				<div class="form-check">
+					<input class="form-check-input" type="checkbox" name="simplenotes-note-delete" id="simplenotes-note-archive" disabled>
+					<label class="form-check-label" for="simplenotes-note-archive">
+						{{$strings.modal.archive}}
 					</label>
 				</div>
 				<div class="form-check">
@@ -195,6 +210,7 @@
 		const simplenotesNoteContent = document.getElementById('simplenotes-note-content');
 		const simplenotesNoteSave = document.getElementById('simplenotes-note-save');
 		const simplenotesNoteDelete = document.getElementById('simplenotes-note-delete');
+		const simplenotesNoteArchive = document.getElementById('simplenotes-note-archive');
 		const simplenotesNotePinned = document.getElementById('simplenotes-note-pinned');
 		const checklistSort = document.getElementById('simplenotes-checklist-sort');
 
@@ -206,6 +222,7 @@
 		modal.addEventListener('hide.bs.modal', () => {
 			simplenotesNoteDelete.disabled = true;
 			simplenotesNoteDelete.checked = false;
+			simplenotesNoteArchive.checked = false;
 			simplenotesNotePinned.checked = false;
 			activeNoteId = null;
 			activeNoteCreated = null;
@@ -292,7 +309,8 @@
 					color: activeNoteColor,
 					noteType: activeNoteType,
 					checklistSortOption: activeChecklistSortOption,
-					delete: {{if $trash_view}}simplenotesNoteDelete.checked ? 'hard' : 0{{else}}simplenotesNoteDelete.checked ? 'soft' : 0{{/if}}
+					delete: {{if $trash_view}}simplenotesNoteDelete.checked ? 'hard' : 0{{else}}simplenotesNoteDelete.checked ? 'soft' : 0{{/if}},
+					archive: simplenotesNoteArchive.checked,
 				})
 			})
 			.then(response => response.json())  // Parse the JSON response
@@ -323,6 +341,7 @@
 				simplenotesNoteContent.value = base64ToUtf8(note.dataset.content).replaceAll('[ ]', '[]');
 				simplenotesModal.show();
 				simplenotesNoteDelete.disabled = false;
+				simplenotesNoteArchive.disabled = false;
 
 				if (note.dataset.type === 'CHECKLIST') {
 					checklistSort.style.display = '';

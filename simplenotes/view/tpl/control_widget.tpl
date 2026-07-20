@@ -66,6 +66,9 @@
 </div>
 
 <div class="widget">
+	<div class="d-grid gap-2 mb-3">
+		<a href="simplenotes{{if $folder}}/{{$folder}}{{/if}}?archive=1"><i class="bi bi-archive"></i> {{$strings.view_archive}}</a>
+	</div>
 	<div class="d-grid gap-2">
 		<a href="simplenotes{{if $folder}}/{{$folder}}{{/if}}?trash=1"><i class="bi bi-trash"></i> {{$strings.view_trash}}</a>
 	</div>

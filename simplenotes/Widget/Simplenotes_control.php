@@ -21,6 +21,7 @@ class Simplenotes_control {
 			'$folder' => argv(1) ?? '',
 			'$strings' => [
 				'view_trash' => t('View trash'),
+				'view_archive' => t('View archive'),
 				'label' => t('Simple Notes'),
 				'new' => t('Add new note'),
 				'order' => [

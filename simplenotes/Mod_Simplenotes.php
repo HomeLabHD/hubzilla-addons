@@ -95,6 +95,7 @@ class Simplenotes extends Controller {
 		$hidden_filenames =['folders.json', 'deletions.json'];
 
 		$trash_view = !empty($_GET['trash']);
+		$archive_view = !empty($_GET['archive']);
 		$thirty_days_ago = (int)((microtime(true) - (30 * 24 * 60 * 60)) * 1000);
 
 		foreach($files as $file)  {
@@ -138,6 +139,11 @@ class Simplenotes extends Controller {
 				continue;
 			}
 
+			if ($archive_view !== ($note_object->archivedAt !== 0)) {
+				fclose($stream);
+				continue;
+			}
+
 			$prepared['id'] = escape_tags($note_object->id);
 			$prepared['title']['parsed'] = escape_tags($note_object->title);
 			$prepared['title']['encoded'] = base64_encode($note_object->title);
@@ -159,6 +165,7 @@ class Simplenotes extends Controller {
 			$prepared['type'] = escape_tags($note_object->noteType);
 			$prepared['pinned'] = $note_object->isPinned;
 			$prepared['trashed'] = $note_object->trashedAt;
+			$prepared['archived'] = $note_object->archivedAt;
 			$prepared['color'] = $note_object->color;
 
 			$items[] = $prepared;
@@ -169,6 +176,7 @@ class Simplenotes extends Controller {
 			'$items' => $items,
 			'$folders' => $folders,
 			'$trash_view' => $trash_view,
+			'$archive_view' => $archive_view,
 			'$active_folder' => argv(1) ?? '',
 			'$strings' => [
 				'modal' => [
@@ -181,6 +189,7 @@ class Simplenotes extends Controller {
 						'checked_first' => t('Checked first')
 					],
 					'delete' => $trash_view ? t('Delete note') : t('Trash note'),
+					'archive' => t('Archive note'),
 					'pinned' => t('Pin note'),
 					'submit' => t('Submit'),
 					'note' => [
@@ -189,6 +198,7 @@ class Simplenotes extends Controller {
 					]
 				],
 				'trash' => t('Trash'),
+				'archive' => t('Archive'),
 				'trash_alert' => t('Notes in trash will be permanently removed after 30 days!')
 			]
 		]);
@@ -215,6 +225,11 @@ class Simplenotes extends Controller {
 
 		if ($this->dir->childExists($filename)) {
 			$this->dir->getChild($filename)->delete();
+		}
+
+		if ($data['archive']) {
+			// Move to archive
+			$note_object->archivedAt = (int)(microtime(true) * 1000);
 		}
 
 		if ($data['delete'] === 'soft') {

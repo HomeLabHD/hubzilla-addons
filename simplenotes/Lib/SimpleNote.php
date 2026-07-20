@@ -12,6 +12,7 @@ abstract class SimpleNote
 	public readonly int $createdAt;
 	public readonly int $updatedAt;
 	public int $trashedAt;
+	public int $archivedAt;
 	public readonly bool $isPinned;
 	public readonly string $color;
 
@@ -27,6 +28,7 @@ abstract class SimpleNote
 		$this->createdAt = (int)($data['createdAt'] ?? $now);
 		$this->updatedAt = (int)($data['updatedAt'] ?? $now);
 		$this->trashedAt = (int)($data['trashedAt'] ?? 0);
+		$this->archivedAt = (int)($data['archivedAt'] ?? 0);
 		$this->isPinned = (bool)($data['isPinned'] ?? false);
 		$this->color = (string)($data['color'] ?? '');
 	}
@@ -60,6 +62,10 @@ abstract class SimpleNote
 
 		if ($this->trashedAt) {
 			$ret['trashedAt'] = $this->trashedAt;
+		}
+
+		if ($this->archivedAt) {
+			$ret['archivedAt'] = $this->archivedAt;
 		}
 
 		if ($this->isPinned) {
