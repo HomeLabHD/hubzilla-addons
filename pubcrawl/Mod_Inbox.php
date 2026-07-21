@@ -266,8 +266,7 @@ class Inbox extends Controller {
 
 		// Now figure out who the recipients are
 
-		if ($AS->parent_id && $AS->parent_id !== $AS->objprop('id')) {
-
+		if ($AS->parent_id && $AS->parent_id !== $AS->objprop('id', $AS->obj)) {
 			// If the parent originates from this site, only deliver to the owner.
 			// If the item will be accepted by the owner it will be relayed to everybody else.
 			$owner_parent = q("SELECT owner_xchan, item_wall from item where mid = '%s' order by item_wall desc limit 1",
@@ -353,11 +352,7 @@ class Inbox extends Controller {
 			}
 
 			if (in_array(ACTIVITY_PUBLIC_INBOX, $AS->recips) || in_array('Public', $AS->recips) || in_array('as:Public', $AS->recips)) {
-
 				// if this is a comment - deliver to everybody who owns the parent
-
-
-
 				if ($AS->parent_id && $AS->parent_id !== $AS->objprop('id', $AS->obj)) {
 					// this is a comment - deliver to everybody who owns the parent
 					$owners = q("SELECT * from channel where channel_id in ( SELECT uid from item where mid = '%s' ) ",
