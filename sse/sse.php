@@ -52,11 +52,12 @@ function sse_item_stored($item) {
 	if(is_sys_channel($item_uid)) {
 		$sys = true;
 
-		$hashes = q("SELECT xchan FROM xconfig WHERE cat = 'sse' AND k ='timestamp' and %s > %s - INTERVAL %s UNION SELECT channel_hash FROM channel WHERE channel_removed = 0",
+		$hashes = q("SELECT xchan FROM xconfig WHERE cat = 'sse' AND k ='timestamp' and %s > %s - INTERVAL %s",
 			db_str_to_date('v'),
 			db_utcnow(),
 			db_quoteinterval('15 MINUTE')
 		);
+
 		$hashes = flatten_array_recursive($hashes);
 	}
 	else {
@@ -67,7 +68,7 @@ function sse_item_stored($item) {
 	if(! $hashes)
 		return;
 
-	$r[0] = $item;
+	$r = [$item];
 	xchan_query($r);
 
 	foreach($hashes as $hash) {
@@ -76,7 +77,7 @@ function sse_item_stored($item) {
 		}
 
 		if($sys) {
-			$current_channel = channelx_by_hash($hash);
+			$current_channel = str_starts_with($hash, 'sse_id.') ? [] : channelx_by_hash($hash);
 
 			if ($current_channel) {
 				$item_uid = $current_channel['channel_id'];
