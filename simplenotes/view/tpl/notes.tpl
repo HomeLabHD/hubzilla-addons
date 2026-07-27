@@ -1,7 +1,7 @@
 {{if $active_folder}}
 <div class="mb-4">
 	<h3>
-		<a href="simplenotes"><i class="bi bi-arrow-left"></i></a> {{$active_folder}}{{if $trash_view}}/{{$strings.trash}}{{/if}}
+		<a href="simplenotes"><i class="bi bi-arrow-left"></i></a> {{$active_folder}}{{if $trash_view}}/{{$strings.trash}}{{/if}}{{if $archive_view}}/{{$strings.archive}}{{/if}}
 	</h3>
 </div>
 {{/if}}
