@@ -45,16 +45,14 @@ function qrator_photo_mod_init(&$b) {
  * @return string HTML img with QR-code of $match[1]
  */
 function qrator_bb_qr($match) {
-	return '<img class="zrl" src="' . z_root() . '/photo/qr?f=&qr=' . urlencode($match[1]) . '" alt="' . t('QR code') . '" title="' . htmlspecialchars($match[1],ENT_QUOTES,'UTF-8') . '" />';
+	return '<img class="zrl" src="' . z_root() . '/photo/qr?qr=' . urlencode($match[1]) . '" alt="' . t('QR code') . '" title="' . htmlspecialchars($match[1],ENT_QUOTES,'UTF-8') . '" />';
 }
 
 
 function qrator_bbcode(&$b) {
-
 	if (strpos($b,'[/qr]') !== false) {
 		$b = preg_replace_callback("/\[qr\](.*?)\[\/qr\]/ism", 'qrator_bb_qr', $b);
 	}
-
 }
 
 
@@ -67,15 +65,13 @@ $o = <<< EOT
 <h2>$header</h2>
 
 <div>$prompt</div>
-<input type="text" id="qr-input" onkeyup="makeqr();" />
+<textarea type="text" id="qr-input" onkeyup="makeqr();" class="form-control mb-3"></textarea>
 <div id="qr-output"></div>
 
 <script>
 function makeqr() {
 	var txt = $('#qr-input').val();
-
-	$('#qr-output').html('<img src="/photo/qr/?f=&qr=' + txt + '" /></img>');
-
+	$('#qr-output').html('<img src="/photo/qr/?f=&qr=' + encodeURIComponent(txt) + '" /></img>');
 }
 </script>
 
