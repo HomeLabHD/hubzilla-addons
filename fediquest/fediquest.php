@@ -70,6 +70,10 @@ function fediquest_notifier_process($arr) {
 	$item = $arr['target_item'];
 	$parent = $arr['parent_item'];
 
+	if (!$parent) {
+		return;
+	}
+
 	// A cheap check if the parent body contains fediquest emojis before checking anything else
 	if (strpos($parent['body'], '🔵🔵🔵') === false) {
 		return;
