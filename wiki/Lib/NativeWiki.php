@@ -47,7 +47,6 @@ class NativeWiki {
 
 		$ac = $acl->get();
 		$mid = z_root() . '/item/' . $uuid;
-		$dt = datetime_convert();
 
 		$arr = array();	// Initialize the array of parameters for the post
 		$item_hidden = ((intval($wiki['postVisible']) === 0) ? 1 : 0);
@@ -57,8 +56,6 @@ class NativeWiki {
 		$arr['uid'] = $channel['channel_id'];
 		$arr['mid'] = $mid;
 		$arr['parent_mid'] = $mid;
-		$arr['created'] = $dt;
-		$arr['updated'] = $dt;
 		$arr['item_hidden'] = $item_hidden;
 		$arr['resource_type'] = NWIKI_ITEM_RESOURCE_TYPE;
 		$arr['resource_id'] = $resource_id;
