@@ -422,7 +422,7 @@ function diaspora_actor_refetch(&$arr) {
 
 function diaspora_notifier_process(&$arr) {
 
-	if (intval($arr['parent_item']['item_private']) === 2) {
+	if (isset($arr['parent_item']['item_private']) && intval($arr['parent_item']['item_private']) === 2) {
 		// Special handling for comments on diaspora conversations (direct messages)
 		// originating from diaspora.
 		// Those must be sent to all participants by the comment author.
