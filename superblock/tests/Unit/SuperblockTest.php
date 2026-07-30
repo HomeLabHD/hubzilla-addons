@@ -414,6 +414,16 @@ class SuperblockTest extends UnitTestCase {
 		foreach (self::NONBLOCKED_CHANNELS as $author) {
 			$this->assertFalse($this->checkIfEnotifyIsBlocked($author));
 		}
+
+		// Notify with no author hash should not be blocked
+		$item = [
+			'uid' => $this->channel['channel_id'],
+			'display' => true,
+		];
+
+		call_hooks('enotify_format', $item);
+
+		$this->assertTrue($item['display']);
 	}
 
 	private function checkIfEnotifyIsBlocked(string $author): bool {
