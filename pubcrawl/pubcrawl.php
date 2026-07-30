@@ -748,7 +748,7 @@ function pubcrawl_notifier_hub(&$arr) {
 		$target_item = $arr['target_item'];
 	}
 
-	if (!$target_item['mid'] && !$is_profile) {
+	if (empty($target_item['mid']) && !$is_profile) {
 		return;
 	}
 
