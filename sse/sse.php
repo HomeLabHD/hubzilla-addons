@@ -65,11 +65,17 @@ function sse_item_stored($item) {
 		$hashes = [$channel['channel_hash']];
 	}
 
-	if(! $hashes)
+	if (!$hashes) {
 		return;
+	}
 
 	$r = [$item];
 	xchan_query($r);
+
+	if (empty($r[0]['author'])) {
+		btlogger('could not fetch author_xchan: ' . print_r($r,true));
+		return;
+	}
 
 	foreach($hashes as $hash) {
 		if (!$hash) {
