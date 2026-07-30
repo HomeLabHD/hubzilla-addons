@@ -1,3 +1,9 @@
+Superblock v3.1.1
+-----------------
+
+- Fixes:
+  - Crash in filterEnotifyFormat when hash is missing from hook args.
+
 Superblock v3.1.0
 -----------------
 
