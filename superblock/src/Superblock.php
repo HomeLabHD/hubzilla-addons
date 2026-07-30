@@ -141,7 +141,7 @@ class Superblock
 	}
 
 	public function filterEnotifyFormat(array &$item): void {
-		if ($this->blockList->match($item['hash'])) {
+		if (!empty($item['hash']) && $this->blockList->match($item['hash'])) {
 			$item['display'] = false;
 		}
 	}
