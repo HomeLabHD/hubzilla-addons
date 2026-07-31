@@ -531,11 +531,13 @@ function diaspora_process_outbound(&$arr) {
 */
 
 	// we have already processed those earlier
-	if (intval($arr['parent_item']['item_private']) === 2)
+	if (isset($arr['parent_item']['item_private']) && intval($arr['parent_item']['item_private']) === 2) {
 		return;
+	}
 
-	if(! strstr($arr['hub']['hubloc_network'],'diaspora'))
+	if (!strstr($arr['hub']['hubloc_network'], 'diaspora')) {
 		return;
+	}
 
 	logger('upstream: ' . intval($arr['upstream']));
 	//logger('notifier_array: ' . print_r($arr,true), LOGGER_ALL, LOG_INFO);
