@@ -209,6 +209,8 @@ class Superblock extends Controller {
 			return Apps::app_render($papp, 'module');
 		}
 
+		nav_set_selected('Superblock', 'settings/superblock');
+
 		if (argc() == 2) {
 			$subpath = argv(1);
 		    if ($subpath === "add" || $subpath === "edit") {

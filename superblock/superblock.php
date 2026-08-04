@@ -45,6 +45,7 @@ function superblock_load(): void
 
 	Hook::register_array('addon/superblock/superblock.php', $hooks);
 	Route::register('addon/superblock/Mod_Superblock.php','superblock');
+	Route::register('addon/superblock/Module/Settings/Superblock.php', 'settings/superblock');
 }
 
 
