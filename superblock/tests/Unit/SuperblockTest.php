@@ -605,6 +605,38 @@ class SuperblockTest extends UnitTestCase {
 		}
 	}
 
+	public function testDontStoreItemFromBlockedChannel(): void {
+		foreach (self::BLOCKED_CHANNELS as $author) {
+			$args = [
+				'item' => [
+					'uid' => $this->channel['channel_id'],
+					'author_xchan' => $author
+				],
+				'allow_exec' => false,
+			];
+
+			call_hooks('item_store_before', $args);
+
+			$this->assertArrayHasKey('cancel', $args['item']);
+			$this->assertTrue($args['item']['cancel']);
+		}
+	}
+
+	public function testBlockActivitiesFromBlockedChannels(): void {
+		foreach (self::BLOCKED_CHANNELS as $author) {
+			$args = [
+				'channel_id' => $this->channel['channel_id'],
+				'observer_hash' => $author,
+				'permission' => 'send_stream',
+				'result' => 'unset',
+			];
+
+			call_hooks('perm_is_allowed', $args);
+
+			$this->assertFalse($args['result']);
+		}
+	}
+
 	/**
 	 * Install the addon and set the blocklist.
 	 */
