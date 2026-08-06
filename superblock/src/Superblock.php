@@ -158,7 +158,7 @@ class Superblock
 		}
 	}
 
-	public function filterItem(array &$item): bool {
+	public function filterItem(array $item): bool {
 		// Block item if author, or owner is blocked
 		if ((isset($item['author_xchan']) && $this->blockList->match($item['author_xchan']))
 			|| (isset($item['owner_xchan']) && $this->blockList->match($item['owner_xchan'])))
@@ -209,7 +209,7 @@ class Superblock
 	 * @return bool
 	 *		True if the profile URL should be filtered, false otherwise.
 	 */
-	private function filterByProfileUrl(string $profile_url): bool {
+	public function filterByProfileUrl(string $profile_url): bool {
 		//
 		// First check if the profile URL matches the xchan hash
 		//

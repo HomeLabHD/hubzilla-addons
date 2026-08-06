@@ -2,7 +2,7 @@
 /**
  * Name: Superblock
  * Description: Block and manage a block list of channels you don't want to see again.
- * Version: 3.1.1
+ * Version: 3.1.2
  * Author: Mike Macgirvin
  * Author: Harald Eilertsen
  * Maintainer: Mike Macgirvin <mike@macgirvin.com>
@@ -34,8 +34,10 @@ function superblock_load(): void
 		'directory_item' => 'superblock_directory_item',
 		'enotify_format' => 'superblock_enotify_format',
 		'enotify_store' => 'superblock_enotify_store',
+		'item_store_before' => 'superblock_item_store_before',
 		'item_store' => 'superblock_item_store',
 		'messages_widget' => 'superblock_messages_widget',
+		'perm_is_allowed' => 'superblock_perm_is_allowed',
 		'post_mail' => 'superblock_post_mail',
 		'stream_item' => 'superblock_stream_item',
 		'thread_author_menu' => 'superblock_item_photo_menu',
@@ -68,6 +70,27 @@ function superblock_stream_item(&$b)
 	}
 }
 
+/**
+ * Filters incoming activities before storing them.
+ */
+function superblock_item_store_before(array &$params): void
+{
+	// Make sure we take a reference to the item, so that any
+	// changes we do to it is reflected back to the caller.
+	$item = &$params['item'] ?? [];
+
+	if (empty($item)) {
+		return;
+	}
+
+	$channelId = $item['uid'] ?? 0;
+	if ($channelId && Apps::addon_app_installed($channelId, 'superblock')) {
+		$plugin = Superblock::getInstance($channelId);
+		if ($plugin->filterItem($item)) {
+			$item['cancel'] = true;
+		}
+	}
+}
 
 function superblock_item_store(&$b)
 {
@@ -76,7 +99,9 @@ function superblock_item_store(&$b)
 		&& Apps::addon_app_installed($b['uid'], 'superblock'))
 	{
 		$plugin = Superblock::getInstance($b['uid']);
-		$plugin->cancelItem($b);
+		if ($plugin->filterItem($b)) {
+			$b['cancel'] = true;
+		}
 	}
 }
 
@@ -163,6 +188,42 @@ function superblock_activity_widget(&$b)
 	}
 }
 
+/**
+ * Filter incoming activities from blocked senders.
+ *
+ * @param array $params
+ *		An associative array of the hook parameters:
+ *		- \b channel_id \e (in) - The recipient channel id
+ *		- \b observer_hash \e (in) - The xchan hash of the sender
+ *		- \b permission \e (in) - The permission to check
+ *		- \b result \e (out) - `true` if permission is allowed, `false` if
+ *		  denied, `"unset"` by default.
+ *
+ */
+function superblock_perm_is_allowed(array &$params): void
+{
+	$channelId = $params['channel_id'] ?? 0;
+	$sender = $params['observer_hash'] ?? 0;
+
+	if (!$sender) {
+		// We can't block activities with no sender
+		return;
+	}
+
+	if ($channelId && Apps::addon_app_installed($channelId, 'superblock')) {
+		$perm = $params['permission'] ?? '';
+		if (!in_array($perm, ['send_stream'])) {
+			// Not a permission we care about
+			return;
+		}
+
+		$plugin = Superblock::getInstance($channelId);
+
+		if ($plugin->filterByProfileUrl($sender)) {
+			$params['result'] = false;
+		}
+	}
+}
 
 /**
  * Inject javascript helpers at start of the conversation view.
