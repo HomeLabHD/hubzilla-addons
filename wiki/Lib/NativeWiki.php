@@ -1,6 +1,7 @@
 <?php
 
 use Zotlabs\Lib\Libsync;
+use Zotlabs\Lib\Activity;
 use Zotlabs\Daemon\Master;
 
 define ( 'NWIKI_ITEM_RESOURCE_TYPE', 'nwiki' );
@@ -72,10 +73,30 @@ class NativeWiki {
 		$arr['item_thread_top'] = 1;
 		$arr['item_private'] = intval($acl->is_private());
 		$arr['verb'] = 'Create';
-		$arr['obj_type'] = 'Document';
-		$arr['body'] = '[table][tr][td][h1]New Wiki[/h1][/td][/tr][tr][td][zrl=' . $wiki_url . ']' . $wiki['htmlName'] . '[/zrl][/td][/tr][/table]';
+		$arr['body'] = '[table][tr][td][h4]New Wiki[/h4][/td][/tr][tr][td][zrl=' . $wiki_url . ']' . $wiki['htmlName'] . '[/zrl][/td][/tr][/table]';
 
 		$arr['public_policy'] = map_scope(\Zotlabs\Access\PermissionLimits::Get($channel['channel_id'],'view_wiki'),true);
+
+		$arr['tgt_type'] = 'Collection';
+		$arr['target'] = [
+			'id' => str_replace('/item/', '/conversation/', $mid),
+			'type' => 'Collection',
+			'attributedTo' => channel_url($channel),
+		];
+
+		$arr['obj_type'] = 'Document';
+
+		$arr['attach'][] = [
+			'type'     => 'application/zip',
+			'title'    => $wiki['htmlName'],
+			'href'     => z_root() . '/wiki/' . $channel['channel_address'] . '/download/wiki/' . $resource_id
+		];
+
+		$arr['attach'][] = [
+			'type'     => 'text/html',
+			'title'    => $wiki['htmlName'],
+			'href'     => $wiki_url
+		];
 
 		// Save the wiki name information using iconfig. This is shareable.
 		if(! set_iconfig($arr, 'wiki', 'rawName', $wiki['rawName'], true)) {

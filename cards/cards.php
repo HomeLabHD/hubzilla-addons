@@ -106,7 +106,7 @@ function cards_item_custom_display($target_item) {
 }
 
 function cards_post_local(&$arr) {
-	if (intval($arr['item_type']) !== ITEM_TYPE_CARD) {
+	if (empty($arr['item_type']) || intval($arr['item_type']) !== ITEM_TYPE_CARD) {
 		return;
 	}
 

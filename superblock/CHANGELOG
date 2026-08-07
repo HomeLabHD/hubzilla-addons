@@ -1,0 +1,27 @@
+Superblock v3.1.2
+-----------------
+
+- Fixes:
+  - Fix hubzilla/addons#170 - Superblocked users produce empty $content entries in notifications
+  - Fix hubzilla/addons#190 - Superblocked non-connections pile up in notifications
+
+Superblock v3.1.1
+-----------------
+
+- Fixes:
+  - Crash in filterEnotifyFormat when hash is missing from hook args.
+
+Superblock v3.1.0
+-----------------
+
+- New features:
+  - Added an optional expiry time when blocking a channel, allowing temporarily blocking a channel for a specific duration.
+  - It is now possible to edit channel blocks from the superblock addon app page.
+
+- Fixes:
+  - Blocking a channel already blocked will now update the original channel block instead of adding another entry.
+
+- Misc:
+  - Further refactoring and clean up in the code
+  - Made addon app page more consistent with other Hubzilla pages.
+  - Addon module now only reponds to well defined paths.

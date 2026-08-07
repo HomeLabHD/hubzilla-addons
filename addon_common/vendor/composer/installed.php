@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'zotlabs/hubzilla-addons',
-        'pretty_version' => 'dev-11.0RC',
-        'version' => 'dev-11.0RC',
-        'reference' => '387fb14eed9133791148cb7e7ef902afba195cc1',
+        'pretty_version' => 'dev-11.2RC',
+        'version' => 'dev-11.2RC',
+        'reference' => '2c62ecb3483f8697eeefc100119eaee161d74b42',
         'type' => 'application',
         'install_path' => __DIR__ . '/../../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'zotlabs/hubzilla-addons' => array(
-            'pretty_version' => 'dev-11.0RC',
-            'version' => 'dev-11.0RC',
-            'reference' => '387fb14eed9133791148cb7e7ef902afba195cc1',
+            'pretty_version' => 'dev-11.2RC',
+            'version' => 'dev-11.2RC',
+            'reference' => '2c62ecb3483f8697eeefc100119eaee161d74b42',
             'type' => 'application',
             'install_path' => __DIR__ . '/../../../',
             'aliases' => array(),

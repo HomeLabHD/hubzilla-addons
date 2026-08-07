@@ -48,9 +48,9 @@ class SuperblockTest extends UnitTestCase {
 		$list = $plugin->getBlockedChannels();
 
 		$this->assertIsArray($list);
-		$this->assertContains('blockeduser@somesite.test', $list);
-		$this->assertContains('evil@othersite.test', $list);
-		$this->assertContains('upyours@arse.test', $list);
+		$this->assertNotNull(array_find($list, fn ($cb) => $cb->hash == 'blockeduser@somesite.test'));
+		$this->assertNotNull(array_find($list, fn ($cb) => $cb->hash == 'evil@othersite.test'));
+		$this->assertNotNull(array_find($list, fn ($cb) => $cb->hash == 'upyours@arse.test'));
 	}
 
 	public function testItemFromBlockedUserShouldBeBlocked(): void {
@@ -414,6 +414,16 @@ class SuperblockTest extends UnitTestCase {
 		foreach (self::NONBLOCKED_CHANNELS as $author) {
 			$this->assertFalse($this->checkIfEnotifyIsBlocked($author));
 		}
+
+		// Notify with no author hash should not be blocked
+		$item = [
+			'uid' => $this->channel['channel_id'],
+			'display' => true,
+		];
+
+		call_hooks('enotify_format', $item);
+
+		$this->assertTrue($item['display']);
 	}
 
 	private function checkIfEnotifyIsBlocked(string $author): bool {
@@ -547,11 +557,13 @@ class SuperblockTest extends UnitTestCase {
 			call_hooks('thread_author_menu', $args);
 
 			$this->assertArrayHasKey('menu', $args['menu'][0]);
-			$this->assertEquals('superblock', $args['menu'][0]['menu']);
+			$this->assertEquals('superblock_mute', $args['menu'][0]['menu']);
 
 			$this->assertArrayHasKey('action', $args['menu'][0]);
+
+			$plugin = Superblock::getInstance($this->channel['channel_id']);
 			$this->assertStringContainsString(
-				"superblockAjax('block', '{$author}', 42);",
+				"superblockPopupSubmitForm('{$author}', true); return false;",
 				$args['menu'][0]['action']
 			);
 		}
@@ -590,6 +602,38 @@ class SuperblockTest extends UnitTestCase {
 			call_hooks('thread_author_menu', $args);
 
 			$this->assertEmpty($args['menu']);
+		}
+	}
+
+	public function testDontStoreItemFromBlockedChannel(): void {
+		foreach (self::BLOCKED_CHANNELS as $author) {
+			$args = [
+				'item' => [
+					'uid' => $this->channel['channel_id'],
+					'author_xchan' => $author
+				],
+				'allow_exec' => false,
+			];
+
+			call_hooks('item_store_before', $args);
+
+			$this->assertArrayHasKey('cancel', $args['item']);
+			$this->assertTrue($args['item']['cancel']);
+		}
+	}
+
+	public function testBlockActivitiesFromBlockedChannels(): void {
+		foreach (self::BLOCKED_CHANNELS as $author) {
+			$args = [
+				'channel_id' => $this->channel['channel_id'],
+				'observer_hash' => $author,
+				'permission' => 'send_stream',
+				'result' => 'unset',
+			];
+
+			call_hooks('perm_is_allowed', $args);
+
+			$this->assertFalse($args['result']);
 		}
 	}
 

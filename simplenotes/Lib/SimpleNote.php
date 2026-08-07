@@ -1,0 +1,81 @@
+<?php
+
+namespace Zotlabs\Addons\SimpleNotes;
+
+abstract class SimpleNote
+{
+	public readonly string $id;
+	public readonly string $deviceId;
+	public readonly string $title;
+	public readonly string $content;
+	public string $noteType;
+	public readonly int $createdAt;
+	public readonly int $updatedAt;
+	public int $trashedAt;
+	public int $archivedAt;
+	public readonly bool $isPinned;
+	public readonly string $color;
+
+	public function __construct(array $data = [])
+	{
+		$now = (int)(microtime(true) * 1000);
+
+		$this->id = (string)($data['id'] ?? new_uuid());
+		$this->deviceId = (string)($data['deviceId'] ?? 'hubzilla-' . bin2hex(z_root()));
+		$this->title = (string)($data['title'] ?? '');
+		$this->content = (string)($data['content'] ?? '');
+		$this->noteType = (string)($data['noteType'] ?? 'TEXT');
+		$this->createdAt = (int)($data['createdAt'] ?? $now);
+		$this->updatedAt = (int)($data['updatedAt'] ?? $now);
+		$this->trashedAt = (int)($data['trashedAt'] ?? 0);
+		$this->archivedAt = (int)($data['archivedAt'] ?? 0);
+		$this->isPinned = (bool)($data['isPinned'] ?? false);
+		$this->color = (string)($data['color'] ?? '');
+	}
+
+	abstract function normalize(): static;
+
+	public static function fromArray(array $data): self
+	{
+		$type = strtoupper((string)($data['noteType'] ?? 'TEXT'));
+
+		$note = match ($type) {
+			'CHECKLIST' => new ChecklistNote($data),
+			default => new TextNote($data),
+		};
+
+		return $note->normalize();
+	}
+
+	public function toArray(): array
+	{
+
+		$ret = [
+			'id' => $this->id,
+			'deviceId' => $this->deviceId,
+			'title' => $this->title,
+			'content' => $this->content,
+			'noteType' => $this->noteType,
+			'createdAt' => $this->createdAt,
+			'updatedAt' => $this->updatedAt
+		];
+
+		if ($this->trashedAt) {
+			$ret['trashedAt'] = $this->trashedAt;
+		}
+
+		if ($this->archivedAt) {
+			$ret['archivedAt'] = $this->archivedAt;
+		}
+
+		if ($this->isPinned) {
+			$ret['isPinned'] = $this->isPinned;
+		}
+
+		if ($this->color) {
+			$ret['color'] = $this->color;
+		}
+
+		return $ret;
+	}
+}

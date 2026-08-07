@@ -294,16 +294,16 @@ function diaspora_send_migration($item,$owner,$contact,$public_batch = false) {
 
 }
 
-function diaspora_send_status($item,$owner,$contact,$public_batch = false) {
-
-	$msg = diaspora_build_status($item,$owner);
-	if(! $msg)
+function diaspora_send_status($item, $owner, $contact, $public_batch = false) {
+	$msg = diaspora_build_status($item, $owner);
+	if (!$msg) {
 		return [];
+	}
 
-	logger('diaspora_send_status: '.$owner['channel_name'].' -> '.$contact['xchan_name'].' base message: ' . $msg, LOGGER_DATA);
-	$slap = diaspora_prepare_outbound($msg,$owner,$contact,$public_batch);
+	logger('diaspora_send_status: ' . $owner['channel_name'] . ' -> ' . $contact['xchan_url'] ?? $contact['hubloc_id_url'] . ' base message: ' . $msg, LOGGER_DATA);
 
-	$qi = array(diaspora_queue($owner,$contact,$slap,$public_batch,$item['mid']));
+	$slap = diaspora_prepare_outbound($msg, $owner, $contact, $public_batch);
+	$qi = array(diaspora_queue($owner, $contact,$slap, $public_batch, $item['mid']));
 	return $qi;
 }
 

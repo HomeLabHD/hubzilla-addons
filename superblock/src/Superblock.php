@@ -9,21 +9,7 @@
 namespace Zotlabs\Addons\Superblock;
 
 use App;
-
-// array_find is defined in PHP 8.4 or higher, so for earlier PHP versions we
-// define it here.
-if (!function_exists('array_find')) {
-
-	function array_find(array $array, callable $callback): mixed {
-		foreach ($array as $key => $entry) {
-			if ($callback($entry, $key) === true) {
-				return $entry;
-			}
-		}
-
-		return null;
-	}
-}
+use DateTimeImmutable;
 
 /**
  * Superblock addon class.
@@ -48,6 +34,14 @@ if (!function_exists('array_find')) {
  */
 class Superblock
 {
+	/**
+	 * A form security token for this session.
+	 *
+	 * Generated at the start of the session, and passed to relevant
+	 * javascript functions as needed on rendering.
+	 */
+	public readonly string $security_token;
+
 	/**
 	 * Static property to hold instances of the Superblock class.
 	 */
@@ -79,47 +73,34 @@ class Superblock
 	 */
 	private function __construct(int $channelId) {
 		$this->blockList = new ChannelBlockList($channelId);
+		$this->security_token = get_form_security_token('superblock');
 	}
 
 	public function loadJavaScript(): void {
-		$security_token = get_form_security_token('superblock');
+		head_add_js('/addon/superblock/view/js/superblock.js');
+	}
 
-		if (empty(App::$page['htmlhead'])) {
-			App::$page['htmlhead'] = '';
-		}
-
-		App::$page['htmlhead'] .= <<<JS
-			<script>
-			async function superblockAjax(action, author, item) {
-				let response = await fetch("superblock", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						"Accept": "application/json",
-					},
-					body: JSON.stringify({
-						action: action,
-						author: author,
-						item: item,
-						form_security_token: "{$security_token}",
-					}),
-				});
-				body = await response.text();
-			}
-			</script>
-			JS;
+	public function loadStyleSheet(): void {
+		head_add_css('/addon/superblock/view/css/superblock.css');
 	}
 
 	public function save(): void {
 		$this->blockList->save();
 	}
 
-	public function blockChannel(string $channel): void {
-		$this->blockList->add($channel);
+	public function blockChannel(string $channel, ?DateTimeImmutable $until = null): void {
+		$this->blockList->add([
+			'hash' => $channel,
+			'until' => $until,
+		]);
 	}
 
 	public function unblockChannel(string $channel): void {
 		$this->blockList->remove($channel);
+	}
+
+	public function isChannelBlocked(string $channel): bool {
+		return $this->blockList->match($channel);
 	}
 
 	public function configChanged(): bool {
@@ -160,7 +141,7 @@ class Superblock
 	}
 
 	public function filterEnotifyFormat(array &$item): void {
-		if ($this->blockList->match($item['hash'])) {
+		if (!empty($item['hash']) && $this->blockList->match($item['hash'])) {
 			$item['display'] = false;
 		}
 	}
@@ -177,7 +158,7 @@ class Superblock
 		}
 	}
 
-	public function filterItem(array &$item): bool {
+	public function filterItem(array $item): bool {
 		// Block item if author, or owner is blocked
 		if ((isset($item['author_xchan']) && $this->blockList->match($item['author_xchan']))
 			|| (isset($item['owner_xchan']) && $this->blockList->match($item['owner_xchan'])))
@@ -228,7 +209,14 @@ class Superblock
 	 * @return bool
 	 *		True if the profile URL should be filtered, false otherwise.
 	 */
-	private function filterByProfileUrl(string $profile_url): bool {
+	public function filterByProfileUrl(string $profile_url): bool {
+		//
+		// First check if the profile URL matches the xchan hash
+		//
+		if ($this->blockList->match($profile_url)) {
+			return true;
+		}
+
 		//
 		// First check if the profile URL matches the xchan hash
 		//
