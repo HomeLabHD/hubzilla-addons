@@ -218,13 +218,6 @@ class Superblock
 		}
 
 		//
-		// First check if the profile URL matches the xchan hash
-		//
-		if ($this->blockList->match($profile_url)) {
-			return true;
-		}
-
-		//
 		// We should ideally not have to query the db directly here, but core
 		// does not (yet) provide an API we can use to get the xchan entry from
 		// the URL.
