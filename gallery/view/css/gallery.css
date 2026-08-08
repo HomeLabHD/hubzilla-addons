@@ -41,6 +41,8 @@
 	position: absolute;
 	left: 0;
 	width: 100vw;
+	max-height: 70vh;
+	overflow: auto;
 	bottom: 0;
 	text-align: center;
 }
