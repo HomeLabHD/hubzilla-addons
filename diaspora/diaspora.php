@@ -12,6 +12,7 @@
 use Zotlabs\Lib\ActivityStreams;
 use Zotlabs\Lib\Activity;
 use Zotlabs\Lib\Apps;
+use Zotlabs\Lib\ASObjectStorage;
 use Zotlabs\Lib\Crypto;
 use Zotlabs\Lib\Keyutils;
 use Zotlabs\Lib\Queue;
@@ -1205,8 +1206,8 @@ function diaspora_post_local(&$item) {
 				if(activity_match($item['verb'], ['Reject', ACTIVITY_ATTENDNO]))
 					$status = 'declined';
 
-				$rawobj = ((is_array($item['obj'])) ? $item['obj'] : json_decode($item['obj'],true));
-				if($rawobj) {
+				$rawobj = (new ASObjectStorage($item['obj']))->decode();
+				if(is_array($rawobj)) {
 					$ev = bbtoevent($rawobj['content']);
 					if($ev && $ev['hash'] && defined('DIASPORA_V2')) {
 						$meta = [
