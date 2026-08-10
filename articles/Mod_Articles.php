@@ -70,7 +70,7 @@ class Articles extends Controller {
 		]);
 
 
-		$category   = (($_REQUEST['cat']) ? escape_tags(trim($_REQUEST['cat'])) : '');
+		$category   = ((isset($_REQUEST['cat'])) ? escape_tags(trim($_REQUEST['cat'])) : '');
 		$sql_extra2 = '';
 
 		if ($category) {
@@ -195,6 +195,7 @@ class Articles extends Controller {
 		);
 
 		$items = [];
+		$pager_total = 0;
 
 		if ($r) {
 			// 11.08.2025 start transition deprecated AS1 item.verb vocabulary to AS2 on demand.

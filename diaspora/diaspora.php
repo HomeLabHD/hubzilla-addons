@@ -366,15 +366,10 @@ function diaspora_webfinger(&$b) {
 	$b['result']['properties']['http://purl.org/zot/federation'] .= ',diaspora';
 
 	// Diaspora requires a salmon link.
-	// Use this *only* if the gnusoc plugin is not installed and enabled
-
-	if((! in_array('gnusoc',\App::$plugins)) || (! Apps::addon_app_installed($b['channel']['channel_id'], 'gnusoc'))) {
-		$b['result']['links'][] = [
-			'rel'  => 'salmon',
-			'href' => z_root() . '/receive/users/' . $b['channel']['channel_guid'] . str_replace('.','',App::get_hostname())
-		];
-	}
-
+	$b['result']['links'][] = [
+		'rel'  => 'salmon',
+		'href' => z_root() . '/receive/users/' . $b['channel']['channel_guid'] . str_replace('.','',App::get_hostname())
+	];
 }
 
 
@@ -428,7 +423,7 @@ function diaspora_actor_refetch(&$arr) {
 
 function diaspora_notifier_process(&$arr) {
 
-	if (intval($arr['parent_item']['item_private']) === 2) {
+	if (isset($arr['parent_item']['item_private']) && intval($arr['parent_item']['item_private']) === 2) {
 		// Special handling for comments on diaspora conversations (direct messages)
 		// originating from diaspora.
 		// Those must be sent to all participants by the comment author.
@@ -537,11 +532,13 @@ function diaspora_process_outbound(&$arr) {
 */
 
 	// we have already processed those earlier
-	if (intval($arr['parent_item']['item_private']) === 2)
+	if (isset($arr['parent_item']['item_private']) && intval($arr['parent_item']['item_private']) === 2) {
 		return;
+	}
 
-	if(! strstr($arr['hub']['hubloc_network'],'diaspora'))
+	if (!strstr($arr['hub']['hubloc_network'], 'diaspora')) {
 		return;
+	}
 
 	logger('upstream: ' . intval($arr['upstream']));
 	//logger('notifier_array: ' . print_r($arr,true), LOGGER_ALL, LOG_INFO);
@@ -887,47 +884,6 @@ function diaspora_discover(&$b) {
 		}
 	}
 
-/*
-
-	if(! ($diaspora && $diaspora_base)) {
-		$x = false;
-	}
-
-	if(! $x) {
-		$x = old_webfinger($webbie);
-	}
-
-	if($x) {
-		logger('old_webfinger: ' . print_r($x,true));
-		foreach($x as $link) {
-			if(is_array($link)) {
-				if($link['@attributes']['rel'] === NAMESPACE_DFRN)
-					$dfrn = escape_tags(unamp($link['@attributes']['href']));
-				if($link['@attributes']['rel'] === 'http://microformats.org/profile/hcard')
-					$hcard = escape_tags(unamp($link['@attributes']['href']));
-				if($link['@attributes']['rel'] === 'http://webfinger.net/rel/profile-page')
-					$profile = escape_tags(unamp($link['@attributes']['href']));
-				if($link['@attributes']['rel'] === 'http://joindiaspora.com/seed_location') {
-					$diaspora_base = escape_tags(unamp($link['@attributes']['href']));
-					$diaspora = true;
-				}
-
-				if($link['@attributes']['rel'] === 'http://joindiaspora.com/guid') {
-					$diaspora_guid = escape_tags(unamp($link['@attributes']['href']));
-					$diaspora = true;
-				}
-				if($link['@attributes']['rel'] === 'diaspora-public-key') {
-					$diaspora_key = escape_tags(base64_decode(unamp($link['@attributes']['href'])));
-					if(strstr($diaspora_key,'RSA '))
-						$pubkey = Keyutils::rsaToPem($diaspora_key);
-					else
-						$pubkey = $diaspora_key;
-					$diaspora = true;
-				}
-			}
-		}
-	}
-*/
 	if($diaspora && $diaspora_base) {
 
 		if($diaspora_guid)
@@ -1138,7 +1094,6 @@ function diaspora_post_local(&$item) {
 
 		$meta = (($conv) ? $conv : $message);
 
-	//	IConfig::Set($item, 'diaspora', 'fields', $meta);
 		ObjCache::Set($item['mid'], $meta, 'diaspora');
 
 		return;
@@ -1364,9 +1319,9 @@ function diaspora_md_mention_callback($matches) {
         $link = 'https://' . $matches[3] . '/u/' . $matches[2];
 
     if($r && $r[0]['hubloc_network'] === 'zot6')
-        return '@[zrl=' . $link . ']' . trim($matches[1]) . ((substr($matches[0],-1,1) === '+') ? '+' : '') . '[/zrl]' ;
+        return '[zrl=' . $link . ']@' . trim($matches[1]) . ((substr($matches[0],-1,1) === '+') ? '+' : '') . '[/zrl]' ;
     else
-        return '@[url=' . $link . ']' . trim($matches[1]) . ((substr($matches[0],-1,1) === '+') ? '+' : '') . '[/url]' ;
+        return '[url=' . $link . ']@' . trim($matches[1]) . ((substr($matches[0],-1,1) === '+') ? '+' : '') . '[/url]' ;
 
 }
 
@@ -1396,9 +1351,9 @@ function diaspora_md_mention_callback2($matches) {
         $link = 'https://' . $matches[2] . '/u/' . $matches[1];
 
     if($r && $r[0]['hubloc_network'] === 'zot6')
-        return '@[zrl=' . $link . ']' . trim($name) . ((substr($matches[0],-1,1) === '+') ? '+' : '') . '[/zrl]' ;
+        return '[zrl=' . $link . ']@' . trim($name) . ((substr($matches[0],-1,1) === '+') ? '+' : '') . '[/zrl]' ;
     else
-        return '@[url=' . $link . ']' . trim($name) . ((substr($matches[0],-1,1) === '+') ? '+' : '') . '[/url]' ;
+        return '[url=' . $link . ']@' . trim($name) . ((substr($matches[0],-1,1) === '+') ? '+' : '') . '[/url]' ;
 
 }
 
@@ -1596,37 +1551,6 @@ function diaspora_queue_deliver(&$b) {
 				dbesc($outq['outq_hash'])
 			);
 			Queue::remove($outq['outq_hash']);
-
-			// server is responding - see if anything else is going to this destination and is piled up
-			// and try to send some more. We're relying on the fact that do_delivery() results in an
-			// immediate delivery otherwise we could get into a queue loop.
-
-/* this is handled in Queue::remove now
-
-			if(! $immediate) {
-				$x = q("select outq_hash from outq where outq_posturl = '%s' and outq_delivered = 0",
-					dbesc($outq['outq_posturl'])
-				);
-
-				$piled_up = array();
-				if($x) {
-					foreach($x as $xx) {
-						 $piled_up[] = $xx['outq_hash'];
-					}
-				}
-				if($piled_up) {
-
-					// add a pre-deliver interval, this should not be necessary
-
-					//$interval = ((get_config('system','delivery_interval') !== false)
-						//? intval(get_config('system','delivery_interval')) : 2 );
-					//if($interval)
-						//@time_sleep_until(microtime(true) + (float) $interval);
-
-					do_delivery($piled_up,true);
-				}
-			}
-*/
 		}
 		elseif ($result['return_code'] >= 400 && $result['return_code'] < 500) {
 			q("update dreport set dreport_result = '%s', dreport_time = '%s' where dreport_queue = '%s'",

@@ -21,7 +21,7 @@ class Wiki_pages {
 		if(argv(0) !== 'wiki' || argc() < 3)
 			return;
 
-		if(! $arr['resource_id']) {
+		if(empty($arr['resource_id'])) {
 			$c = channelx_by_nick(argv(1));
 			$w = NativeWiki::exists_by_name($c['channel_id'],NativeWiki::name_decode(argv(2)));
 			$arr = array(

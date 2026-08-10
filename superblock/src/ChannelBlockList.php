@@ -18,7 +18,7 @@ class ChannelBlockList
 	private $channelId;
 	private ConfigInterface $config;
 	private bool $dirty;
-	private $list = [];
+	private array $list = [];
 
 	/**
 	 * Initialize with the blocklist for the given channel.
@@ -38,16 +38,32 @@ class ChannelBlockList
 	/**
 	 * Add a channel to the block list.
 	 *
-	 * @param string $channel   The channel to block, either as a webbie, url
-	 *                          or xchan hash.
+	 * @param array $data
+	 *		An array identifying the channel to be blocked, and data about the
+	 *		block. @see ::Zotlabs::Addon::Superblock::ChannelBlock::__construct()
 	 */
-	public function add(string $channel): void {
-		$this->list[] = $channel;
+	public function add(array $data): void {
+		$newEntry = new ChannelBlock($data);
+
+		// Is this channel already blocked?
+		$oldEntry = array_find($this->list, fn ($cb) => $cb->hash === $newEntry->hash);
+
+		if ($oldEntry === null) {
+			$this->list[] = new ChannelBlock($data);
+			$this->dirty = true;
+		} else if ($newEntry->expire != $oldEntry->expire) {
+			$this->update($newEntry);
+		}
+	}
+
+	public function update(ChannelBlock $cb): void {
+		$this->remove($cb->hash);
+		$this->list[] = $cb;
 		$this->dirty = true;
 	}
 
 	public function remove(string $channel): void {
-		$this->list = array_filter($this->list, fn($ch) => $ch !== $channel);
+		$this->list = array_filter($this->list, fn($ch) => $ch->hash !== $channel);
 		$this->dirty = true;
 	}
 
@@ -63,19 +79,45 @@ class ChannelBlockList
 	 * Loads the block list from the configuration of the channel.
 	 */
 	private function loadBlockList(): void {
-		$this->list = $this->config->getBlockedChannels($this->channelId);
+		$data = $this->config->getBlockedChannels($this->channelId);
+
+		//
+		// We expect the config to return an array of key => value pairs, or an
+		// old style comma separated string of just channel hashes.
+		//
+		if (is_array($data)) {
+			$this->list = array_map(
+				fn (array $s) => new ChannelBlock($s),
+				$data
+			);
+		} else {
+			$this->list = array_map(
+				fn (string $s) => new ChannelBlock(['hash' => $s]),
+				array_filter(
+					explode(',', $data),
+					fn ($hash) => !empty(trim($hash))
+				)
+			);
+		}
 	}
 
 	/**
-	 * Check if a channel name matches the block list.
+	 * Check if a channel matches the block list.
 	 *
-	 * @param string $n		The channel name to match against the list.
+	 * @param string $hash
+	 *		The channel hash to match against the list.
 	 *
-	 * @return bool		`true` if the channel matches, `false` otherwise.
+	 * @return bool
+	 *		`true` if the channel matches, `false` otherwise.
 	 */
 	public function match(string $n): bool {
 		$trimmed = trim($n);
-		return !empty($trimmed) && in_array($trimmed, $this->list);
+
+		$channelBlock = array_find(
+			$this->list,
+		   	fn (ChannelBlock $cb) => $trimmed === $cb->hash);
+
+		return $channelBlock !== null && $channelBlock->validate();
 	}
 
 	/**
@@ -85,7 +127,10 @@ class ChannelBlockList
 	 * passed in the constructor.
 	 */
 	public function save(): void {
-		$this->config->saveBlockedChannels($this->channelId, $this->list);
+		$this->config->saveBlockedChannels(
+			$this->channelId,
+		   	array_map(fn ($cb) => $cb->toArray(), $this->list));
+
 		$this->loadBlockList();
 	}
 }

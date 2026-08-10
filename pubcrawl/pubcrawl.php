@@ -36,9 +36,6 @@ function pubcrawl_load() {
 		'module_loaded'              => 'pubcrawl_load_module',
 		'webfinger'                  => 'pubcrawl_webfinger',
 		'actor_refetch'              => 'pubcrawl_actor_refetch',
-	//	'follow_mod_init'            => 'pubcrawl_follow_mod_init',
-	//	'thing_mod_init'             => 'pubcrawl_thing_mod_init',
-	//	'locs_mod_init'              => 'pubcrawl_locs_mod_init',
 		'follow_allow'               => 'pubcrawl_follow_allow',
 		'discover_channel_webfinger' => 'pubcrawl_discover_channel_webfinger',
 		'permissions_create'         => 'pubcrawl_permissions_create',
@@ -164,6 +161,14 @@ function pubcrawl_encode_person(&$arr) {
 			'publicKeyMultibase' => $ed25519publicKey,
 		];
 
+		$rsaPublicKey = (new Multibase())->rsaPublicKey($arr['xchan']['channel_pubkey']);
+		$arr['encoded']['assertionMethod'][] = [
+			'id' => channel_url($arr['xchan']),
+			'type' => 'Multikey',
+			'controller' => channel_url($arr['xchan']),
+			'publicKeyMultibase' => $rsaPublicKey
+		];
+
 		// map other nomadic identities linked with this channel
 		$locations = [];
 		$locs      = Libzot::encode_locations($arr['xchan']);
@@ -236,50 +241,84 @@ function pubcrawl_encode_item(&$arr) {
 		$arr['encoded']['id'] = unparse_url($parsed);
 	}
 
-	$images = false;
-	$has_images = preg_match_all('/\[[zi]mg(.*?)\](.*?)\[/ism', $arr['item']['body'], $images, PREG_SET_ORDER);
 
-	if ($has_images) {
-		foreach ($images as $match) {
-			$img = [];
-			// handle Friendica/Hubzilla style img links with [img=$url]$alttext[/img]
-			if (strpos($match[1], '=http') === 0) {
-				$img[] = ['type' => 'Image', 'url' => substr($match[1], 1), 'name' => $match[2]];
-			} // preferred mechanism for adding alt text
-			elseif (strpos($match[1], 'alt=') !== false) {
-				$txt = str_replace('&quot;', '"', $match[1]);
-				$txt = substr($match[1], strpos($match[1], 'alt="') + 5, -1);
-				$img[] = ['type' => 'Image', 'url' => $match[2], 'name' => $txt];
-			} else {
-				$img[] = ['type' => 'Image', 'url' => $match[2]];
-			}
-
-			if (empty($arr['encoded']['attachment'])) {
-				$arr['encoded']['attachment'] = [];
-			}
-			$already_added = false;
-			if ($img) {
-				for ($pc = 0; $pc < count($arr['encoded']['attachment']); $pc++) {
-					// caution: image attachments use url and links use href, and our own links will be 'attach' links based on the image href
-					// We could alternatively supply the correct attachment info when item is saved, but by replacing here we will pick up
-					// any "per-post" or manual changes to the image alt-text before sending.
-
-					if ((isset($arr['encoded']['attachment'][$pc]['href']) && strpos($img[0]['url'], str_replace('/attach/', '/photo/', $arr['encoded']['attachment'][$pc]['href'])) !== false) || (isset($arr['encoded']['attachment'][$pc]['url']) && $arr['encoded']['attachment'][$pc]['url'] === $img[0]['url'])) {
-						// if it's already there, replace it with our alt-text aware version
-						$arr['encoded']['attachment'] = array_merge($arr['encoded']['attachment'][$pc], $img[0]);
-						$already_added = true;
-					}
-				}
-				if (!$already_added) {
-					// add it
-					$arr['encoded']['attachment'] = array_merge($arr['encoded']['attachment'], $img);
-				}
-			}
+	if (!in_array($arr['item']['obj_type'], ['Image', 'Audio', 'Video', 'Document'])) {
+		$image_attachments = pubcrawl_encode_image_attachment($arr['item']);
+		if ($image_attachments) {
+			$arr['encoded']['attachment'] = $arr['encoded']['attachment'] ?? [];
+			$arr['encoded']['attachment'] = array_merge($arr['encoded']['attachment'], $image_attachments);
 		}
 	}
 
 	pubcrawl_encode_addressing($arr);
+}
 
+function pubcrawl_encode_image_attachment($item) {
+	if (!preg_match_all('/\[(img|zmg)(.*?)\](.*?)\[\/\1\]/ism', $item['body'], $images, PREG_SET_ORDER)) {
+		return [];
+	}
+
+	$attachments = [];
+
+	foreach ($images as $match) {
+		// Handle Friendica/Hubzilla style [img=$url]alt text[/img]
+		if (strpos($match[2], '=http') === 0) {
+			$img = [
+				'type' => 'Image',
+				'url'  => substr($match[2], 1),
+				'name' => $match[3],
+			];
+		}
+		// Preferred mechanism for alt text.
+		elseif (preg_match('/alt=(?:["\']|&quot;)(.*?)(?:["\']|&quot;)/ism', $match[2], $alt)) {
+			$img = [
+				'type' => 'Image',
+				'url'  => $match[3],
+				'name' => $alt[1],
+			];
+		}
+		else {
+			$img = [
+				'type' => 'Image',
+				'url'  => $match[3],
+			];
+
+		}
+
+		if (!isset(App::$cache['getimagesize'][$img['url']])) {
+			App::$cache['getimagesize'][$img['url']] = getimagesize($img['url']) ?? [];
+		}
+
+		if (App::$cache['getimagesize'][$img['url']]) {
+			$img['mediaType'] = App::$cache['getimagesize'][$img['url']]['mime'] ?? null;
+			$img['width'] = App::$cache['getimagesize'][$img['url']][0] ?? null;
+			$img['height'] = App::$cache['getimagesize'][$img['url']][1] ?? null;
+		}
+
+		$already_added = false;
+
+		foreach ($attachments  as $pc => $attachment) {
+			// Image attachments use "url" while links use "href". Our own image
+			// links are "attach" URLs whereas the BBCode references the "photo"
+			// URL, so normalize before comparing.
+			$matches = (isset($attachment['href']) && strpos($img['url'], str_replace('/attach/', '/photo/', $attachment['href'])) !== false) ||
+				(isset($attachment['url']) && $attachment['url'] === $img['url']);
+
+			if ($matches) {
+				// Replace with the alt-text aware version while preserving any
+				// additional attachment properties.
+				$arr['encoded']['attachment'][$pc] = array_merge($attachment, $img);
+				$already_added = true;
+				break;
+			}
+		}
+
+		if (!$already_added) {
+			$attachments[] = $img;
+		}
+	}
+
+	return $attachments;
 }
 
 function pubcrawl_encode_activity(&$arr) {
@@ -297,10 +336,7 @@ function pubcrawl_encode_activity(&$arr) {
 		$arr['encoded']['id'] = unparse_url($parsed);
 	}
 
-
-
 	pubcrawl_encode_addressing($arr);
-
 }
 
 
@@ -548,16 +584,6 @@ function pubcrawl_load_module(&$b) {
 		$b['controller'] = new Inbox();
 		$b['installed']  = true;
 	}
-	//if ($b['module'] === 'outbox') {
-	//require_once('addon/pubcrawl/Mod_Outbox.php');
-	//$b['controller'] = new \Zotlabs\Module\Outbox();
-	//$b['installed']  = true;
-	//}
-	if ($b['module'] === 'nullbox') {
-		require_once('addon/pubcrawl/Mod_Nullbox.php');
-		$b['controller'] = new Nullbox();
-		$b['installed']  = true;
-	}
 	if ($b['module'] === 'ap_probe') {
 		require_once('addon/pubcrawl/Mod_Ap_probe.php');
 		$b['controller'] = new Ap_probe();
@@ -722,7 +748,7 @@ function pubcrawl_notifier_hub(&$arr) {
 		$target_item = $arr['target_item'];
 	}
 
-	if (!$target_item['mid'] && !$is_profile) {
+	if (empty($target_item['mid']) && !$is_profile) {
 		return;
 	}
 
@@ -894,7 +920,6 @@ function pubcrawl_notifier_hub(&$arr) {
 	}
 
 	return;
-
 }
 
 
@@ -1134,191 +1159,6 @@ function pubcrawl_permissions_accept(&$x) {
 }
 
 
-function pubcrawl_thing_mod_init($x) {
-
-	// deprecated
-	return;
-/*
-	if (ActivityStreams::is_as_request()) {
-		$item_id = argv(1);
-		if (!$item_id)
-			return;
-
-		$r = q("select * from obj where obj_type = %d and obj_obj = '%s' limit 1",
-			intval(TERM_OBJ_THING),
-			dbesc($item_id)
-		);
-
-		if (!$r)
-			return;
-
-		$chan = channelx_by_n($r[0]['obj_channel']);
-
-		if (!$chan)
-			http_status_exit(404, 'Not found');
-
-		$x = array_merge(['@context' => [
-			ACTIVITYSTREAMS_JSONLD_REV,
-			'https://w3id.org/security/v1',
-			z_root() . ZOT_APSCHEMA_REV
-		]],
-			[
-				'type' => 'Object',
-				'id'   => z_root() . '/thing/' . $r[0]['obj_obj'],
-				'name' => $r[0]['obj_term']
-			]
-		);
-
-		if ($r[0]['obj_image'])
-			$x['image'] = $r[0]['obj_image'];
-
-
-		$headers                     = [];
-		$headers['Content-Type']     = 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"';
-
-		$proof = (new JcsEddsa2022)->sign($x, $chan);
-		$signature = LDSignatures::sign($x, $chan);
-
-		$x['proof'] = $proof;
-		$x['signature'] = $signature;
-
-		$ret                         = json_encode($x, JSON_UNESCAPED_SLASHES);
-		$headers['Date']             = datetime_convert('UTC', 'UTC', 'now', 'D, d M Y H:i:s \\G\\M\\T');
-		$headers['Digest']           = HTTPSig::generate_digest_header($ret);
-		$headers['(request-target)'] = strtolower($_SERVER['REQUEST_METHOD']) . ' ' . $_SERVER['REQUEST_URI'];
-
-		$h = HTTPSig::create_sig($headers, $chan['channel_prvkey'], channel_url($chan));
-		HTTPSig::set_headers($h);
-		echo $ret;
-		killme();
-	}
-*/
-}
-
-
-function pubcrawl_locs_mod_init($x) {
-
-	// deprecated
-	return;
-/*
-	if (ActivityStreams::is_as_request()) {
-		$channel_address = argv(1);
-		if (!$channel_address)
-			return;
-
-		$chan = channelx_by_nick($channel_address);
-
-		if (!$chan)
-			http_status_exit(404, 'Not found');
-
-		$x = array_merge(['@context' => [
-			ACTIVITYSTREAMS_JSONLD_REV,
-			'https://w3id.org/security/v1',
-			z_root() . ZOT_APSCHEMA_REV
-		]],
-			[
-				'type' => 'nomadicHubs',
-				'id'   => z_root() . '/locs/' . $chan['channel_address']
-			]
-		);
-
-		$locs = zot_encode_locations($chan);
-		if ($locs) {
-			$x['nomadicLocations'] = [];
-			foreach ($locs as $loc) {
-				$x['nomadicLocations'][] = [
-					'id'              => $loc['url'] . '/locs/' . substr($loc['address'], 0, strpos($loc['address'], '@')),
-					'type'            => 'nomadicLocation',
-					'locationAddress' => 'acct:' . $loc['address'],
-					'locationPrimary' => (boolean)$loc['primary'],
-					'locationDeleted' => (boolean)$loc['deleted']
-				];
-			}
-		}
-
-		$headers                     = [];
-		$headers['Content-Type']     = 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"';
-
-		$proof = (new JcsEddsa2022)->sign($x, $chan);
-		$signature = LDSignatures::sign($x, $chan);
-
-		$x['proof'] = $proof;
-		$x['signature'] = $signature;
-
-		$ret                         = json_encode($x, JSON_UNESCAPED_SLASHES);
-		$headers['Date']             = datetime_convert('UTC', 'UTC', 'now', 'D, d M Y H:i:s \\G\\M\\T');
-		$headers['Digest']           = HTTPSig::generate_digest_header($ret);
-		$headers['(request-target)'] = strtolower($_SERVER['REQUEST_METHOD']) . ' ' . $_SERVER['REQUEST_URI'];
-
-		$h = HTTPSig::create_sig($headers, $chan['channel_prvkey'], channel_url($chan));
-		HTTPSig::set_headers($h);
-		echo $ret;
-		killme();
-	}
-*/
-}
-
-
-function pubcrawl_follow_mod_init($x) {
-	// deprecated
-	return;
-/*
-	if (ActivityStreams::is_as_request() && argc() == 2) {
-		$abook_id = intval(argv(1));
-		if (!$abook_id)
-			return;
-		$r = q("select * from abook left join xchan on abook_xchan = xchan_hash where abook_id = %d",
-			intval($abook_id)
-		);
-		if (!$r)
-			return;
-
-		$chan = channelx_by_n($r[0]['abook_channel']);
-
-		if (!$chan)
-			http_status_exit(404, 'Not found');
-
-		$actor = $chan['xchan_url']; //asencode_person($chan);
-		if (!$actor)
-			http_status_exit(404, 'Not found');
-
-
-		$x = array_merge(['@context' => [
-			ACTIVITYSTREAMS_JSONLD_REV,
-			'https://w3id.org/security/v1',
-			z_root() . ZOT_APSCHEMA_REV
-		]],
-			[
-				'id'     => z_root() . '/follow/' . $r[0]['abook_id'] . '#follow',
-				'type'   => 'Follow',
-				'actor'  => $actor,
-				'object' => $r[0]['xchan_url']
-			]);
-
-
-		$headers                     = [];
-		$headers['Content-Type']     = 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"';
-
-		$proof = (new JcsEddsa2022)->sign($x, $chan);
-		$signature = LDSignatures::sign($x, $chan);
-
-		$x['proof'] = $proof;
-		$x['signature'] = $signature;
-
-		$ret                         = json_encode($x, JSON_UNESCAPED_SLASHES);
-		$headers['Date']             = datetime_convert('UTC', 'UTC', 'now', 'D, d M Y H:i:s \\G\\M\\T');
-		$headers['Digest']           = HTTPSig::generate_digest_header($ret);
-		$headers['(request-target)'] = strtolower($_SERVER['REQUEST_METHOD']) . ' ' . $_SERVER['REQUEST_URI'];
-
-		$h = HTTPSig::create_sig($headers, $chan['channel_prvkey'], channel_url($chan));
-		HTTPSig::set_headers($h);
-		echo $ret;
-		killme();
-	}
-*/
-}
-
-
 function pubcrawl_queue_deliver(&$b) {
 
 	$outq      = $b['outq'];
@@ -1361,29 +1201,6 @@ function pubcrawl_queue_deliver(&$b) {
 			);
 
 			Queue::remove($outq['outq_hash']);
-
-			// server is responding - see if anything else is going to this destination and is piled up
-			// and try to send some more. We're relying on the fact that do_delivery() results in an
-			// immediate delivery otherwise we could get into a queue loop.
-
-/* this is handled in Queue::remove now
-
-			if (!$immediate) {
-				$x = q("select outq_hash from outq where outq_posturl = '%s' and outq_delivered = 0",
-					dbesc($outq['outq_posturl'])
-				);
-
-				$piled_up = [];
-				if ($x) {
-					foreach ($x as $xx) {
-						$piled_up[] = $xx['outq_hash'];
-					}
-				}
-				if ($piled_up) {
-					do_delivery($piled_up, true);
-				}
-			}
-*/
 		}
 		elseif ($result['return_code'] >= 400 && $result['return_code'] < 500) {
 			q("update dreport set dreport_result = '%s', dreport_time = '%s' where dreport_queue = '%s'",

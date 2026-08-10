@@ -20,21 +20,22 @@ interface ConfigInterface
 	/**
 	 * Get the persisted block list from the configuration for a given channel.
 	 *
-	 * @param int $channelId    The id of the channel to get the persisted
-	 *                          block list for.
+	 * @param int $channelId
+	 *		The id of the channel whose block to load.
 	 *
-	 * @return string|false		Either a string containing the blocked channel names
-	 *                          separated by commas, or false if the configuration
-	 *                          don't exist.
+	 * @return string
+	 *		The raw block list as a string as persisted in the configuration.
 	 */
-	public function getBlockedChannels(int $channelId): array;
+	public function getBlockedChannels(int $channelId): mixed;
 
 	/**
 	 * Save the block list in the configuration for a given channel.
 	 *
-	 * @param int $channelId    The id of the channel whose blocklist should be
-	 *                          saved to the configuration.
-	 * @param array $blockList  An array of channels to be blocked.
+	 * @param int $channelId
+	 *		The id of the channel whose blocklist should be saved to the
+	 *		configuration.
+	 * @param array $blockList
+	 *		An array of channel hashes to be blocked.
 	 */
 	public function saveBlockedChannels(int $channelId, array $blockList): void;
 }

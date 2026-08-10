@@ -29,11 +29,17 @@ function fediquest_uninstall() {
 
 function fediquest_post_local(&$arr) {
 
-	if(!Apps::addon_app_installed(local_channel(), 'fediquest')) {
+	$uid = local_channel();
+
+	if (!$uid) {
 		return;
 	}
 
 	if (empty($arr['body']) || !str_contains($arr['body'], '[/fediquest]')) {
+		return;
+	}
+
+	if(!Apps::addon_app_installed($uid, 'fediquest')) {
 		return;
 	}
 
@@ -64,12 +70,12 @@ function fediquest_notifier_process($arr) {
 	$item = $arr['target_item'];
 	$parent = $arr['parent_item'];
 
-	// A cheap check if the parent body contains fediquest emojis before checking anything else
-	if (strpos($parent['body'], '🔵🔵🔵') === false) {
+	if (!$parent) {
 		return;
 	}
 
-	if(!Apps::addon_app_installed($channel['channel_id'], 'fediquest')) {
+	// A cheap check if the parent body contains fediquest emojis before checking anything else
+	if (strpos($parent['body'], '🔵🔵🔵') === false) {
 		return;
 	}
 
@@ -77,8 +83,9 @@ function fediquest_notifier_process($arr) {
 		return;
 	}
 
-	if (!in_array($item['verb'], ['Create', ACTIVITY_POST]))
+	if (!in_array($item['verb'], ['Create', ACTIVITY_POST])) {
 		return;
+	}
 
 	// it's a toplevel post - dismiss
 	if ($item['id'] === $item['parent']) {
@@ -95,6 +102,15 @@ function fediquest_notifier_process($arr) {
 		return;
 	}
 
+	// if it's our own comment - dismiss to avoid looping
+	if($item['author_xchan'] === $parent['owner_xchan']) {
+		return;
+	}
+
+	if(!Apps::addon_app_installed($channel['channel_id'], 'fediquest')) {
+		return;
+	}
+
 	// check if there is an iconfig to process
 	$iconfig = get_iconfig($parent, 'fediquest', 'word');
 
@@ -108,11 +124,6 @@ function fediquest_notifier_process($arr) {
 		return;
 	}
 */
-
-	// if it's our own comment - dismiss to avoid looping
-	if($item['author_xchan'] === $parent['owner_xchan']) {
-		return;
-	}
 
 	// Remove possible mentions
 	$answer = preg_replace('/@*\[([zu])rl(.*?)\](.*?)\[\/([zu])rl\]/ism', '' ,$item['body']);
