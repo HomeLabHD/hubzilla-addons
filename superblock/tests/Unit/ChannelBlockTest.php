@@ -10,6 +10,7 @@ namespace Zotlabs\Addons\Superblock\Tests\Unit;
 use DateInterval;
 use DateTimeImmutable;
 use DomainException;
+use Exception;
 use PHPUnit\Framework\TestCase;
 use Zotlabs\Addons\Superblock\ChannelBlock;
 
@@ -32,6 +33,12 @@ class ChannelBlockTest extends TestCase
 	{
 		$this->expectException(DomainException::class);
 		$cb = new ChannelBlock([]);
+	}
+
+	public function testCreateChannelBlockWithInvalidExpiration(): void
+	{
+		$this->expectException(Exception::class);
+		$cb = new ChannelBlock(['hash' => '1234', 'until' => 'invalid']);
 	}
 
 	public function testChannelBlockValidate(): void
