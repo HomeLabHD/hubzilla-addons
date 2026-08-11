@@ -10,6 +10,7 @@ namespace Zotlabs\Addons\Superblock;
 
 use DateTimeImmutable;
 use DateTimeZone;
+use DomainException;
 
 /**
  * An entry in the ChannelBlockList.
@@ -38,6 +39,10 @@ class ChannelBlock
 	 */
 	public function __construct(array $data)
 	{
+		if (!isset($data['hash'])) {
+			throw new DomainException('Invalid data, expected array with a hash');
+		}
+
 		$this->hash = trim($data['hash']);
 		$expire = $data['until'] ?? null;
 
