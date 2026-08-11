@@ -10,6 +10,8 @@ namespace Zotlabs\Addons\Superblock;
 
 use App;
 use DateTimeImmutable;
+use Zotlabs\Addons\Superblock\ConfigInterface;
+use Zotlabs\Addons\Superblock\PConfigAdapter;
 
 /**
  * Superblock addon class.
@@ -53,9 +55,17 @@ class Superblock
 	private ChannelBlockList $blockList;
 
 	/**
+	 * The config interface to access configuration data.
+	 */
+	private ?ConfigInterface $config = null;
+
+	public readonly SuperblockSettings $settings;
+
+	/**
 	 * Return the Superblock instance for the given channelId.
 	 *
-	 * @param int $channelId    The id of the channel for this Superblock instance.
+	 * @param int $channelId
+	 *     The id of the channel for this Superblock instance.
 	 *
 	 * @return A Superblock instance to manage blocks for the given channel.
 	 */
@@ -66,7 +76,7 @@ class Superblock
 		return self::$instance[$channelId];
 	}
 
-	/*
+	/**
 	 * Private constructor to prevent instantiation by other classes.
 	 *
 	 * @param int $channelId    The is of the channel for this Superblock instance.
@@ -74,6 +84,24 @@ class Superblock
 	private function __construct(int $channelId) {
 		$this->blockList = new ChannelBlockList($channelId);
 		$this->security_token = get_form_security_token('superblock');
+		$this->settings = new SuperblockSettings($channelId, $this->getConfigAdapter());
+	}
+
+	/**
+	 * Function to get the configuration adapter.
+	 *
+	 * Override this method if you need to use a different config adapter.
+	 *
+	 * @return ConfigInterface
+	 *     An object implementing the ConfigInterface.
+	 */
+	protected function getConfigAdapter(): ConfigInterface
+	{
+		if (empty($this->config)) {
+			$this->config = new PConfigAdapter();
+		}
+
+		return $this->config;
 	}
 
 	public function loadJavaScript(): void {
@@ -86,6 +114,10 @@ class Superblock
 
 	public function save(): void {
 		$this->blockList->save();
+	}
+
+	public function setBlockReshares(bool $enabled): void {
+		$this->settings->setBlockReshares($enabled);
 	}
 
 	public function blockChannel(string $channel, ?DateTimeImmutable $until = null): void {
@@ -166,7 +198,7 @@ class Superblock
 			return true;
 		}
 
-		if (!empty($item['body'])) {
+		if (!empty($item['body']) && $this->settings->blockReshares()) {
 			//
 			// If the post contains a reshare of a post by a channel we have blocked,
 			// we also want to block this post.

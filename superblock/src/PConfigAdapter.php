@@ -21,6 +21,19 @@ class PConfigAdapter implements ConfigInterface
 	private const FAMILY = 'system';
 	private const KEY = 'blocked';
 
+	private const DEFAULT_SETTINGS = [
+		'block_reshares' => true,
+	];
+
+	public function getSettings(int $channelId): array {
+		return PConfig::Get($channelId, 'superblock', 'settings', self::DEFAULT_SETTINGS);
+	}
+
+	public function saveSettings(int $channelId, array $settings): void {
+		$fullSettings = array_merge(self::DEFAULT_SETTINGS, $settings);
+		PConfig::Set($channelId, 'superblock', 'settings', $fullSettings);
+	}
+
 	public function getBlockedChannels(int $channelId): mixed {
 		return PConfig::Get($channelId, self::FAMILY, self::KEY);
 	}

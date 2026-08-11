@@ -32,6 +32,8 @@ class ChannelBlockListTest extends TestCase
 		//
 		$testConfig = new class($blocked) implements ConfigInterface {
 			public function __construct(private mixed $blocked) {}
+			public function getSettings(int $channelId): array {}
+			public function saveSettings(int $channelId, array $settings): void {}
 			public function getBlockedChannels(int $channelId): mixed {
 				return $channelId ? $this->blocked : '';
 			}
@@ -50,6 +52,8 @@ class ChannelBlockListTest extends TestCase
 		// the class under test to replace the dependency on PConfig.
 		//
 		$testConfig = new class() implements ConfigInterface {
+			public function getSettings(int $channelId): array {}
+			public function saveSettings(int $channelId, array $settings): void {}
 			public function getBlockedChannels(int $channelId): mixed {
 				$channelId = 42;
 				return false;
@@ -73,6 +77,8 @@ class ChannelBlockListTest extends TestCase
 		$dummyConfig = new class() implements ConfigInterface {
 			public function __construct() {}
 
+			public function getSettings(int $channelId): array {}
+			public function saveSettings(int $channelId, array $settings): void {}
 			// phpcs:disable Generic.CodeAnalysis.UnusedFunctionParameter
 			public function getBlockedChannels(int $channelId): string {
 				return '';
@@ -97,6 +103,8 @@ class ChannelBlockListTest extends TestCase
 		//
 		$dummyConfig = new class() implements ConfigInterface {
 			public function __construct() {}
+			public function getSettings(int $channelId): array {}
+			public function saveSettings(int $channelId, array $settings): void {}
 			public function getBlockedChannels(int $channelId): string {
 				return 'gangster@scarface.test,lowlife@mob.test';
 			}
@@ -120,6 +128,8 @@ class ChannelBlockListTest extends TestCase
 		//
 		$dummyConfig = new class() implements ConfigInterface {
 			public function __construct() {}
+			public function getSettings(int $channelId): array {}
+			public function saveSettings(int $channelId, array $settings): void {}
 			public function getBlockedChannels(int $channelId): string {
 				return 'gangster@scarface.test,lowlife@mob.test';
 			}
@@ -143,6 +153,8 @@ class ChannelBlockListTest extends TestCase
 		//
 		$dummyConfig = new class() implements ConfigInterface {
 			public function __construct() {}
+			public function getSettings(int $channelId): array {}
+			public function saveSettings(int $channelId, array $settings): void {}
 			public function getBlockedChannels(int $channelId): string {
 				return 'gangster@scarface.test,lowlife@mob.test';
 			}

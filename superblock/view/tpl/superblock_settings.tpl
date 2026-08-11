@@ -12,6 +12,10 @@ SPDX-License-Identifier: MIT
 		<form id="superblock-settings-form" action="settings/superblock" method="POST">
 			<input type="hidden" name="form_security_token" value="{{$securityToken}}">
 			{{include file="field_checkbox.tpl" field=$blockResharesField}}
+
+			<div class="superblock-form-actions">
+				<input type="submit" value="{{$submitLabel}}" class="btn btn-primary">
+			</div>
 		</form>
 	</div>
 </div>

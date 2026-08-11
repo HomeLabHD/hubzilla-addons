@@ -99,7 +99,74 @@ class SuperblockTest extends UnitTestCase {
 		$plugin = Superblock::getInstance($this->channel['channel_id']);
 		$plugin->blockChannel($share_author['xchan_hash']);
 
-		$items = [
+		$items = $this->reshareProvider($author, $share_author);
+
+		foreach ($items as $descr => $item) {
+			$args = ['item' => $item];
+			call_hooks('stream_item', $args);
+
+			$this->assertTrue($args['item']['blocked'], $descr);
+		}
+	}
+
+	/**
+	 * Test that we don't block reshares if the setting to do so
+	 * has been disabled.
+	 */
+	public function testResharesFromBlockedAuthorsPassIfDisabled(): void {
+		$this->loadFixture(dirname(__DIR__) . '/fixtures/xchan.yml');
+
+		$author = $this->fixtures['xchan'][1];
+		$share_author = $this->fixtures['xchan'][2];
+
+		$plugin = Superblock::getInstance($this->channel['channel_id']);
+		$plugin->blockChannel($share_author['xchan_hash']);
+		$plugin->setBlockReshares(false);
+
+		$itemsNotBlocked = $this->reshareProvider($author, $share_author);
+		foreach ($itemsNotBlocked as $descr => $item) {
+			$args = ['item' => $item];
+			call_hooks('stream_item', $args);
+
+			$this->assertArrayNotHasKey('blocked', $args['item'], $descr);
+		}
+	}
+
+	/*
+	 * Test to make sure we're able to handle users with no xchan entry.
+	 *
+	 * These will not be blocked, but should also not cause errors in the addon.
+	 */
+	public function testReshareFromUnknownUserIsNotBlocked(): void {
+		$this->loadFixture(dirname(__DIR__) . '/fixtures/xchan.yml');
+
+		$author = $this->fixtures['xchan'][1];
+		$share_author = [
+			'xchan_name' => 'Unknown User',
+			'xchan_hash' => 'https://someplace.test/@unknown',
+			'xchan_url' => 'https://someplace.test/@unknown',
+			'xchan_photo_s' => 'https://someplace.test/photos/unkown.jpg',
+		];
+
+		$itemsNotBlocked = $this->reshareProvider($author, $share_author);
+		foreach ($itemsNotBlocked as $descr => $item) {
+			$args = ['item' => $item];
+			call_hooks('stream_item', $args);
+
+			$this->assertArrayNotHasKey('blocked', $args['item'], $descr);
+		}
+	}
+
+	/**
+	 * Dataprovider for testing items containing reshares.
+	 *
+	 * @note We don't use the typical DataProvider attribute here, since we need to
+	 * pass some args to the function that is used to initialize the items.
+	 *
+	 * @return An array with items containing reshares.
+	 */
+	public function reshareProvider(array $author, array $share_author): array {
+		return [
 			'reshare with blocked author' => [
 				'author_xchan' => $author['xchan_hash'],
 				'owner_xchan' => $author['xchan_hash'],
@@ -135,53 +202,6 @@ class SuperblockTest extends UnitTestCase {
 					BODY
 			],
 		];
-
-		foreach ($items as $descr => $item) {
-			$args = ['item' => $item];
-			call_hooks('stream_item', $args);
-
-			$this->assertTrue($args['item']['blocked'], $descr);
-		}
-	}
-
-	/*
-	 * Test to make sure we're able to handle users with no xchan entry.
-	 *
-	 * These will not be blocked, but should also not cause errors in the addon.
-	 */
-	public function testReshareFromUnknownUserIsNotBlocked(): void {
-		$this->loadFixture(dirname(__DIR__) . '/fixtures/xchan.yml');
-
-		$author = $this->fixtures['xchan'][1];
-		$share_author = $this->fixtures['xchan'][2];
-
-		$args = [
-			'item' => [
-				'author_xchan' => $author['xchan_hash'],
-				'owner_xchan' => $author['xchan_hash'],
-				'body' => <<<BODY
-					[share author='Unknown User'
-						profile='https://someplace.test/@unknown'
-						avatar='https://someplace.test/photos/unkown.jpg'
-						link='https://hubzilla.ddev.site/item/685e81c5-c8c3-444a-bbe4-ae6659d0dd41'
-						auth='true'
-						posted='2026-03-08 21:35:49'
-						message_id='https://hubzilla.ddev.site/item/685e81c5-c8c3-444a-bbe4-ae6659d0dd41'
-						quote='true'
-					]Hei og hå, her skal det reparares![/share]\r
-
-					Pompel er på hugget!
-					BODY
-			]
-		];
-
-		$plugin = Superblock::getInstance($this->channel['channel_id']);
-		$plugin->blockChannel($share_author['xchan_hash']);
-
-		call_hooks('stream_item', $args);
-
-		$this->assertArrayNotHasKey('blocked', $args['item']);
-
 	}
 
 	public function testFilterChildItems(): void {

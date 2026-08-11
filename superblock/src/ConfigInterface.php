@@ -17,6 +17,10 @@ namespace Zotlabs\Addons\Superblock;
  */
 interface ConfigInterface
 {
+	public function getSettings(int $channelId): array;
+
+	public function saveSettings(int $channelId, array $settings): void;
+
 	/**
 	 * Get the persisted block list from the configuration for a given channel.
 	 *

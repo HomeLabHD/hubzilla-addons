@@ -28,9 +28,9 @@ class ChannelBlockList
 	 *
 	 * @param int $channelId	Numeric id of this block lists channel.
 	 */
-	function __construct(int $channelId, ConfigInterface $config = new PConfigAdapter()) {
+	function __construct(int $channelId, ?ConfigInterface $config = null) {
 		$this->channelId = $channelId;
-		$this->config = $config;
+		$this->config = $config ?? new PConfigAdapter();
 		$this->loadBlockList();
 		$this->dirty = false;
 	}

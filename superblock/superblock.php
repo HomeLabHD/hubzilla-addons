@@ -45,7 +45,7 @@ function superblock_load(): void
 
 	Hook::register_array('addon/superblock/superblock.php', $hooks);
 	Route::register('addon/superblock/Mod_Superblock.php','superblock');
-	Route::register('addon/superblock/Module/Settings/Superblock.php', 'settings/superblock');
+	Route::register('addon/superblock/src/Module/Settings/Superblock.php', 'settings/superblock');
 }
 
 
@@ -59,6 +59,7 @@ function superblock_unload(): void
 {
 	Hook::unregister_by_file('addon/superblock/superblock.php');
 	Route::unregister('addon/superblock/Mod_Superblock.php','superblock');
+	Route::unregister('addon/superblock/src/Module/Settings/Superblock.php', 'settings/superblock');
 }
 
 function superblock_stream_item(&$b)
