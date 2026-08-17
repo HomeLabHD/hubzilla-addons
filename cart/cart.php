@@ -2,6 +2,7 @@
 
 use Zotlabs\Lib\Apps;
 use Zotlabs\Extend\Route;
+use Zotlabs\Lib\ASObjectStorage;
 
 /**
  * Name: cart
@@ -210,44 +211,12 @@ if ($cart_manualpayments) {
 
 
 function cart_maybeunjson($value) {
-
-	if (is_array($value)) {
-		return $value;
-	}
-
-	if ($value != null) {
-		$decoded = json_decode($value, true);
-	}
-	else {
-		return null;
-	}
-
-	if (json_last_error() == JSON_ERROR_NONE) {
-		return ($decoded);
-	}
-	else {
-		return ($value);
-	}
+    return (new ASObjectStorage($value))->decode();
 }
 
 function cart_maybejson($value, $options = 0) {
-
-	if ($value != null) {
-		if (!is_array($value)) {
-			$decoded = json_decode($value, true);
-		}
-	}
-	else {
-		return null;
-	}
-
-	if (is_array($value) || json_last_error() != JSON_ERROR_NONE) {
-		$encoded = json_encode($value, $options);
-		return ($encoded);
-	}
-	else {
-		return ($value);
-	}
+    $value = (new ASObjectStorage($value))->decode();
+    return (new ASObjectStorage($value))->encode($options);
 }
 
 

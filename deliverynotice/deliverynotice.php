@@ -1,4 +1,7 @@
 <?php
+
+use Zotlabs\Lib\ASObjectStorage;
+
 /**
  * Name: Delivery Notice
  * Description: Display delivery status information at the top of items.
@@ -25,40 +28,12 @@ class Deliverynotice {
         public static $pending_states = Array('comment parent not found','storage filed');
 
         public static function maybeunjson ($value) {
-
-                if (is_array($value)) {
-                        return $value;
-                }
-
-                if ($value!=null) {
-                    $decoded=json_decode($value,true);
-                } else {
-                    return null;
-                }
-            
-                if (json_last_error() == JSON_ERROR_NONE) {
-                    return ($decoded);
-                } else {
-                    return ($value);
-                }
+                return (new ASObjectStorage($value))->decode();
         }
 
         public static function maybejson ($value,$options=0) {
-
-                if ($value!=null) {
-                    if (!is_array($value)) {
-                        $decoded=json_decode($value,true);
-                    }
-                } else {
-                    return null;
-                }
-            
-                if (is_array($value) || json_last_error() != JSON_ERROR_NONE) {
-                            $encoded = json_encode($value,$options);
-                    return ($encoded);
-                } else {
-                    return ($value);
-                }
+            $value = (new ASObjectStorage($value))->decode();
+            return (new ASObjectStorage($value))->encode($options);
         }
 
         public static function dreport_process_hook(&$arr) {
