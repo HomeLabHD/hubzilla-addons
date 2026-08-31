@@ -2,8 +2,8 @@
 
 
 /**
- * Name: SSE Notifications
- * Description: Server sent events notifications
+ * Name: Realtime Notifications
+ * Description: Provides realtime data for the core notifications system
  * Version: 1.0
  * Author: Mario Vavti
  * Maintainer: Mario Vavti <mario@hub.somaton.com>
