@@ -2,8 +2,8 @@
 
 
 /**
- * Name: Realtime Notifications
- * Description: Provides realtime data for the core notifications system
+ * Name: Real-Time Notifications
+ * Description: Provides real-time data for the core notifications system
  * Version: 1.0
  * Author: Mario Vavti
  * Maintainer: Mario Vavti <mario@hub.somaton.com>
