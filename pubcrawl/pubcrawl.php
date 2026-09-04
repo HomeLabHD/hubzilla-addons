@@ -18,6 +18,7 @@ use Zotlabs\Lib\Crypto;
 use Zotlabs\Lib\Multibase;
 use Zotlabs\Lib\Libzot;
 use Zotlabs\Lib\IConfig;
+use Zotlabs\Lib\Config;
 use Zotlabs\Lib\ObjCache;
 use Zotlabs\Module\Ap_probe;
 use Zotlabs\Module\Followers;
