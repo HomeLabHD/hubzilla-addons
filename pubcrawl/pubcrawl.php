@@ -1176,7 +1176,7 @@ function pubcrawl_queue_deliver(&$b) {
 		$retries = 0;
 		$m       = parse_url($outq['outq_posturl']);
 
-		if (Config::Get('system', 'send_rfc9421') {
+		if (Config::Get('system', 'send_rfc9421')) {
 			$signer = new HttpMessageSigner();
 			$request = new Request(
 				'POST',
