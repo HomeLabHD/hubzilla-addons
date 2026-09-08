@@ -317,18 +317,19 @@ class Workflow_Utils {
 			$uid = local_channel();
 		}
 
-		if (!Apps::addon_app_installed($uid,'workflow')) { return; }
+		if ($uid && Apps::addon_app_installed($uid,'workflow')) {
 
-		// @todo: Need to check that observer can add workflow items
-		$channel = channelx_by_n($uid);
+			// @todo: Need to check that observer can add workflow items
+			$channel = channelx_by_n($uid);
 
-		$posturl = '/workflow/'.$channel['channel_address'];
+			$posturl = '/workflow/'.$channel['channel_address'];
 
-		$arr = $extras;
+			$arr = $extras;
 
-		$item_link = $extras['item']['plink'];
-		$arr['dropdown_extras'] .= '<a class="dropdown-item" href="#" onclick="workflowShowNewItemForm(\''.$item_link.'\',\''.$posturl.'\'); return false;" title="Workflow"><i class="generic-icons-nav bi bi-list-ol"></i>' . t('Create New Workflow Item') .'</a>';
-		$extras = $arr;
+			$item_link = $extras['item']['plink'];
+			$arr['dropdown_extras'] .= '<a class="dropdown-item" href="#" onclick="workflowShowNewItemForm(\''.$item_link.'\',\''.$posturl.'\'); return false;" title="Workflow"><i class="generic-icons-nav bi bi-list-ol"></i>' . t('Create New Workflow Item') .'</a>';
+			$extras = $arr;
+		}
 	}
 
 	public static function item_custom_display($target_item) {
