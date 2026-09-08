@@ -688,6 +688,11 @@ function pubcrawl_notifier_process(&$arr) {
 	// Add anyone from the 'to' field which will include mentions
 	if (isset($raw_msg['to'])) {
 		foreach ($raw_msg['to'] as $to) {
+			// Hotfix for an issue where $to could be an array due to a bug in forte
+			if (!is_string($to)) {
+				continue;
+			}
+
 			if ($to === ACTIVITY_PUBLIC_INBOX) {
 				continue;
 			}
