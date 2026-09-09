@@ -6,6 +6,9 @@ use App;
 use Zotlabs\Lib\Apps;
 use Zotlabs\Web\HTTPSig;
 use Zotlabs\Web\Controller;
+use Zotlabs\Lib\Config;
+use GuzzleHttp\Psr7\Request;
+use HttpSignature\HttpMessageSigner;
 
 class Content_import extends Controller {
 
@@ -41,16 +44,45 @@ class Content_import extends Controller {
 			$page = 0;
 
 			while(1) {
-				$headers = [
-					'X-API-Token'      => random_string(),
-					'X-API-Request'    => $hz_server . '/api/z/1.0/item/export_page?f=&since=' . urlencode($since) . '&until=' . urlencode($until) . '&page=' . $page ,
-					'Host'             => $m['host'],
-					'(request-target)' => 'get /api/z/1.0/item/export_page?f=&since=' . urlencode($since) . '&until=' . urlencode($until) . '&page=' . $page ,
-				];
+				if (Config::Get('system', 'send_rfc9421')) {
+					$signer = new HttpMessageSigner();
+					$request = new Request(
+						'GET',
+						$hz_server . '/api/z/1.0/item/export_page?since=' . urlencode($since) . '&until=' . urlencode($until) . '&page=' . $page,
+						[
+							'X-API-Token' => random_string(),
+							'X-API-Request'    => $hz_server . '/api/z/1.0/item/export_page?since=' . urlencode($since) . '&until=' . urlencode($until) . '&page=' . $page ,
+							'Host' => $m['host'],
+							'Date' => gmdate('D, d M Y H:i:s T'),
+						]
+					);
 
-				$headers = HTTPSig::create_sig($headers,$channel['channel_prvkey'], channel_url($channel),true,'sha512');
+					$signer->setPrivateKey($channel['channel_prvkey'])
+						->setAlgorithm('rsa-v1_5-sha256')
+						->setKeyId(channel_url($channel))
+						->setCreated(time())
+						->setExpires(time() + 3600);
 
-				$x = z_fetch_url($hz_server . '/api/z/1.0/item/export_page?f=&since=' . urlencode($since) . '&until=' . urlencode($until) . '&page=' . $page,false,$redirects,[ 'headers' => $headers ]);
+					$coveredFields = '("@method" "@target-uri" "host" "date" "x-api-token" "x-api-request")';
+					$request = $signer->signRequest($coveredFields, $request);
+					$signedHeaders = $signer->getHeaders($request);
+					$curlHeaders = [];
+					foreach ($signedHeaders as $key => $value) {
+						$curlHeaders[] = $key . ': ' . $value;
+					}
+				}
+				else {
+					$headers = [
+						'X-API-Token'      => random_string(),
+						'X-API-Request'    => $hz_server . '/api/z/1.0/item/export_page?since=' . urlencode($since) . '&until=' . urlencode($until) . '&page=' . $page ,
+						'Host'             => $m['host'],
+						'(request-target)' => 'get /api/z/1.0/item/export_page?since=' . urlencode($since) . '&until=' . urlencode($until) . '&page=' . $page ,
+					];
+
+					$curlHeaders = HTTPSig::create_sig($headers, $channel['channel_prvkey'], channel_url($channel), true, 'sha512');
+				}
+
+				$x = z_fetch_url($hz_server . '/api/z/1.0/item/export_page?since=' . urlencode($since) . '&until=' . urlencode($until) . '&page=' . $page, false, 0, ['headers' => $curlHeaders]);
 
 				// logger('z_fetch: ' . print_r($x,true));
 
@@ -74,17 +106,45 @@ class Content_import extends Controller {
 		}
 
 		if(intval($_REQUEST['files'])) {
+			if (Config::Get('system', 'send_rfc9421')) {
+				$signer = new HttpMessageSigner();
+				$request = new Request(
+					'GET',
+					$hz_server . '/api/z/1.0/files?since=' . urlencode($since) . '&until=' . urlencode($until),
+					[
+						'X-API-Token' => random_string(),
+						'X-API-Request'    => $hz_server . '/api/z/1.0/files?since=' . urlencode($since) . '&until=' . urlencode($until),
+						'Host' => $m['host'],
+						'Date' => gmdate('D, d M Y H:i:s T'),
+					]
+				);
 
-			$headers = [
-				'X-API-Token'      => random_string(),
-				'X-API-Request'    => $hz_server . '/api/z/1.0/files?f=&since=' . urlencode($since) . '&until=' . urlencode($until),
-				'Host'             => $m['host'],
-				'(request-target)' => 'get /api/z/1.0/files?f=&since=' . urlencode($since) . '&until=' . urlencode($until),
-			];
+				$signer->setPrivateKey($channel['channel_prvkey'])
+					->setAlgorithm('rsa-v1_5-sha256')
+					->setKeyId(channel_url($channel))
+					->setCreated(time())
+					->setExpires(time() + 3600);
 
-			$headers = HTTPSig::create_sig($headers,$channel['channel_prvkey'], channel_url($channel),true,'sha512');
+				$coveredFields = '("@method" "@target-uri" "host" "date" "x-api-token" "x-api-request")';
+				$request = $signer->signRequest($coveredFields, $request);
+				$signedHeaders = $signer->getHeaders($request);
+				$curlHeaders = [];
+				foreach ($signedHeaders as $key => $value) {
+					$curlHeaders[] = $key . ': ' . $value;
+				}
+			}
+			else {
+				$headers = [
+					'X-API-Token'      => random_string(),
+					'X-API-Request'    => $hz_server . '/api/z/1.0/files?since=' . urlencode($since) . '&until=' . urlencode($until),
+					'Host'             => $m['host'],
+					'(request-target)' => 'get /api/z/1.0/files?since=' . urlencode($since) . '&until=' . urlencode($until),
+				];
 
-			$x = z_fetch_url($hz_server . '/api/z/1.0/files?f=&since=' . urlencode($since) . '&until=' . urlencode($until),false,$redirects,[ 'headers' => $headers ]);
+				$curlHeaders = HTTPSig::create_sig($headers, $channel['channel_prvkey'], channel_url($channel), true, 'sha512');
+			}
+
+			$x = z_fetch_url($hz_server . '/api/z/1.0/files?since=' . urlencode($since) . '&until=' . urlencode($until), false, 0, ['headers' => $curlHeaders]);
 
 			if(! $x['success']) {
 				logger('no API response');

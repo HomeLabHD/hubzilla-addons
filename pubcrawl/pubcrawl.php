@@ -18,6 +18,7 @@ use Zotlabs\Lib\Crypto;
 use Zotlabs\Lib\Multibase;
 use Zotlabs\Lib\Libzot;
 use Zotlabs\Lib\IConfig;
+use Zotlabs\Lib\Config;
 use Zotlabs\Lib\ObjCache;
 use Zotlabs\Module\Ap_probe;
 use Zotlabs\Module\Followers;
@@ -28,6 +29,8 @@ use Zotlabs\Web\HTTPSig;
 use Zotlabs\Lib\Activity;
 use Zotlabs\Lib\Queue;
 use Zotlabs\Lib\PConfig;
+use GuzzleHttp\Psr7\Request;
+use HttpSignature\HttpMessageSigner;
 
 //require_once('addon/pubcrawl/as.php');
 
@@ -1174,17 +1177,47 @@ function pubcrawl_queue_deliver(&$b) {
 		$retries = 0;
 		$m       = parse_url($outq['outq_posturl']);
 
-		$headers                     = [];
-		$headers['Content-Type']     = 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"';
-		$ret                         = $outq['outq_msg'];
-		$headers['Date']             = datetime_convert('UTC', 'UTC', 'now', 'D, d M Y H:i:s \\G\\M\\T');
-		$headers['Host']             = $m['host'];
-		$headers['Digest']           = HTTPSig::generate_digest_header($ret);
-		$headers['(request-target)'] = 'post ' . get_request_string($outq['outq_posturl']);
+		if (Config::Get('system', 'send_rfc9421')) {
+			$signer = new HttpMessageSigner();
+			$request = new Request(
+				'POST',
+				$outq['outq_posturl'],
+				[
+					'Host' => $m['host'],
+					'Date' => gmdate('D, d M Y H:i:s T'),
+					'Content-Type' => 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"',
+					'Content-Digest' => $signer->createContentDigestHeader($outq['outq_msg']),
+				],
+				$outq['outq_msg']
+			);
 
-		$xhead = HTTPSig::create_sig($headers, $chan['channel_prvkey'], channel_url($chan));
+			$signer->setPrivateKey($chan['channel_prvkey'])
+				->setAlgorithm('rsa-v1_5-sha256')
+				->setKeyId(channel_url($chan))
+				->setCreated(time());
 
-		$result = z_post_url($outq['outq_posturl'], $outq['outq_msg'], $retries, ['headers' => $xhead]);
+			$coveredFields = '("@method" "@target-uri" "host" "date" "content-type" "content-digest")';
+			$request = $signer->signRequest($coveredFields, $request);
+
+			$signedHeaders = $signer->getHeaders($request);
+			$curlHeaders = [];
+			foreach ($signedHeaders as $key => $value) {
+				$curlHeaders[] = ucfirst($key) . ': ' . $value;
+			}
+		}
+		else {
+			$headers                     = [];
+			$headers['Content-Type']     = 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"';
+			$ret                         = $outq['outq_msg'];
+			$headers['Date']             = datetime_convert('UTC', 'UTC', 'now', 'D, d M Y H:i:s \\G\\M\\T');
+			$headers['Host']             = $m['host'];
+			$headers['Digest']           = HTTPSig::generate_digest_header($ret);
+			$headers['(request-target)'] = 'post ' . get_request_string($outq['outq_posturl']);
+
+			$curlHeaders = HTTPSig::create_sig($headers, $chan['channel_prvkey'], channel_url($chan));
+		}
+
+		$result = z_post_url($outq['outq_posturl'], $outq['outq_msg'], $retries, ['headers' => $curlHeaders]);
 
 		if ($result['success'] && $result['return_code'] < 300) {
 			logger('deliver: queue post success to ' . $outq['outq_posturl'], LOGGER_DEBUG);
