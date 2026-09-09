@@ -29,9 +29,9 @@ function workflow_load() {
 	Hook::register('customitem_deliver',$hookfile,'Workflow_Utils::customitem_deliver',1,30000);
 	Hook::register('permissions_list',$hookfile,'Workflow_Utils::permissions_list',1,30000);
 	Hook::register('permission_limits_get',$hookfile,'Workflow_Utils::permission_limits_get',1,30000);
-        Hook::register('dropdown_extras', 'addon/workflow/workflow.php', 'Workflow_Utils::dropdown_extras',1,30000);
-        Hook::register('page_header', 'addon/workflow/workflow.php', 'Workflow_Utils::page_header',1,30000);
-        Hook::register('page_end', 'addon/workflow/workflow.php', 'Workflow_Utils::page_end',1,30000);
+	Hook::register('dropdown_extras', 'addon/workflow/workflow.php', 'Workflow_Utils::dropdown_extras',1,30000);
+	Hook::register('page_header', 'addon/workflow/workflow.php', 'Workflow_Utils::page_header',1,30000);
+	Hook::register('page_end', 'addon/workflow/workflow.php', 'Workflow_Utils::page_end',1,30000);
 	Hook::register('workflow_get_items_filter',__FILE__,'Workflow_Utils::get_items_filter_related',1,1000);
 	Hook::register('workflow_get_items_filter',__FILE__,'Workflow_Utils::get_items_filter_iconfig',1,2000);
 	Hook::register('activity_mapper',__FILE__,'Workflow_Utils::activity_mapper',1,1000);
@@ -218,12 +218,12 @@ class Workflow_Utils {
 
 
 	public static function permissions_list(&$arr) {
-	    $uid = local_channel();
-	    if (!Apps::addon_app_installed($uid,'workflow')) { return; }
-	    $new = $arr;
-    	    $new['permissions']['workflow_user'] = t('Workflow user.');
-	    $arr = $new;
-	    return;
+		$uid = local_channel();
+		if (!Apps::addon_app_installed($uid,'workflow')) { return; }
+		$new = $arr;
+		$new['permissions']['workflow_user'] = t('Workflow user.');
+		$arr = $new;
+		return;
 	}
 
 	public static function get_workflowusers () {
@@ -317,19 +317,20 @@ class Workflow_Utils {
 			$uid = local_channel();
 		}
 
-		if (!Apps::addon_app_installed($uid,'workflow')) { return; }
+		if ($uid && Apps::addon_app_installed($uid,'workflow')) {
 
-		// @todo: Need to check that observer can add workflow items
-		$channel = channelx_by_n($uid);
+			// @todo: Need to check that observer can add workflow items
+			$channel = channelx_by_n($uid);
 
-		$posturl = '/workflow/'.$channel['channel_address'];
+			$posturl = '/workflow/'.$channel['channel_address'];
 
-                $arr = $extras;
+			$arr = $extras;
 
-                $item_link = $extras['item']['plink'];
-                $arr['dropdown_extras'] .= '<a class="dropdown-item" href="#" onclick="workflowShowNewItemForm(\''.$item_link.'\',\''.$posturl.'\'); return false;" title="Workflow"><i class="generic-icons-nav bi bi-list-ol"></i>' . t('Create New Workflow Item') .'</a>';
-                $extras = $arr;
-        }
+			$item_link = $extras['item']['plink'];
+			$arr['dropdown_extras'] .= '<a class="dropdown-item" href="#" onclick="workflowShowNewItemForm(\''.$item_link.'\',\''.$posturl.'\'); return false;" title="Workflow"><i class="generic-icons-nav bi bi-list-ol"></i>' . t('Create New Workflow Item') .'</a>';
+			$extras = $arr;
+		}
+	}
 
 	public static function item_custom_display($target_item) {
 
@@ -353,7 +354,7 @@ class Workflow_Utils {
 	}
 
 	protected static function queryvars_stripzid($url) {
-				        //$relurl = $rellink.'&zid='.get_my_address();
+		//$relurl = $rellink.'&zid='.get_my_address();
 
 		if (! strpos($url,'?')) {
 			return $url;
@@ -403,7 +404,7 @@ class Workflow_Utils {
 
 			$o .= "' style='display:inline-block;'>";
 			$o .= $meta['html'];
-                        $o .= "</div>";
+			$o .= "</div>";
 		}
 
 		return $o;
@@ -464,7 +465,7 @@ class Workflow_Utils {
 
 		$body=prepare_body($item[0],true);
 
-                $child_items = q("SELECT item.*, item.id AS item_id
+		$child_items = q("SELECT item.*, item.id AS item_id
 			FROM item
 			WHERE item.uid = %d and $item_normal
 			AND item.parent = %d
@@ -519,7 +520,7 @@ class Workflow_Utils {
 						if ((strpos($relatedlink,'?') === false)) {
 							$relurl = $relatedlink.'?zid='.get_my_address();
 						} else {
-				        		$relurl = self::queryvars_stripzid($relatedlink).'&zid='.get_my_address();
+							$relurl = self::queryvars_stripzid($relatedlink).'&zid='.get_my_address();
 						}
 					} else {
 						$relurl = $relatedlink;
@@ -598,7 +599,7 @@ class Workflow_Utils {
 		];
 		call_hooks('workflow_display_sidebar',$sidebarhookinfo);
 		$vars['sidebar'] = $sidebarhookinfo['html'];
-        	$o = replace_macros($tpl,$vars);
+		$o = replace_macros($tpl,$vars);
 
 		return $o;
 	}
@@ -698,7 +699,7 @@ class Workflow_Utils {
 
 		if ($related) {
 			$tpl = get_markup_template('workflow_prepare_body_related.tpl','addon/workflow');
-        		$relatedhtml = replace_macros($tpl,$templatevars);
+			$relatedhtml = replace_macros($tpl,$templatevars);
 			$arr['html'] .= $relatedhtml;
 		}
 
@@ -1095,8 +1096,8 @@ class Workflow_Utils {
 
 		// NOTE: fetch_post_tags does not appear to add iconfig data properly
 		//       so at this point, we do not use the iconfig data in the item itself
-                //       but make a separate request - this will slow things down - but better
-                //       safe than sorry at this point.  @TODO look into it for later
+		//       but make a separate request - this will slow things down - but better
+		//       safe than sorry at this point.  @TODO look into it for later
 		foreach ($items as $key => $item) {
 
 			$priority = intval(IConfig::Get($item['id'],'workflow','priority',1));
@@ -1248,7 +1249,7 @@ class Workflow_Utils {
 		}
 /*
 		$tpl = get_markup_template('workflow_list.tpl','addon/workflow');
-        	$o = replace_macros($tpl,$vars);
+		$o = replace_macros($tpl,$vars);
 		return $o;
 */
 		return $vars['toolbar'].$vars['headerextras'].conversation($items,'network',0);
@@ -1308,7 +1309,7 @@ class Workflow_Utils {
 			foreach ($workflows as $hash => $c) {
 				$basicfilters .= " <span style='white-space:nowrap;'>";
 				$basicfilters .= "<input type='checkbox' name='workflows[]' value='".$hash."'";
-		        	if (in_array($hash,$workflowlist)) { $basicfilters .= " checked"; }
+				if (in_array($hash,$workflowlist)) { $basicfilters .= " checked"; }
 				$basicfilters .= ">";
 				$basicfilters .= $c['name']."</span>";
 			}
@@ -1319,7 +1320,7 @@ class Workflow_Utils {
 		foreach ($wfusers as $hash => $c) {
 			$basicfilters .= " <span style='white-space:nowrap;'>";
 			$basicfilters .= "<input type='checkbox' name='assigned[]' value='".$hash."'";
-	        	if (in_array($hash,$assigned)) { $basicfilters .= " checked"; }
+			if (in_array($hash,$assigned)) { $basicfilters .= " checked"; }
 			$basicfilters .= ">";
 			$basicfilters .= $c."</span>";
 		}
@@ -1352,8 +1353,8 @@ class Workflow_Utils {
 		if ( $observer = get_observer_hash() ) {
 			$channel = channelx_by_hash ($observer);
 			$hublocs = q("select * from hubloc where hubloc_hash = '%s' and hubloc_deleted = 0 and hubloc_network = 'zot6' order by hubloc_url ",
-                		dbesc($observer)
-        		);
+				dbesc($observer)
+			);
 
 			foreach ($hublocs as $hub) {
 				if ($hub['hubloc_primary'])
@@ -1395,39 +1396,39 @@ class Workflow_Utils {
 
 	public static function maybeunjson ($value) {
 
-    		if (is_array($value)) {
-        	return $value;
-    		}
+		if (is_array($value)) {
+			return $value;
+		}
 
-    		if ($value!=null) {
-        		$decoded=json_decode($value,true);
-    		} else {
-        		return null;
-    		}
+		if ($value!=null) {
+			$decoded=json_decode($value,true);
+		} else {
+			return null;
+		}
 
-    		if (json_last_error() == JSON_ERROR_NONE) {
-        		return ($decoded);
-    		} else {
-        		return ($value);
-    		}
+		if (json_last_error() == JSON_ERROR_NONE) {
+			return ($decoded);
+		} else {
+			return ($value);
+		}
 	}
 
 	public static function maybejson ($value,$options=0) {
 
-    		if ($value!=null) {
-        		if (!is_array($value)) {
-            			$decoded=json_decode($value,true);
-        		}
-    		} else {
-        		return null;
-    		}
+		if ($value!=null) {
+			if (!is_array($value)) {
+				$decoded=json_decode($value,true);
+			}
+		} else {
+			return null;
+		}
 
-    		if (is_array($value) || json_last_error() != JSON_ERROR_NONE) {
-                	$encoded = json_encode($value,$options);
-        		return ($encoded);
-    		} else {
-        		return ($value);
-    		}
+		if (is_array($value) || json_last_error() != JSON_ERROR_NONE) {
+			$encoded = json_encode($value,$options);
+			return ($encoded);
+		} else {
+			return ($value);
+		}
 	}
 
 	public static function getmodal_getiframe($arr,$data = null) {
@@ -1498,7 +1499,7 @@ class Workflow_Utils {
 
 	protected static function iframecontent_new($data) {
 
-	    	$uid = App::$profile_uid;
+		$uid = App::$profile_uid;
 
 		if (!Apps::addon_app_installed($uid,'workflow')) {
 			echo '<h2>Workflow addon not installed.</h2>';
@@ -1632,13 +1633,13 @@ class Workflow_Utils {
 				$contentvars=[];
 				$contentvars['content'] = replace_macros(get_markup_template('workflowiframepermissiondenied.tpl','addon/workflow'), []);
 			}
-		        return ['success'=>0, 'html' => replace_macros(get_markup_template('workflowmodal_skel.tpl','addon/workflow'), $contentvars)];
+			return ['success'=>0, 'html' => replace_macros(get_markup_template('workflowmodal_skel.tpl','addon/workflow'), $contentvars)];
 
 		}
 
 		$itemurl = '';
 
-	    	$uid = App::$profile_uid;
+		$uid = App::$profile_uid;
 		$channel = channelx_by_n(App::$profile_uid);
 
 		$data=self::maybeunjson($arr['datastore']);
@@ -1676,7 +1677,7 @@ class Workflow_Utils {
 
 	public static function object_mapper(&$objs) {
 
-	    	$uid = App::$profile_uid;
+		$uid = App::$profile_uid;
 
 		if (!Apps::addon_app_installed($uid,'workflow')) { return false; }
 
@@ -1690,7 +1691,7 @@ class Workflow_Utils {
 			return false;
 		}
 
-	    	$uid = App::$profile_uid;
+		$uid = App::$profile_uid;
 
 		if (!Apps::addon_app_installed($uid,'workflow')) { return false; }
 
@@ -1708,7 +1709,7 @@ class Workflow_Utils {
 			return false;
 		}
 
-	    	$uid = App::$profile_uid;
+		$uid = App::$profile_uid;
 
 		if (!Apps::addon_app_installed($uid,'workflow')) { return false; }
 
@@ -1723,8 +1724,8 @@ class Workflow_Utils {
 		$arr = [
 			'aid'=>$channelinfo['channel_account_id'],
 			'uid'=>$channelinfo['channel_id'],
-        		'owner_xchan'=>$channelinfo['channel_hash'],
-        		'author_xchan'=>get_observer_hash(),
+			'owner_xchan'=>$channelinfo['channel_hash'],
+			'author_xchan'=>get_observer_hash(),
 			'item_type'=>ITEM_TYPE_CUSTOM,
 			'body'=>$wfbody,
 			'item_nocomment'=>1,
@@ -1888,7 +1889,7 @@ class Workflow_Utils {
 
 	public static function decode_note(&$hookinfo) {
 
-	    	$uid = App::$profile_uid;
+		$uid = App::$profile_uid;
 		if (!Apps::addon_app_installed($uid,'workflow')) { return false; }
 
 		$act = $hookinfo['act'];
@@ -2040,7 +2041,7 @@ class Workflow_Utils {
 			}
 		}
 
-	    	$uid = App::$profile_uid;
+		$uid = App::$profile_uid;
 		$channel = channelx_by_n(App::$profile_uid);
 
 		$uuid = $data['uuid'];
@@ -2082,7 +2083,7 @@ class Workflow_Utils {
 		$items[0]['revision']++;
 		$items[0]['edited']=datetime_convert();
 		unset($items[0]['author_xchan']);
-        	$items[0]['author_xchan']=get_observer_hash();
+		$items[0]['author_xchan']=get_observer_hash();
 		unset($items[0]['obj']);
 		$items[0]['obj']=json_encode(self::encode_workflow_object($items[0]));
 		unset($items[0]['item_id']);
@@ -2126,7 +2127,7 @@ class Workflow_Utils {
 			}
 		}
 
-	    	$uid = App::$profile_uid;
+		$uid = App::$profile_uid;
 		$channel = channelx_by_n(App::$profile_uid);
 
 		$uuid = $data['uuid'];
@@ -2231,10 +2232,10 @@ class Workflow_Utils {
 			$contacts .= "<span style='white-space:nowrap;'>".$wfusers[$c]."</span>";
 		}
 
-                $thismeta = '<b>Assigned:</b>';
+		$thismeta = '<b>Assigned:</b>';
 		if ($posturl && $iframeurl) {
-                	$miscdata = json_encode(['action'=>'item_basiccontacts','uuid'=>$uuid,'mid'=>$mid,'iframeurl'=>$iframeurl]);
-                	$thismeta .= "<a href='#' onclick='return false;' class='workflow-showmodal-iframe' data-posturl='".$posturl."' data-action='getmodal_getiframe' data-miscdata='".$miscdata."' data-toggle='tooltip' title='edit'><i class='bi bi-pencil'></i></a>";
+			$miscdata = json_encode(['action'=>'item_basiccontacts','uuid'=>$uuid,'mid'=>$mid,'iframeurl'=>$iframeurl]);
+			$thismeta .= "<a href='#' onclick='return false;' class='workflow-showmodal-iframe' data-posturl='".$posturl."' data-action='getmodal_getiframe' data-miscdata='".$miscdata."' data-toggle='tooltip' title='edit'><i class='bi bi-pencil'></i></a>";
 		}
  		$thismeta .= $contacts;
 
@@ -2420,10 +2421,10 @@ class Workflow_Utils {
 		$itemstatus = IConfig::Get($item,'workflow','status','Open');
 		$itempriority = IConfig::Get($item,'workflow','priority',1);
 
-                $thismeta = 'Status: '.$itemstatus.' (Priority: '.$itempriority.')';
+		$thismeta = 'Status: '.$itemstatus.' (Priority: '.$itempriority.')';
 		if ($posturl && $iframeurl) {
-                	$miscdata = json_encode(['action'=>'item_basicmeta','uuid'=>$uuid,'mid'=>$mid,'iframeurl'=>$iframeurl]);
-                	$thismeta .= "<a href='#' onclick='return false;' class='workflow-showmodal-iframe' data-posturl='".$posturl."' data-action='getmodal_getiframe' data-miscdata='".$miscdata."' data-toggle='tooltip' title='edit'><i class='bi bi-pencil'></i></a>";
+			$miscdata = json_encode(['action'=>'item_basicmeta','uuid'=>$uuid,'mid'=>$mid,'iframeurl'=>$iframeurl]);
+			$thismeta .= "<a href='#' onclick='return false;' class='workflow-showmodal-iframe' data-posturl='".$posturl."' data-action='getmodal_getiframe' data-miscdata='".$miscdata."' data-toggle='tooltip' title='edit'><i class='bi bi-pencil'></i></a>";
 		}
 
 		$newhookinfo['itemmeta'][] = [
@@ -2791,7 +2792,7 @@ class Workflow_Utils {
 
 		}
 
-	    	$uid = App::$profile_uid;
+		$uid = App::$profile_uid;
 		$channel = channelx_by_n(App::$profile_uid);
 
 		require_once(theme_include('theme_init.php'));
@@ -2978,7 +2979,7 @@ class Workflow_Utils {
 			$datastore[$param]=isset($requestdata[$param]) ? $requestdata[$param] : $orig;
 		}
 
-                return $datastore;
+		return $datastore;
 	}
 
 	public static function json_receiver($requestdata) {
@@ -3001,35 +3002,35 @@ class Workflow_Utils {
 
 		header("Access-Control-Allow-Origin: *");
 
-                switch ($action) {
-                        case 'update':
-                                $mid = (isset($requestdata['mid'])) ? $requestdata['mid'] : null;
-                                if (!$mid) {
-                                        App::$error = 400;
-                                        return ['error'=>150,'errmsg'=>'Update missing UUID'];
-                                }
-                                $data = self::maybeunjson($requestdata['jsondata']);
-                                self::update($requestdata['observer'],$mid,$data);
-                                break;
-                        case 'getmodal_getiframe':
-                                return self::getmodal_getiframe($requestdata);
-                                break;
-                        case 'getmodal_linkiframe':
-                                return self::getmodal_linkiframe($requestdata['url']);
-                                break;
+		switch ($action) {
+			case 'update':
+				$mid = (isset($requestdata['mid'])) ? $requestdata['mid'] : null;
+				if (!$mid) {
+					App::$error = 400;
+					return ['error'=>150,'errmsg'=>'Update missing UUID'];
+				}
+				$data = self::maybeunjson($requestdata['jsondata']);
+				self::update($requestdata['observer'],$mid,$data);
+				break;
+			case 'getmodal_getiframe':
+				return self::getmodal_getiframe($requestdata);
+				break;
+			case 'getmodal_linkiframe':
+				return self::getmodal_linkiframe($requestdata['url']);
+				break;
 
-                        case 'getmodal_getiframecontent':
-                                return self::getmodal_getiframecontent($requestdata);
-                                break;
+			case 'getmodal_getiframecontent':
+				return self::getmodal_getiframecontent($requestdata);
+				break;
 
-                        case 'getmodal_createitem':
-                                return self::getmodal_createitem($requestdata);
-                                break;
+			case 'getmodal_createitem':
+				return self::getmodal_createitem($requestdata);
+				break;
 
-                        case 'newitem':
-                                if (!$item=self::create_workflowitem($requestdata)) {
-					Hook::insert('workflow_create_item_extras','Workflow_Utils::posterror',1,30000);
-					return self::getmodal_createitem($requestdata);
+			case 'newitem':
+				if (!$item=self::create_workflowitem($requestdata)) {
+						Hook::insert('workflow_create_item_extras','Workflow_Utils::posterror',1,30000);
+						return self::getmodal_createitem($requestdata);
 				}
 
 				json_return_and_die(['success'=>1,'html'=>'Item Created.<br><a href="#" onclick="window.open(\''.$item['activity']['plink'].'\');">Go to item</a>']);
@@ -3058,7 +3059,7 @@ class Workflow_Utils {
 
 	public static function reload_wfitem($requestdata) {
 
-                $uid = App::$profile_uid;
+		$uid = App::$profile_uid;
 		$channel = channelx_by_n($uid);
 		$jsondata = self::maybeunjson($requestdata['jsondata']);
 
@@ -3097,13 +3098,13 @@ class Workflow_Utils {
 		json_return_and_die(['success'=>1,'html'=>$html]);
 	}
 
-        public static function page_header(&$header) {
-                $uid = (App::$profile_uid) ? App::$profile_uid : local_channel();
-                if (!$uid) { return; }
+	public static function page_header(&$header) {
+		$uid = (App::$profile_uid) ? App::$profile_uid : local_channel();
+		if (!$uid) { return; }
 
 		if (!Apps::addon_app_installed($uid,'workflow')) { return; }
 
-                //$header .= '<link href="addon/channelreputation/view/css/channelreputation.css" rel="stylesheet">';
+		//$header .= '<link href="addon/channelreputation/view/css/channelreputation.css" rel="stylesheet">';
 		$mywindow = new_uuid();
 		$parentwindowid = '';
 
@@ -3112,20 +3113,20 @@ class Workflow_Utils {
 			$parentwindowid = (isset($data['parentwindowid'])) ? $data['parentwindowid'] : '';
 		}
 
-                head_add_js('/addon/workflow/view/js/workflow.js');
-                head_add_css('/addon/workflow/view/css/workflow.css');
+		head_add_js('/addon/workflow/view/js/workflow.js');
+		head_add_css('/addon/workflow/view/css/workflow.css');
 		$header .= replace_macros(get_markup_template('workflow_header.tpl','addon/workflow'), array(
 			'$myzid' => get_my_address(),
 		));
-        }
+	}
 
-        public static function page_end(&$footer) {
-                $uid = (App::$profile_uid) ? App::$profile_uid : local_channel();
-                if (!$uid) { return; }
+	public static function page_end(&$footer) {
+		$uid = (App::$profile_uid) ? App::$profile_uid : local_channel();
+		if (!$uid) { return; }
 		if (!Apps::addon_app_installed($uid,'workflow')) { return; }
 		$footer .= replace_macros(get_markup_template('workflow_footer.tpl','addon/workflow'), [
 		]);
-        }
+	}
 
 	public static function item_custom_store(&$hookinfo) {
 
@@ -3152,26 +3153,26 @@ class Workflow_Utils {
 
 	public static function group_select($uid,$group = '',$label = '',$name = '') {
 
-        	$grps = array();
-        	$o = '';
+		$grps = array();
+		$o = '';
 
-        	$r = q("SELECT * FROM pgrp WHERE deleted = 0 AND uid = %d ORDER BY gname ASC",
-                	intval($uid)
-        	);
-        	$grps[] = array('name' => '', 'hash' => '0', 'selected' => '');
-        	if($r) {
-                	foreach($r as $rr) {
-                        	$grps[] = array('name' => $rr['gname'], 'id' => $rr['hash'], 'selected' => (($group == $rr['hash']) ? 'true' : ''));
-                	}
+		$r = q("SELECT * FROM pgrp WHERE deleted = 0 AND uid = %d ORDER BY gname ASC",
+			intval($uid)
+		);
+		$grps[] = array('name' => '', 'hash' => '0', 'selected' => '');
+		if($r) {
+			foreach($r as $rr) {
+				$grps[] = array('name' => $rr['gname'], 'id' => $rr['hash'], 'selected' => (($group == $rr['hash']) ? 'true' : ''));
+			}
 
-        	}
+		}
 		$name = (isset($name)) ? $name : 'group-select';
-        	$o = replace_macros(get_markup_template('group_select.tpl','addon/workflow'), array(
-                	'$label' => t(''),
-                	'$groups' => $grps,
+		$o = replace_macros(get_markup_template('group_select.tpl','addon/workflow'), array(
+			'$label' => t(''),
+			'$groups' => $grps,
 			'$name' => $name
-        	));
-        	return $o;
+		));
+		return $o;
 	}
 
 }
