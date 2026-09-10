@@ -75,6 +75,12 @@ function planets_render_location(&$arr) {
 		return;
 	}
 
+	// Deal with deprecated format
+	if(str_starts_with($arr['location'], '#')) {
+		preg_match('/\#[url=(.*?)\](.*?)\[\/url\]/', $arr['location'], $matches);
+		$arr['location'] = $matches[2] ?? '';
+	}
+
 	$planets = planets_get_all();
 
 	if(!in_array($arr['location'], $planets)) {
