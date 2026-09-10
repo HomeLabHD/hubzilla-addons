@@ -77,7 +77,7 @@ function planets_render_location(&$arr) {
 
 	// Deal with deprecated format
 	if(str_starts_with($arr['location'], '#')) {
-		preg_match('/\#[url=(.*?)\](.*?)\[\/url\]/', $arr['location'], $matches);
+		preg_match('/\[url=(.*?)\](.*?)\[\/url\]/', $arr['location'], $matches);
 		$arr['location'] = $matches[2] ?? '';
 	}
 
