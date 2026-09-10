@@ -15,6 +15,7 @@ use Zotlabs\Extend\Route;
 
 function planets_load() {
 	register_hook('post_local', 'addon/planets/planets.php', 'planets_post_hook');
+	register_hook('render_location', 'addon/planets/planets.php', 'planets_render_location');
 	Route::register('addon/planets/Mod_Planets.php', 'planets');
 	logger("loaded planets");
 }
@@ -22,10 +23,14 @@ function planets_load() {
 
 function planets_unload() {
 	unregister_hook('post_local',    'addon/planets/planets.php', 'planets_post_hook');
+	unregister_hook('render_location', 'addon/planets/planets.php', 'planets_render_location');
 	Route::unregister('addon/planets/Mod_Planets.php', 'planets');
 	logger("removed planets");
 }
 
+function planets_get_all() {
+	return ['Alderaan','Tatooine','Dagoba','Polis Massa','Coruscant','Hoth','Endor','Kamino','Rattatak','Mustafar','Iego','Geonosis','Felucia','Dantooine','Ansion','Artaru','Bespin','Boz Pity','Cato Neimoidia','Christophsis','Kashyyk','Kessel','Malastare','Mygeeto','Nar Shaddaa','Ord Mantell','Saleucami','Subterrel','Death Star','Teth','Tund','Utapau','Yavin'];
+}
 
 function planets_post_hook(&$item) {
 
@@ -40,16 +45,13 @@ function planets_post_hook(&$item) {
 
 	logger('planets invoked');
 
-	if(! local_channel())   /* non-zero if this is a logged in user of this system */
+	if (!local_channel())   /* non-zero if this is a logged in user of this system */
 		return;
 
-	if(! Apps::addon_app_installed(local_channel(), 'planets'))
+	if (!Apps::addon_app_installed(local_channel(), 'planets'))
 		return;
 
-	if(local_channel() != $item['uid'])    /* Does this person own the post? */
-		return;
-
-	if($item['parent'])   /* If the item has a parent, this is a comment or something else, not a status post. */
+	if (local_channel() != $item['uid'])    /* Does this person own the post? */
 		return;
 
 
@@ -62,10 +64,22 @@ function planets_post_hook(&$item) {
 	 *
 	 */
 
-	$planets = array('Alderaan','Tatooine','Dagoba','Polis Massa','Coruscant','Hoth','Endor','Kamino','Rattatak','Mustafar','Iego','Geonosis','Felucia','Dantooine','Ansion','Artaru','Bespin','Boz Pity','Cato Neimoidia','Christophsis','Kashyyk','Kessel','Malastare','Mygeeto','Nar Shaddaa','Ord Mantell','Saleucami','Subterrel','Death Star','Teth','Tund','Utapau','Yavin');
+	$planets = planets_get_all();
 
 	$planet = array_rand($planets,1);
-	$item['location'] = '#[url=http://starwars.com]' . $planets[$planet] . '[/url]';
+	$item['location'] = $planets[$planet];
+}
 
-	return;
+function planets_render_location(&$arr) {
+	if (!Apps::addon_app_installed(local_channel(), 'planets')) {
+		return;
+	}
+
+	$planets = planets_get_all();
+
+	if(!in_array($arr['location'], $planets)) {
+		return;
+	}
+
+	$arr['html'] = '<a href="https://www.starwars.com/search?q=' . $arr['location'] . '" target="_blank" rel="nofollow noopener" title="' . $arr['location'] . '"><i class="bi bi-geo-alt"></i></a>';
 }

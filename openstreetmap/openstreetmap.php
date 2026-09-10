@@ -9,7 +9,7 @@
  */
 
 function openstreetmap_load() {
-	register_hook('render_location', 'addon/openstreetmap/openstreetmap.php', 'openstreetmap_location');
+	register_hook('render_location', 'addon/openstreetmap/openstreetmap.php', 'openstreetmap_location', 10);
 	register_hook('generate_map', 'addon/openstreetmap/openstreetmap.php', 'openstreetmap_generate_map');
 	register_hook('generate_named_map', 'addon/openstreetmap/openstreetmap.php', 'openstreetmap_generate_named_map');
 	register_hook('page_header', 'addon/openstreetmap/openstreetmap.php', 'openstreetmap_alterheader');
@@ -43,7 +43,6 @@ function openstreetmap_alterheader(&$navHtml) {
  * @param array& $item
  */
 function openstreetmap_location(&$item) {
-
 	if(! (strlen($item['location']) || strlen($item['coord'])))
 		return;
 
