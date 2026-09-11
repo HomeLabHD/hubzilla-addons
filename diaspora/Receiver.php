@@ -857,13 +857,13 @@ class Diaspora_Receiver {
 		/* How Diaspora performs comment signature checking:
 
 	   - If an item has been sent by the comment author to the top-level post owner to relay on
-	     to the rest of the contacts on the top-level post, the top-level post owner should check
-	     the author_signature, then create a parent_author_signature before relaying the comment on
+		 to the rest of the contacts on the top-level post, the top-level post owner should check
+		 the author_signature, then create a parent_author_signature before relaying the comment on
 	   - If an item has been relayed on by the top-level post owner, the contacts who receive it
-	     check only the parent_author_signature. Basically, they trust that the top-level post
-	     owner has already verified the authenticity of anything he/she sends out
+		 check only the parent_author_signature. Basically, they trust that the top-level post
+		 owner has already verified the authenticity of anything he/she sends out
 	   - In either case, the signature that get checked is the signature created by the person
-	     who sent the pseudo-salmon
+		 who sent the pseudo-salmon
 		*/
 
 
@@ -1843,13 +1843,13 @@ class Diaspora_Receiver {
 		/* How Diaspora performs relayable_retraction signature checking:
 
 	   - If an item has been sent by the item author to the top-level post owner to relay on
-	     to the rest of the contacts on the top-level post, the top-level post owner checks
-	     the author_signature, then creates a parent_author_signature before relaying the item on
+		 to the rest of the contacts on the top-level post, the top-level post owner checks
+		 the author_signature, then creates a parent_author_signature before relaying the item on
 	   - If an item has been relayed on by the top-level post owner, the contacts who receive it
-	     check only the parent_author_signature. Basically, they trust that the top-level post
-	     owner has already verified the authenticity of anything he/she sends out
+		 check only the parent_author_signature. Basically, they trust that the top-level post
+		 owner has already verified the authenticity of anything he/she sends out
 	   - In either case, the signature that get checked is the signature created by the person
-	     who sent the salmon
+		 who sent the salmon
 		*/
 
 		if($parent_author_signature) {
@@ -1953,23 +1953,23 @@ class Diaspora_Receiver {
 		require_once('include/photo/photo_driver.php');
 
 		if($edited > $contact['xchan_photo_date']) {
-		    $images = import_xchan_photo($image_url,$contact['xchan_hash']);
-		    $newimg = true;
+			$images = import_xchan_photo($image_url,$contact['xchan_hash']);
+			$newimg = true;
 		} else {
-		    $images = array($contact['xchan_photo_l'],$contact['xchan_photo_m'],$contact['xchan_photo_s'],$contact['xchan_photo_mimetype']);
-		    $newimg = false;
+			$images = array($contact['xchan_photo_l'],$contact['xchan_photo_m'],$contact['xchan_photo_s'],$contact['xchan_photo_mimetype']);
+			$newimg = false;
 		}
 
 		$r = q("update xchan set xchan_updated = '%s', xchan_name = '%s', xchan_name_date = '%s', xchan_photo_date = '%s', xchan_photo_l = '%s', xchan_photo_m = '%s', xchan_photo_s = '%s', xchan_photo_mimetype = '%s' where xchan_hash = '%s'",
 			dbescdate(datetime_convert()),
-		    dbesc($name),
-		    dbesc(($name != $contact['xchan_name'] ? $edited : $contact['xchan_name_date'])),
-		    dbesc(($newimg ? $edited : $contact['xchan_photo_date'])),
-		    dbesc($images[0]),
-		    dbesc($images[1]),
-		    dbesc($images[2]),
-		    dbesc($images[3]),
-		    dbesc($contact['xchan_hash'])
+			dbesc($name),
+			dbesc(($name != $contact['xchan_name'] ? $edited : $contact['xchan_name_date'])),
+			dbesc(($newimg ? $edited : $contact['xchan_photo_date'])),
+			dbesc($images[0]),
+			dbesc($images[1]),
+			dbesc($images[2]),
+			dbesc($images[3]),
+			dbesc($contact['xchan_hash'])
 		);
 
 		// Somebody is sending us birthday arrays.
