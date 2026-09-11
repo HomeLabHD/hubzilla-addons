@@ -1960,7 +1960,8 @@ class Diaspora_Receiver {
 		    $newimg = false;
 		}
 
-		$r = q("update xchan set xchan_name = '%s', xchan_name_date = '%s', xchan_photo_date = '%s', xchan_photo_l = '%s', xchan_photo_m = '%s', xchan_photo_s = '%s', xchan_photo_mimetype = '%s' where xchan_hash = '%s'",
+		$r = q("update xchan set xchan_updated = '%s', xchan_name = '%s', xchan_name_date = '%s', xchan_photo_date = '%s', xchan_photo_l = '%s', xchan_photo_m = '%s', xchan_photo_s = '%s', xchan_photo_mimetype = '%s' where xchan_hash = '%s'",
+			dbescdate(datetime_convert()),
 		    dbesc($name),
 		    dbesc(($name != $contact['xchan_name'] ? $edited : $contact['xchan_name_date'])),
 		    dbesc(($newimg ? $edited : $contact['xchan_photo_date'])),

@@ -949,7 +949,8 @@ function diaspora_discover(&$b) {
 		 */
 
 		if($r) {
-			$r = q("update xchan set xchan_name = '%s', xchan_network = '%s', xchan_name_date = '%s', xchan_pubkey = '%s', xchan_follow = '%s' where xchan_hash = '%s'",
+			$r = q("update xchan set xchan_updated = '%s', xchan_name = '%s', xchan_network = '%s', xchan_name_date = '%s', xchan_pubkey = '%s', xchan_follow = '%s' where xchan_hash = '%s'",
+				dbescdate(datetime_convert()),
 				dbesc($vcard['fn']),
 				dbesc($network),
 				dbescdate(datetime_convert()),
