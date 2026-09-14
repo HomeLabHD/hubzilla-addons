@@ -48,6 +48,12 @@ class SuperblockSettingsTest extends TestCase
 		$this->assertPageContains('<input type="checkbox" name="block_reshares"');
 	}
 
+	public function testSettingsPageHasBLockIncomingCheckbox(): void
+	{
+		$this->getSettingsPage();
+		$this->assertPageContains('<input type="checkbox" name="block_incoming"');
+	}
+
 	private function getSettingsPage(): void {
 		$this->getFunctionMock('Zotlabs\Module\Settings', 'get_form_security_token')
 			->expects($this->once())
@@ -78,16 +84,19 @@ class SuperblockSettingsTest extends TestCase
 		$settings = new SuperblockSettings($this->channel['channel_id'], new PConfigAdapter());
 
 		$this->assertFalse($settings->blockReshares());
+		$this->assertFalse($settings->blockIncoming());
 
 		$this->post('settings/superblock', [], [
 			'form_security_token' => get_form_security_token(
 				'settings/superblock',
 			   	'form_security_token'),
 			'block_reshares' => '1',
+			'block_incoming' => '1',
 		]);
 
 		$settings = new SuperblockSettings($this->channel['channel_id'], new PConfigAdapter());
 
 		$this->assertTrue($settings->blockReshares());
+		$this->assertTrue($settings->blockIncoming());
 	}
 }

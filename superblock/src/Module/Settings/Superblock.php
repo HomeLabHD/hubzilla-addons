@@ -32,6 +32,15 @@ class Superblock extends Controller
 				null,
 				null,
 			],
+			'blockIncomingField' => [
+				'block_incoming',		// name, id
+				t('Block incoming posts and activities'),	// label
+				intval($plugin->settings->blockIncoming()),	// checked
+				t("If enabled, posts and activities that are blocked will be dropped on arrival. They will not be stored in the system, and will not reappear when the block expires or is removed."),
+				[ t('No'), t('Yes') ],
+				null,
+				null,
+			],
 			'submitLabel' => t('Save settings'),
 		]);
 	}
@@ -45,6 +54,7 @@ class Superblock extends Controller
 
 		$settings = new SuperblockSettings(local_channel(), new PConfigAdapter());
 		$settings->setBlockReshares(boolval($_POST['block_reshares'] ?? false));
+		$settings->setBlockIncoming(boolval($_POST['block_incoming'] ?? false));
 		$settings->save();
 	}
 }
