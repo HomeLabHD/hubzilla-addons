@@ -88,7 +88,7 @@ function superblock_item_store_before(array &$params): void
 	$channelId = $item['uid'] ?? 0;
 	if ($channelId && Apps::addon_app_installed($channelId, 'superblock')) {
 		$plugin = Superblock::getInstance($channelId);
-		if ($plugin->filterItem($item)) {
+		if ($plugin->settings->blockIncoming() && $plugin->filterItem($item)) {
 			$item['cancel'] = true;
 		}
 	}
@@ -221,7 +221,7 @@ function superblock_perm_is_allowed(array &$params): void
 
 		$plugin = Superblock::getInstance($channelId);
 
-		if ($plugin->filterByProfileUrl($sender)) {
+		if ($plugin->settings->blockIncoming() && $plugin->filterByProfileUrl($sender)) {
 			$params['result'] = false;
 		}
 	}

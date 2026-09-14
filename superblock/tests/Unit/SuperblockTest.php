@@ -657,6 +657,40 @@ class SuperblockTest extends UnitTestCase {
 		}
 	}
 
+	public function testAllowIncomingActivitiesSetting(): void {
+
+		$plugin = Superblock::getInstance($this->channel['channel_id']);
+		$plugin->settings->setBlockIncoming(false);
+		$plugin->settings->save();
+
+		foreach (self::BLOCKED_CHANNELS as $author) {
+			$args = [
+				'item' => [
+					'uid' => $this->channel['channel_id'],
+					'author_xchan' => $author
+				],
+				'allow_exec' => false,
+			];
+
+			call_hooks('item_store_before', $args);
+
+			$this->assertArrayNotHasKey('cancel', $args['item']);
+		}
+
+		foreach (self::BLOCKED_CHANNELS as $author) {
+			$args = [
+				'channel_id' => $this->channel['channel_id'],
+				'observer_hash' => $author,
+				'permission' => 'send_stream',
+				'result' => 'unset',
+			];
+
+			call_hooks('perm_is_allowed', $args);
+
+			$this->assertEquals('unset', $args['result']);
+		}
+	}
+
 	/**
 	 * Install the addon and set the blocklist.
 	 */

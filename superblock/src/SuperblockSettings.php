@@ -17,9 +17,19 @@ class SuperblockSettings
 		$this->settings = $this->config->getSettings($channelId);
 	}
 
+	public function blockIncoming(): bool
+	{
+		return $this->settings['block_incoming'] ?? true;
+	}
+
 	public function blockReshares(): bool
 	{
 		return $this->settings['block_reshares'] ?? true;
+	}
+
+	public function setBlockIncoming(bool $value): void
+	{
+		$this->settings['block_incoming'] = $value;
 	}
 
 	public function setBlockReshares(bool $value): void
