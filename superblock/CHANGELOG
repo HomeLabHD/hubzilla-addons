@@ -1,3 +1,11 @@
+Superblock v3.2.0
+-----------------
+
+- New features:
+  - Added setting page for the addon.
+  - Option to block or not reshares of posts by blocked authors.
+  - Option to drop incoming activities from blocked authors.
+
 Superblock v3.1.2
 -----------------
 

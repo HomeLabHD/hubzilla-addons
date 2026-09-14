@@ -2,12 +2,12 @@
 /**
  * Name: Superblock
  * Description: Block and manage a block list of channels you don't want to see again.
- * Version: 3.1.2
+ * Version: 3.2.0
  * Author: Mike Macgirvin
  * Author: Harald Eilertsen
  * Maintainer: Mike Macgirvin <mike@macgirvin.com>
  * Maintainer: Harald Eilertsen
- * MinVErsion: 10.0
+ * MinVersion: 11.4
  */
 
 require_once __DIR__ . '/../addon_common/vendor/autoload.php';

@@ -45,3 +45,20 @@ picture in a post or comment by the channel they want to block, and select "Bloc
 from site".
 
 This feature is only available to site admins.
+
+### Settings
+
+You can access the Superblock app settings by clicking on the cogwheel next to
+the app title (upper left corner) when visiting the main Superblock app page.
+
+#### Block reshares from blocked channels
+
+This setting determines if Superblock will block posts containing a reshare from a channel that is on the block list. When enabled, this setting will ensure that such reshares are blocked, even when reshared by a channel that is not itself blocked. By disabling this setting, such reshares will be visible in the timeline.
+
+This setting is **enabled** by default.
+
+#### BLock incoming posts and activities
+
+This setting determines if Superblock will discard incoming activities from blocked channels. By disabling this setting, Superblock will only prevent the posts and activities from being displayed to you, but they will still be stored and kept in the channel, and may reappear if the block expires or the channel unblocked.
+
+This setting is **enabled** by default.
