@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-10 23:00+0200\n"
+"POT-Creation-Date: 2026-08-05 11:20+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,7 +22,7 @@ msgstr ""
 msgid "Go to %1$s's channel (Opens in new tab)"
 msgstr ""
 
-#: src/Views/ChannelBlockEntry.php:44 Mod_Superblock.php:318
+#: src/Views/ChannelBlockEntry.php:44 Mod_Superblock.php:322
 msgid "Edit entry"
 msgstr ""
 
@@ -32,6 +32,24 @@ msgstr ""
 
 #: src/Views/ChannelBlockEntry.php:46
 msgid "Until"
+msgstr ""
+
+#: Module/Settings/Superblock.php:20
+msgid "Block reshares from blocked channels"
+msgstr ""
+
+#: Module/Settings/Superblock.php:22
+msgid ""
+"If enabled, posts containing a reshare of a post by a blocked channel will "
+"be blocked, even if the channel resharing the post is not blocked."
+msgstr ""
+
+#: Module/Settings/Superblock.php:23
+msgid "No"
+msgstr ""
+
+#: Module/Settings/Superblock.php:23
+msgid "Yes"
 msgstr ""
 
 #: Mod_Superblock.php:138
@@ -62,96 +80,96 @@ msgstr ""
 msgid "No action given"
 msgstr ""
 
-#: Mod_Superblock.php:226
+#: Mod_Superblock.php:228
 msgid "Missing or invalid channel"
 msgstr ""
 
-#: Mod_Superblock.php:272 Mod_Superblock.php:317
+#: Mod_Superblock.php:276 Mod_Superblock.php:321
 msgid "Superblock"
 msgstr ""
 
-#: Mod_Superblock.php:273
+#: Mod_Superblock.php:277
 msgid "Your blocked channels"
 msgstr ""
 
-#: Mod_Superblock.php:274 Mod_Superblock.php:318
+#: Mod_Superblock.php:278 Mod_Superblock.php:322
 msgid "Add new entry"
 msgstr ""
 
-#: Mod_Superblock.php:277
+#: Mod_Superblock.php:281
 msgid "No channels currently blocked"
 msgstr ""
 
-#: Mod_Superblock.php:287
+#: Mod_Superblock.php:291
 msgid "Channel address (webbie):"
 msgstr ""
 
-#: Mod_Superblock.php:289
+#: Mod_Superblock.php:293
 msgid ""
 "The address of the channel to block, typically like 'channel@example.com'."
 msgstr ""
 
-#: Mod_Superblock.php:294
+#: Mod_Superblock.php:298
 msgid "Block this channel for"
 msgstr ""
 
-#: Mod_Superblock.php:295
+#: Mod_Superblock.php:299
 msgid ""
 "How long to block activities from this channel, leave as 0 to block forever."
 msgstr ""
 
-#: Mod_Superblock.php:304
+#: Mod_Superblock.php:308
 msgid "Duration for which to block the channel"
 msgstr ""
 
-#: Mod_Superblock.php:308
+#: Mod_Superblock.php:312
 msgid "Minute(s)"
 msgstr ""
 
-#: Mod_Superblock.php:309
+#: Mod_Superblock.php:313
 msgid "Hour(s)"
 msgstr ""
 
-#: Mod_Superblock.php:310
+#: Mod_Superblock.php:314
 msgid "Day(s)"
 msgstr ""
 
-#: Mod_Superblock.php:311
+#: Mod_Superblock.php:315
 msgid "Week(s)"
 msgstr ""
 
-#: Mod_Superblock.php:312
+#: Mod_Superblock.php:316
 msgid "Month(s)"
 msgstr ""
 
-#: Mod_Superblock.php:313
+#: Mod_Superblock.php:317
 msgid "Years"
 msgstr ""
 
-#: Mod_Superblock.php:316
+#: Mod_Superblock.php:320
 msgid "Block channel!"
 msgstr ""
 
-#: Mod_Superblock.php:397
+#: Mod_Superblock.php:401
 msgid "no action specified"
 msgstr ""
 
-#: Mod_Superblock.php:402
+#: Mod_Superblock.php:406
 msgid "no channel specified"
 msgstr ""
 
-#: Mod_Superblock.php:408
+#: Mod_Superblock.php:412
 msgid "You do not have access to perform this operation"
 msgstr ""
 
-#: Mod_Superblock.php:433
+#: Mod_Superblock.php:437
 msgid "Invalid or missing security token"
 msgstr ""
 
-#: superblock.php:212
+#: superblock.php:274
 msgid "Block channel…"
 msgstr ""
 
-#: superblock.php:221
+#: superblock.php:283
 msgid "Block from site"
 msgstr ""

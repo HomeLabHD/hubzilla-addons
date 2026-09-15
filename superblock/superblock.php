@@ -2,12 +2,12 @@
 /**
  * Name: Superblock
  * Description: Block and manage a block list of channels you don't want to see again.
- * Version: 3.1.2
+ * Version: 3.2.0
  * Author: Mike Macgirvin
  * Author: Harald Eilertsen
  * Maintainer: Mike Macgirvin <mike@macgirvin.com>
  * Maintainer: Harald Eilertsen
- * MinVErsion: 10.0
+ * MinVersion: 11.4
  */
 
 require_once __DIR__ . '/../addon_common/vendor/autoload.php';
@@ -45,6 +45,7 @@ function superblock_load(): void
 
 	Hook::register_array('addon/superblock/superblock.php', $hooks);
 	Route::register('addon/superblock/Mod_Superblock.php','superblock');
+	Route::register('addon/superblock/src/Module/Settings/Superblock.php', 'settings/superblock');
 }
 
 
@@ -58,6 +59,7 @@ function superblock_unload(): void
 {
 	Hook::unregister_by_file('addon/superblock/superblock.php');
 	Route::unregister('addon/superblock/Mod_Superblock.php','superblock');
+	Route::unregister('addon/superblock/src/Module/Settings/Superblock.php', 'settings/superblock');
 }
 
 function superblock_stream_item(&$b)
@@ -86,7 +88,7 @@ function superblock_item_store_before(array &$params): void
 	$channelId = $item['uid'] ?? 0;
 	if ($channelId && Apps::addon_app_installed($channelId, 'superblock')) {
 		$plugin = Superblock::getInstance($channelId);
-		if ($plugin->filterItem($item)) {
+		if ($plugin->settings->blockIncoming() && $plugin->filterItem($item)) {
 			$item['cancel'] = true;
 		}
 	}
@@ -219,7 +221,7 @@ function superblock_perm_is_allowed(array &$params): void
 
 		$plugin = Superblock::getInstance($channelId);
 
-		if ($plugin->filterByProfileUrl($sender)) {
+		if ($plugin->settings->blockIncoming() && $plugin->filterByProfileUrl($sender)) {
 			$params['result'] = false;
 		}
 	}
