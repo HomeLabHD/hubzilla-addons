@@ -21,6 +21,7 @@ class Simplenotes extends Controller {
 
 	private $auth;
 	private $dir;
+	private $simplenotes_path;
 
 	public function init(): void {
 		if (!local_channel()) {
@@ -49,19 +50,19 @@ class Simplenotes extends Controller {
 			$this->auth->setTimezone($channel['channel_timezone']);
 		}
 
-		$simplenotes_path = PConfig::Get($this->auth->channel_id, 'simplenotes', 'path');
+		$this->simplenotes_path = PConfig::Get($this->auth->channel_id, 'simplenotes', 'path');
 
-		if (!$simplenotes_path) {
+		if (!$this->simplenotes_path) {
 			notice('Please configure a path to the notes directory');
 			goaway('settings/simplenotes');
 		}
 
 		try {
 			if (argv(1)) {
-				$simplenotes_path .= '/' . argv(1);
+				$this->simplenotes_path .= '/' . argv(1);
 			}
 
-			$this->dir = new Directory($channel['channel_address'] . '/' . $simplenotes_path, [], $this->auth);
+			$this->dir = new Directory($channel['channel_address'] . '/' . $this->simplenotes_path, [], $this->auth);
 		} catch (\Exception $e) {
 			notice('Exception: ' . $e->getMessage());
 			goaway(z_root() . '/settings/simplenotes');
@@ -83,6 +84,7 @@ class Simplenotes extends Controller {
 		}
 
 		nav_set_selected('Simple Notes', 'settings/simplenotes');
+		head_add_css('/addon/simplenotes/view/css/simplenotes.css');
 
 		try {
 			$files = $this->dir->getChildren();
@@ -154,7 +156,10 @@ class Simplenotes extends Controller {
 			else {
 				$parser = new Markdown;
 				$parser->hard_wrap = true; // mimic the md behaviour of the companion app
-				$prepared['content']['parsed'] = $parser->transform($note_object->content);
+
+				// Replace the hardcoded assets path placeholder with the actual assets path before transforming
+				$parsed = str_replace('](.assets/',  '](' . z_root() . '/cloud/' . $this->auth->owner_nick . '/' . $this->simplenotes_path . '-assets/', $note_object->content);
+				$prepared['content']['parsed'] = $parser->transform($parsed);
 			}
 
 			$prepared['content']['encoded'] = base64_encode($note_object->content);

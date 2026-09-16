@@ -205,6 +205,12 @@
 		let activeNoteType = null;
 		let activeNoteColor = null;
 		let activeChecklistSortOption = null;
+		let msnry;
+		let msnry_options = {
+			itemSelector: '.simplenotes_note:not([style*="display: none"])',
+			percentPosition: true,
+			horizontalOrder: true
+		};
 
 		const simplenotesNoteTitle = document.getElementById('simplenotes-note-title');
 		const simplenotesNoteContent = document.getElementById('simplenotes-note-content');
@@ -232,16 +238,11 @@
 			simplenotesNoteContent.value = '';
 		});
 
-		sortNotes(direction);
-		updateRelativeTime('.autotime');
-
-		let msnry_options = {
-			itemSelector: '.simplenotes_note:not([style*="display: none"])',
-			percentPosition: true,
-			horizontalOrder: true
-		};
-
-		let msnry = new Masonry('.simplenotes_notes_container', msnry_options);
+		imagesLoaded(document.querySelectorAll('.note-content img'), function () {
+			sortNotes(direction);
+			updateRelativeTime('.autotime');
+			msnry = new Masonry('.simplenotes_notes_container', msnry_options);
+		});
 
 		const radiosOrder = document.querySelectorAll('input[name="noteOrder"]');
 		radiosOrder.forEach(radio =>
