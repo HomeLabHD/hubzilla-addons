@@ -399,7 +399,8 @@ class NativeWikiPage {
 			}
 		}
 
-		$ret = item_store($item, deliver: false, addAndSync: false);
+		$execflag = channel_codeallowed(local_channel());
+		$ret = item_store($item, allow_exec: $execflag, deliver: false, addAndSync: false);
 
 		if ($ret['item_id']) {
 			q("update item set changed = '%s' where id = %d and uid = %d",

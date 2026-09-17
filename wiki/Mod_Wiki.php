@@ -451,10 +451,12 @@ class Wiki extends Controller {
 			}
 			elseif($mimeType === 'text/markdown') {
 				$linkconverted = NativeWikiPage::convert_links($content,$wikiURL);
-				$bb = NativeWikiPage::bbcode($linkconverted);
-				$x = new MarkdownSoap($bb);
-				$md = $x->clean();
-				$md = MarkdownSoap::unescape($md);
+				$md = NativeWikiPage::bbcode($linkconverted);
+				if (!channel_codeallowed(local_channel())) {
+					$x = new MarkdownSoap($md);
+					$md = $x->clean();
+					$md = MarkdownSoap::unescape($md);
+				}
 				$html = MarkdownExtra::defaultTransform($md);
 				$html = NativeWikiPage::generate_toc(zidify_text($html));
 			}
