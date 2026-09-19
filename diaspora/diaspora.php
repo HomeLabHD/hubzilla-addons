@@ -68,7 +68,8 @@ function diaspora_load() {
 		'get_actor_provider'          => 'diaspora_get_actor_provider',
 		'get_cached_actor_provider'   => 'diaspora_get_cached_actor_provider',
 		'encode_activity'             => 'diaspora_encode_activity',
-		'decode_note'                 => 'diaspora_decode_note'
+		'decode_note'                 => 'diaspora_decode_note',
+		'ping_site'                   => 'diaspora_ping_site'
 	]);
 
 	Route::register('addon/diaspora/Mod_Diaspora.php','diaspora');
@@ -1646,4 +1647,25 @@ function diaspora_decode_note(&$arr) {
 	}
 }
 
+function diaspora_ping_site(&$hookdata) {
+	if ($hookdata['success']) {
+		return;
+	}
 
+	$node_info = z_fetch_url(url: $hookdata['url'] . '/.well-known/nodeinfo');
+
+	if ($node_info['success']) {
+		$body = json_decode($node_info['body'], true);
+		if (isset($body['links'])) {
+			$hookdata['success'] = true;
+			$hookdata['message'] = 'nodeinfo success from ' . $hookdata['url'];
+
+		}
+		else {
+			$hookdata['message'] = 'invalid nodeinfo from ' . $hookdata['url'];
+		}
+	}
+	else {
+		$hookdata['message'] = 'no answer from ' . $hookdata['url'];
+	}
+}

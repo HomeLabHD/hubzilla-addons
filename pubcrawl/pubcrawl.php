@@ -60,7 +60,8 @@ function pubcrawl_load() {
 		'encode_item'                => 'pubcrawl_encode_item',
 		'encode_activity'            => 'pubcrawl_encode_activity',
 		'encode_item_xchan'          => 'pubcrawl_encode_item_xchan',
-		'fetch_provider'             => 'pubcrawl_fetch_provider'
+		'fetch_provider'             => 'pubcrawl_fetch_provider',
+		'ping_site'                  => 'pubcrawl_ping_site'
 	]);
 	Route::register('addon/pubcrawl/Mod_Pubcrawl.php', 'pubcrawl');
 }
@@ -1334,4 +1335,35 @@ function pubcrawl_encode_addressing(&$arr) {
 	$item = $top_level ? $arr['item'] : $parent[0];
 
 	$arr['encoded'][$field] = Activity::map_acl($item);
+}
+
+function pubcrawl_ping_site(&$hookdata) {
+	if ($hookdata['success']) {
+		return;
+	}
+
+	$node_info = z_fetch_url(url: $hookdata['url'] . '/.well-known/nodeinfo');
+
+	if ($node_info['success']) {
+		$body = json_decode($node_info['body'], true);
+		if (isset($body['links'])) {
+			$hookdata['success'] = true;
+			$hookdata['message'] = 'nodeinfo success from ' . $hookdata['url'];
+		}
+		else {
+			// Try to fetch the instance actor
+			$actor = Activity::fetch($hookdata['url']);
+
+			if (is_array($actor)) {
+				$hookdata['success'] = true;
+				$hookdata['message'] = 'instance actor success from ' . $hookdata['url'];
+			}
+			else {
+				$hookdata['message'] = 'could not fetch instance actor from ' . $hookdata['url'];
+			}
+		}
+	}
+	else {
+		$hookdata['message'] = 'no answer from ' . $hookdata['url'];
+	}
 }
