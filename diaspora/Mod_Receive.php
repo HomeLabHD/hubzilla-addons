@@ -120,9 +120,8 @@ class Receive extends Controller {
 		$ssl = ((array_key_exists('HTTPS',$_SERVER) && strtolower($_SERVER['HTTPS']) === 'on') ? true : false);
 		$url = (($ssl) ? 'https://' : 'http://') . $host;
 
-		q("UPDATE site SET site_dead = 0, site_update = '%s' WHERE site_type = %d AND site_url = '%s' AND site_update < %s - INTERVAL %s",
+		q("UPDATE site SET site_dead = 0, site_update = '%s' WHERE site_url = '%s' AND site_update < %s - INTERVAL %s",
 			dbesc(datetime_convert()),
-			intval(SITE_TYPE_NOTZOT),
 			dbesc($url),
 			db_utcnow(),
 			db_quoteinterval('1 DAY')
