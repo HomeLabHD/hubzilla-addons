@@ -1338,32 +1338,27 @@ function pubcrawl_encode_addressing(&$arr) {
 }
 
 function pubcrawl_ping_site(&$hookdata) {
-	if ($hookdata['success']) {
+	if ($hookdata['success'] && $hookdata['type'] < 3) {
 		return;
 	}
 
-	$node_info = z_fetch_url(url: $hookdata['url'] . '/.well-known/nodeinfo');
-
-	if ($node_info['success']) {
-		$body = json_decode($node_info['body'], true);
-		if (isset($body['links'])) {
-			$hookdata['success'] = true;
-			$hookdata['message'] = 'nodeinfo success from ' . $hookdata['url'];
-		}
-		else {
-			// Try to fetch the instance actor
-			$actor = Activity::fetch($hookdata['url']);
-
-			if (is_array($actor)) {
-				$hookdata['success'] = true;
-				$hookdata['message'] = 'instance actor success from ' . $hookdata['url'];
-			}
-			else {
-				$hookdata['message'] = 'could not fetch instance actor from ' . $hookdata['url'];
-			}
-		}
+	// Try nodeinfo
+	$nodeinfo = nodeinfo_fetch($hookdata['url']);
+	if ($nodeinfo) {
+		$hookdata['success'] = true;
+		$hookdata['type'] = ((isset($nodeinfo['protocols']) && in_array('activitypub', $nodeinfo['protocols'])) ? SITE_TYPE_ACTIVITYPUB : SITE_TYPE_UNKNOWN);
+		$hookdata['project'] = $nodeinfo['software']['name'] ?? '';
+		$hookdata['version'] = $nodeinfo['software']['version'] ?? '';
+		return;
 	}
-	else {
-		$hookdata['message'] = 'no answer from ' . $hookdata['url'];
+
+	// Try to fetch the instance actor
+	$actor = Activity::fetch($hookdata['url']);
+	if ($actor) {
+		$hookdata['success'] = true;
+		$hookdata['type'] = SITE_TYPE_ACTIVITYPUB;
+		return;
 	}
+
+	$hookdata['message'] = 'no answer from ' . $hookdata['url'];
 }

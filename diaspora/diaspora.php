@@ -1648,24 +1648,19 @@ function diaspora_decode_note(&$arr) {
 }
 
 function diaspora_ping_site(&$hookdata) {
-	if ($hookdata['success']) {
+	if ($hookdata['success'] && $hookdata['type'] < 3) {
 		return;
 	}
 
-	$node_info = z_fetch_url(url: $hookdata['url'] . '/.well-known/nodeinfo');
-
-	if ($node_info['success']) {
-		$body = json_decode($node_info['body'], true);
-		if (isset($body['links'])) {
-			$hookdata['success'] = true;
-			$hookdata['message'] = 'nodeinfo success from ' . $hookdata['url'];
-
-		}
-		else {
-			$hookdata['message'] = 'invalid nodeinfo from ' . $hookdata['url'];
-		}
+	// Try nodeinfo
+	$nodeinfo = nodeinfo_fetch($hookdata['url']);
+	if ($nodeinfo) {
+		$hookdata['success'] = true;
+		$hookdata['type'] = ((isset($nodeinfo['protocols']) && count($nodeinfo['protocols']) === 1 && $nodeinfo['protocols'][0] === 'diaspora') ? SITE_TYPE_DIASPORA : SITE_TYPE_UNKNOWN);
+		$hookdata['project'] = $nodeinfo['software']['name'] ?? '';
+		$hookdata['version'] = $nodeinfo['software']['version'] ?? '';
+		return;
 	}
-	else {
-		$hookdata['message'] = 'no answer from ' . $hookdata['url'];
-	}
+
+	$hookdata['message'] = 'no answer from ' . $hookdata['url'];
 }
