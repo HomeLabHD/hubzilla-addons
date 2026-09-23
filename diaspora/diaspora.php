@@ -1657,7 +1657,7 @@ function diaspora_ping_site(&$hookdata) {
 	$nodeinfo = nodeinfo_fetch($hookdata['url']);
 	if ($nodeinfo) {
 		$hookdata['success'] = true;
-		$hookdata['type'] = ((isset($nodeinfo['protocols']) && count($nodeinfo['protocols']) === 1 && $nodeinfo['protocols'][0] === 'diaspora') ? SITE_TYPE_DIASPORA : SITE_TYPE_UNKNOWN);
+		$hookdata['type'] = ((isset($nodeinfo['protocols']) && (count($nodeinfo['protocols']) === 1 && $nodeinfo['protocols'][0] === 'diaspora') || (isset($nodeinfo['protocols']['inbound'], $nodeinfo['protocols']['outbound']) && $nodeinfo['protocols']['inbound'][0] === 'diaspora' && $nodeinfo['protocols']['outbound'][0] === 'diaspora')) ? SITE_TYPE_DIASPORA : SITE_TYPE_UNKNOWN);
 		$hookdata['project'] = $nodeinfo['software']['name'] ?? '';
 		$hookdata['version'] = $nodeinfo['software']['version'] ?? '';
 		return;
