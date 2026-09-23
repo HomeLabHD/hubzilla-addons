@@ -1648,7 +1648,7 @@ function diaspora_decode_note(&$arr) {
 }
 
 function diaspora_ping_site(&$hookdata) {
-	// TODO: return here if type !== SITE_TYPE_DIASPORA after release of version 13
+	// TODO: return here if type !== SITE_TYPE_DIASPORA after release of version 12
 	if ($hookdata['success'] && $hookdata['type'] < 3) {
 		return;
 	}

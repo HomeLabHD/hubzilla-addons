@@ -1338,7 +1338,7 @@ function pubcrawl_encode_addressing(&$arr) {
 }
 
 function pubcrawl_ping_site(&$hookdata) {
-	// TODO: return here if type !== SITE_TYPE_ACTIVITYPUB after release of version 13
+	// TODO: return here if type !== SITE_TYPE_ACTIVITYPUB after release of version 12
 	if ($hookdata['success'] && $hookdata['type'] < 3) {
 		return;
 	}
