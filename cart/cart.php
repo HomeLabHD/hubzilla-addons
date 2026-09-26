@@ -1251,7 +1251,7 @@ function cart_uninstall() {
 
 function cart_load() {
 	// HOOK REGISTRATION
-	Zotlabs\Extend\Hook::register('construct_page', 'addon/cart/cart.php', 'cart_construct_page', 1);
+	Zotlabs\Extend\Hook::register('xchan_has_data', 'addon/cart/cart.php', 'cart_xchan_has_data');
 	Zotlabs\Extend\Hook::register('channel_apps', 'addon/cart/cart.php', 'cart_channel_apps');
 	Zotlabs\Extend\Hook::register('cart_do_additem', 'addon/cart/cart.php', 'cart_do_additem', 1);
 	Zotlabs\Extend\Hook::register('cart_order_additem', 'addon/cart/cart.php', 'cart_additem_hook', 1);
@@ -1408,6 +1408,21 @@ function cart_channel_apps(&$hookdata) {
 			'id'    => 'cart-tab',
 			'icon'  => 'cart'
 		];
+	}
+}
+
+// This is a maintenance hook to tell core if we store data for a particular non local xchan.
+// In our case cart_orders.buyer_xchan is relevant.
+function cart_xchan_has_data(&$hookdata) {
+	// do not bother if success is already true
+	if (!$hookdata['success']) {
+		$r = q("select id from cart_orders where buyer_xchan = '%s' limit 1",
+			dbesc($hookdata['xchan'])
+		);
+
+		if ($r) {
+			$hookdata['success'] = true;
+		}
 	}
 }
 
